@@ -1,15 +1,12 @@
 # 🐾 Bark Bites
 
-School Canteen POS & Meal Pre-Order System
+School Canteen POS & Meal Pre-Order System  
 A Java-based solution to eliminate long lines and modernize school dining.
 
-
-
-\<img src="[https://img.shields.io/badge/Maintained%3F-yes-green.svg](https://www.google.com/search?q=https://img.shields.io/badge/Maintained%253F-yes-green.svg)" alt="Maintained"\>
-\<img src="[https://img.shields.io/badge/Language-Java-orange.svg](https://www.google.com/search?q=https://img.shields.io/badge/Language-Java-orange.svg)" alt="Java"\>
-\<img src="[https://img.shields.io/badge/Framework-NetBeans-blue.svg](https://www.google.com/search?q=https://img.shields.io/badge/Framework-NetBeans-blue.svg)" alt="NetBeans"\>
-\<img src="[https://img.shields.io/badge/Architecture-OOP-red.svg](https://www.google.com/search?q=https://img.shields.io/badge/Architecture-OOP-red.svg)" alt="OOP"\>
-\</p\>
+![Maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
+![Java](https://img.shields.io/badge/Language-Java-orange.svg)
+![NetBeans](https://img.shields.io/badge/Framework-NetBeans-blue.svg)
+![OOP](https://img.shields.io/badge/Architecture-OOP-red.svg)
 
 -----
 
