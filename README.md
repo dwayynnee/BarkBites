@@ -52,6 +52,3 @@ A Java-based solution to eliminate long lines and modernize school dining.
 
 -----
 
-### Suggested Next Step
-
-Since this is for a Java project, would you like me to help you create a **"Screenshots"** section placeholder or a **"Project Structure"** tree to show off your packages and classes?
