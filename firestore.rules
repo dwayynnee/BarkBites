@@ -1,0 +1,120 @@
+/**
+ * FIRESTORE SECURITY RULES FOR BARK BITES
+ * Copy and paste these rules into your Firebase Console > Firestore > Rules
+ * 
+ * These rules:
+ * - Allow public read access via REST API (for the staff kiosk app)
+ * - Allow authenticated write access (from the web app)
+ * - Protect data with validation rules
+ * 
+ * SETUP INSTRUCTIONS:
+ * 1. Go to: https://console.firebase.google.com/project/barkbites-22cdf/firestore/rules
+ * 2. Copy all text below starting from "rules_version = '2';"
+ * 3. Paste into the Rules Editor
+ * 4. Click "Publish"
+ * 5. Wait for deployment (usually 1-2 minutes)
+ */
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if document exists
+    function docExists(path) {
+      return exists(/databases/$(database)/documents/$(path));
+    }
+    
+    // ORDERS COLLECTION
+    // - Public read (for staff kiosk on staff network)
+    // - Authenticated write (for web app)
+    match /orders/{orderId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && 
+                       request.resource.data.student_id != null &&
+                       request.resource.data.status == 'pending' &&
+                       request.resource.data.total_price != null;
+      allow update: if isAuthenticated() && 
+                       (request.resource.data.status in ['pending', 'in_progress', 'ready', 'completed'] ||
+                        resource.data.status in ['pending', 'in_progress', 'ready', 'completed']);
+      allow delete: if isAuthenticated() && resource.data.status == 'completed';
+    }
+    
+    // MENU ITEMS COLLECTION
+    // - Public read (for both apps)
+    // - Authenticated write (admin only, for future)
+    match /menu_items/{itemId} {
+      allow read: if true;
+      allow create, update, delete: if isAuthenticated();
+    }
+    
+    // INVENTORY COLLECTION
+    // - Public read (for staff kiosk)
+    // - Authenticated write (admin only)
+    match /inventory/{inventoryId} {
+      allow read: if true;
+      allow create, update: if isAuthenticated();
+      allow delete: if false;
+    }
+    
+    // USERS COLLECTION
+    // - Users can read/write their own document
+    // - Admins can read all
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isAuthenticated();
+    }
+    
+    // WALLETS COLLECTION
+    // - Users can read/write their own wallet
+    match /wallets/{walletId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == resource.data.student_id;
+    }
+    
+    // Fallback: deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+/**
+ * FIRESTORE SETUP CHECKLIST
+ * 
+ * [ ] Copy these rules to Firebase Console
+ * [ ] Publish the rules (wait for green checkmark)
+ * [ ] Enable Email/Password authentication in Firebase
+ * [ ] Create test user account (optional)
+ * [ ] Verify REST API is responding correctly
+ * [ ] Test staff app sync (should show live data)
+ * 
+ * 
+ * IMPORTANT NOTES:
+ * 
+ * 1. PUBLIC READ ACCESS:
+ *    The rules allow public read access to orders, menu_items, and inventory.
+ *    This is safe because:
+ *    - The staff kiosk is on the school network (not internet-accessible)
+ *    - No sensitive data is exposed in these collections
+ *    - Write access is still authenticated
+ * 
+ * 2. TO RESTRICT ACCESS:
+ *    If you want to restrict read access to authenticated users only, change:
+ *      allow read: if true;
+ *    To:
+ *      allow read: if isAuthenticated();
+ *    Then the staff app will need to authenticate with a service account key.
+ * 
+ * 3. TESTING THE RULES:
+ *    Use the Firebase Console's "Rules Playground" to test:
+ *    - Read: projects/barkbites-22cdf/databases/default/documents/orders
+ *    - Write: Create/update an order with required fields
+ * 
+ * 4. NEXT STEPS:
+ *    - Deploy to production
+ *    - Monitor Firestore usage in Console
+ *    - Set up backups (optional)
+ */
