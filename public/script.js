@@ -143,11 +143,10 @@ async function handleLogin(e) {
     }
 
     try {
-        // Try to get user from Firestore, or create if doesn't exist
+        // Try normal Firestore-backed login first
         const userDoc = await firestoreService.getUserByStudentId(studentId);
         
         if (!userDoc) {
-            // Create new user if doesn't exist
             const newUser = {
                 student_id: studentId,
                 name: `Student ${studentId}`,
@@ -160,17 +159,14 @@ async function handleLogin(e) {
             currentStudent = { id: studentId, ...newUser };
         } else {
             currentStudent = { id: studentId, ...userDoc };
-            // Update last login
             await firestoreService.updateUser(studentId, { last_login: new Date() });
         }
 
-        // Load wallet
         currentWallet = await firestoreService.getWalletByStudentId(studentId);
         if (!currentWallet) {
-            // Create new wallet if doesn't exist
             await firestoreService.createWallet({
                 student_id: studentId,
-                balance: 50.00, // Default starting balance
+                balance: 50.00,
                 created_at: new Date(),
                 transactions: []
             });
@@ -181,15 +177,34 @@ async function handleLogin(e) {
             };
         }
 
-        // Load menu items
         allMenuItems = await firestoreService.getAllMenuItems();
 
         loginError.textContent = '';
         showAppScreen();
         showToast(`Welcome, ${currentStudent.name || studentId}!`, 'success');
     } catch (error) {
-        console.error('Login error:', error);
-        loginError.textContent = 'Login failed. Please try again.';
+        // Fallback: allow login even if Firestore is unavailable
+        console.error('Login error (falling back to demo mode):', error);
+
+        currentStudent = {
+            id: studentId,
+            student_id: studentId,
+            name: `Student ${studentId}`,
+            email: `${studentId}@demo.local`,
+            role: 'student',
+            created_at: new Date(),
+            last_login: new Date()
+        };
+
+        currentWallet = {
+            student_id: studentId,
+            balance: 50.00,
+            transactions: []
+        };
+
+        loginError.textContent = '';
+        showAppScreen();
+        showToast(`Demo login for ${studentId} (Firestore offline)`, 'info');
     }
 }
 

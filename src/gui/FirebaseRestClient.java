@@ -1,11 +1,19 @@
 package gui;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.net.ssl.HttpsURLConnection;
 
 /**
@@ -13,13 +21,13 @@ import javax.net.ssl.HttpsURLConnection;
  * Communicates with Node.js server which handles Firestore authentication
  */
 public class FirebaseRestClient {
-    private static final String PROJECT_ID = "barkbites-22cdf";
-    private static final String API_KEY = "AIzaSyBhEIJfhAyWqXim6zP-22I3Y0gLlc91LV4";
+    private static final String PROJECT_ID = "barkbites-student";
+    private static final String API_KEY = "AIzaSyAX_y7YlUKixzQOQD0E66pbbYOUx6s8gKE";
     private static final String FIREBASE_CONFIG_PATH = "firebase-key.json";
     
     // Use local Node.js server as API gateway (authenticates with Firestore)
-    // Try port 3002 first, then 3001, then 3000
-    private static String SERVER_URL = "http://localhost:3002";
+    // Default server.js runs on port 3000
+    private static String SERVER_URL = "http://localhost:3000";
     
     // Fallback to direct Firestore if server unavailable
     private static final String FIREBASE_URL = 

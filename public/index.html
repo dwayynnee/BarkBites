@@ -229,16 +229,16 @@
             <div id="currentUser" style="color: #666; margin: 10px 0;"></div>
 
             <!-- Menu Tab -->
-            <div id="menuTab" class="tab active">
+            <div id="menuTab" class="tab tab-content active">
                 <h2>Today's Menu</h2>
                 <div id="menuGrid" class="menu-grid"></div>
             </div>
 
             <!-- Cart Tab -->
-            <div id="cartTab" class="tab">
+            <div id="cartTab" class="tab tab-content">
                 <h2>Shopping Cart</h2>
                 <div class="cart-container">
-                    <div id="cartItemsList"></div>
+                    <div id="cartItems"></div>
                     <div class="cart-summary">
                         <div class="summary-line">
                             <span>Subtotal:</span>
@@ -254,27 +254,32 @@
                         </div>
                         <div class="summary-line">
                             <span>Balance:</span>
-                            <span id="balance">$50.00</span>
+                            <span id="walletBalance">$50.00</span>
                         </div>
+                        <button id="continueShopping" style="margin-top: 10px;">Continue Shopping</button>
                         <button id="checkoutBtn" style="margin-top: 20px;">Checkout</button>
                     </div>
                 </div>
             </div>
 
             <!-- Orders Tab -->
-            <div id="ordersTab" class="tab">
+            <div id="ordersTab" class="tab tab-content">
                 <h2>Your Orders</h2>
                 <div id="ordersList"></div>
             </div>
 
             <!-- Wallet Tab -->
-            <div id="walletTab" class="tab">
+            <div id="walletTab" class="tab tab-content">
                 <h2>Digital Wallet</h2>
                 <div class="wallet-card">
                     <p>Current Balance</p>
-                    <div class="balance-large" id="walletBalance">$50.00</div>
+                    <div class="balance-large" id="walletBalanceLarge">$50.00</div>
                 </div>
-                <div id="transactions"></div>
+                <div id="walletStats" style="margin-bottom: 10px;">
+                    <p>Total Spent: <span id="totalSpent">$0.00</span></p>
+                    <p>Total Orders: <span id="orderCount">0</span></p>
+                </div>
+                <div id="transactionHistory"></div>
             </div>
         </div>
     </div>
@@ -283,13 +288,18 @@
     <div id="itemModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
-            <h2 id="modalName"></h2>
-            <p id="modalDesc"></p>
-            <p><strong>Price:</strong> <span id="modalPrice">$0</span></p>
+            <h2 id="modalItemName"></h2>
+            <p id="modalItemDescription"></p>
+            <p><strong>Price:</strong> <span id="modalItemPrice">$0</span></p>
             
             <label>Quantity:</label>
-            <input type="number" id="qtyInput" value="1" min="1">
-            
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button type="button" id="decreaseQty">-</button>
+                <input type="number" id="qtyInput" value="1" min="1" style="width: 60px;">
+                <button type="button" id="increaseQty">+</button>
+            </div>
+            <p style="margin-top: 10px;">Subtotal: <span id="modalSubtotal">$0.00</span></p>
+
             <button id="addToCartBtn">Add to Cart</button>
         </div>
     </div>
@@ -300,15 +310,20 @@
             <span class="close" onclick="closeModal()">&times;</span>
             <h2>Confirm Order</h2>
             <div id="checkoutSummary"></div>
-            <button id="confirmBtn" style="margin-top: 20px;">Confirm & Pay</button>
-            <button id="cancelBtn" onclick="closeModal()" style="background: #6c757d;">Cancel</button>
+            <button id="confirmOrderBtn" style="margin-top: 20px;">Confirm & Pay</button>
+            <button id="cancelOrderBtn" onclick="closeModal()" style="background: #6c757d;">Cancel</button>
         </div>
     </div>
 
-    <!-- Firebase SDK from CDN -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 4px; opacity: 0; pointer-events: none; transition: opacity 0.3s;">
+        Toast message
+    </div>
+
+    <!-- Firebase SDK from CDN (compat builds for firebase.* namespace) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     
     <!-- Firebase Configuration and Service Layer -->
     <script src="firebase-config.js"></script>

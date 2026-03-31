@@ -11,12 +11,13 @@
 // Initialize Firebase
 // These are public API keys (safe to expose in frontend)
 const firebaseConfig = {
-  apiKey: "AIzaSyA3cB3tqFrCiRcuy0K7P_Cv8Mxqk7nCNnc",
-  authDomain: "barkbites-22cdf.firebaseapp.com",
-  projectId: "barkbites-22cdf",
-  storageBucket: "barkbites-22cdf.firebasestorage.app",
-  messagingSenderId: "122836756084",
-  appId: "1:122836756084:web:bbdbe99929a30c5d391321"
+  apiKey: "AIzaSyAX_y7YlUKixzQOQD0E66pbbYOUx6s8gKE",
+  authDomain: "barkbites-student.firebaseapp.com",
+  projectId: "barkbites-student",
+  storageBucket: "barkbites-student.firebasestorage.app",
+  messagingSenderId: "751754860190",
+  appId: "1:751754860190:web:8eca614393be8ac09f0d8f",
+  measurementId: "G-16D6BLLYKE"
 };
 
 // Initialize Firebase
@@ -30,6 +31,13 @@ try {
 // Get Firebase services
 const db = firebase.firestore();
 const auth = firebase.auth();
+
+// Simple auth so Firestore rules that require authentication can pass
+auth.signInAnonymously().then(() => {
+  console.log("Signed in anonymously for Firestore access");
+}).catch((error) => {
+  console.error("Anonymous sign-in failed:", error);
+});
 
 /**
  * Database Collections Reference
@@ -361,7 +369,7 @@ const firestoreService = {
     } catch (error) {
       console.error("Error setting up inventory listener:", error);
     }
-  }
+  },
 
   // ==================== WALLET OPERATIONS ====================
 

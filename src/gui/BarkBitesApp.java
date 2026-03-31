@@ -1,10 +1,37 @@
 package gui;
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.table.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimerTask;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+import javax.swing.table.DefaultTableModel;
 
 /**
  * Bark Bites - Staff Kiosk Application (Firebase-Integrated)
@@ -217,7 +244,7 @@ class OrderQueuePanel extends JPanel {
                                 String time = dateFormat.format(new Date());
                                 
                                 tableModel.addRow(new Object[]{
-                                    id.substring(0, Math.min(8, id.length())),
+                                    id,
                                     studentId,
                                     "Order Items",
                                     String.format("$%.2f", totalPrice),
