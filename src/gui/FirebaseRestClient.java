@@ -21,8 +21,8 @@ import javax.net.ssl.HttpsURLConnection;
  * Communicates with Node.js server which handles Firestore authentication
  */
 public class FirebaseRestClient {
-    private static final String PROJECT_ID = "barkbites-student";
-    private static final String API_KEY = "AIzaSyAX_y7YlUKixzQOQD0E66pbbYOUx6s8gKE";
+    private static final String PROJECT_ID = "barkbites-student"; // MUST match web firebaseConfig.projectId
+    private static final String API_KEY = "AIzaSyAX_y7YlUKixzQOQD0E66pbbYOUx6s8gKE"; // MUST match web firebaseConfig.apiKey (for direct REST fallback)
     private static final String FIREBASE_CONFIG_PATH = "firebase-key.json";
     
     // Use local Node.js server as API gateway (authenticates with Firestore)
@@ -30,8 +30,9 @@ public class FirebaseRestClient {
     private static String SERVER_URL = "http://localhost:3000";
     
     // Fallback to direct Firestore if server unavailable
+    // Note: database path must be (default), not default
     private static final String FIREBASE_URL = 
-        String.format("https://firestore.googleapis.com/v1/projects/%s/databases/default/documents", PROJECT_ID);
+        String.format("https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents", PROJECT_ID);
     
     private static boolean useLocalServer = true;
     
@@ -43,21 +44,32 @@ public class FirebaseRestClient {
      * Check if firebase-key.json exists and validate it
      */
     private static void checkFirebaseConfig() {
-        File configFile = new File(FIREBASE_CONFIG_PATH);
-        if (configFile.exists()) {
-            try {
-                String content = new String(Files.readAllBytes(Paths.get(FIREBASE_CONFIG_PATH)));
-                if (content.contains("\"project_id\"") && content.contains("barkbites-22cdf")) {
-                    System.out.println("✅ Firebase Service Account Found: firebase-key.json");
-                    System.out.println("   Using authenticated Firestore access for write operations");
-                    return;
+        // Try a few common locations so it works whether you run from project root or bin/
+        String[] candidatePaths = new String[] {
+            FIREBASE_CONFIG_PATH,
+            ".." + File.separator + FIREBASE_CONFIG_PATH,
+            ".." + File.separator + ".." + File.separator + FIREBASE_CONFIG_PATH
+        };
+
+        for (String path : candidatePaths) {
+            File configFile = new File(path);
+            if (configFile.exists()) {
+                try {
+                    String content = new String(Files.readAllBytes(Paths.get(path)));
+                    if (content.contains("\"project_id\"") && content.contains(PROJECT_ID)) {
+                        System.out.println("✅ Firebase Service Account Found: " + configFile.getAbsolutePath());
+                        System.out.println("   Using authenticated Firestore access for write operations");
+                        return;
+                    }
+                } catch (Exception e) {
+                    System.err.println("⚠️ Error reading firebase-key.json at " + path + ": " + e.getMessage());
                 }
-            } catch (Exception e) {
-                System.err.println("⚠️ Error reading firebase-key.json: " + e.getMessage());
             }
         }
+
         System.out.println("⚠️ firebase-key.json not found - Using Demo Data Mode");
         System.out.println("   To enable full Firestore sync: Add firebase-key.json to project root");
+        System.out.println("   Current working directory: " + new File(".").getAbsolutePath());
     }
     
     /**
