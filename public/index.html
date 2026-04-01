@@ -578,6 +578,45 @@
         .transaction-amount.debit { color: var(--danger); }
         .transaction-amount.credit { color: #047857; }
 
+        .wallet-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 12px 0 4px;
+        }
+
+        .wallet-actions button {
+            margin: 0;
+        }
+
+        .wallet-actions .wallet-action {
+            background: var(--surface);
+            border-color: rgba(37, 99, 235, 0.25);
+            color: var(--text);
+        }
+
+        .wallet-actions .wallet-action:hover {
+            background: var(--primary-100);
+            border-color: rgba(37, 99, 235, 0.35);
+        }
+
+        /* Small helper text */
+        .help {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        .field {
+            margin-top: 12px;
+        }
+
+        .field label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
         /* Toast */
         .toast {
             position: fixed;
@@ -725,6 +764,12 @@
                     <p>Total Spent: <span id="totalSpent">$0.00</span></p>
                     <p>Total Orders: <span id="orderCount">0</span></p>
                 </div>
+                <div class="wallet-actions" aria-label="Wallet actions">
+                    <button type="button" class="wallet-action" data-recharge="10">Add $10</button>
+                    <button type="button" class="wallet-action" data-recharge="20">Add $20</button>
+                    <button type="button" class="wallet-action" data-recharge="50">Add $50</button>
+                </div>
+                <div class="help">Mock wallet: balance is stored on this device.</div>
                 <div id="transactionHistory"></div>
             </div>
         </div>
@@ -737,6 +782,7 @@
             <h2 id="modalItemName"></h2>
             <p id="modalItemDescription"></p>
             <p><strong>Price:</strong> <span id="modalItemPrice">$0</span></p>
+            <p><strong>Stock:</strong> <span id="modalItemStock">—</span></p>
             
             <label>Quantity:</label>
             <div style="display: flex; gap: 8px; align-items: center;">
@@ -756,6 +802,11 @@
             <button type="button" class="close" aria-label="Close">&times;</button>
             <h2>Confirm Order</h2>
             <div id="checkoutSummary"></div>
+            <div class="field">
+                <label for="pickupTime">Pickup Time</label>
+                <input type="time" id="pickupTime" required>
+                <div class="help">Choose when you plan to pick up your order.</div>
+            </div>
             <button id="confirmOrderBtn" style="margin-top: 20px;">Confirm & Pay</button>
             <button id="cancelOrderBtn">Cancel</button>
         </div>
