@@ -12,7 +12,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.BorderFactory;
@@ -45,7 +44,6 @@ public class BarkBitesApp extends JFrame {
     private final OrderQueuePanel orderQueuePanel;
     private final InventoryPanel inventoryPanel;
     private final DashboardPanel dashboardPanel;
-    private java.util.Timer updateTimer;
     
     // Color scheme
     static final Color PRIMARY_COLOR = new Color(255, 107, 53);    // Orange
@@ -79,39 +77,8 @@ public class BarkBitesApp extends JFrame {
         tabbedPane.addTab("Dashboard", dashboardPanel);
         
         add(tabbedPane);
-        
-        // Set up real-time updates
-        startRealTimeUpdates();
-        
+
         setVisible(true);
-    }
-    
-    /**
-     * Start periodic updates
-     */
-    private void startRealTimeUpdates() {
-        updateTimer = new java.util.Timer();
-        
-        // Update orders every 2 seconds
-        updateTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                SwingUtilities.invokeLater(() -> {
-                    orderQueuePanel.refreshOrders();
-                    dashboardPanel.refreshDashboard();
-                });
-            }
-        }, 1000, 2000);
-        
-        // Update inventory every 5 seconds
-        updateTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                SwingUtilities.invokeLater(() -> {
-                    inventoryPanel.refreshInventory();
-                });
-            }
-        }, 2000, 5000);
     }
     
     public static void main(String[] args) {

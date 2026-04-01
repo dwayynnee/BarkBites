@@ -5,7 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "build:kiosk": "javac -cp \".;lib/*\" -d bin src/gui/BarkBitesApp.java src/gui/FirebaseRestClient.java src/data/FirebaseManager.java src/models/Inventory.java src/models/MenuItem.java src/models/Order.java src/models/User.java src/models/Wallet.java",
+    "run:kiosk": "java -cp \".;lib/*;bin\" gui.BarkBitesApp",
+    "kiosk": "npm run build:kiosk && npm run run:kiosk"
   },
   "keywords": [
     "barkbites",
