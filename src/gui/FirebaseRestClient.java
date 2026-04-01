@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -166,83 +167,23 @@ public class FirebaseRestClient {
      * Parse server JSON response into documents
      */
     private static List<Map<String, Object>> parseServerResponse(String jsonResponse) {
-        List<Map<String, Object>> documents = new ArrayList<>();
-        
         try {
-            // Server returns simple JSON array: [{"id":"123", "name":"Item", ...}, ...]
-            if (!jsonResponse.startsWith("[")) {
-                return documents;
+            Object parsed = Json.parse(Objects.requireNonNullElse(jsonResponse, ""));
+            if (!(parsed instanceof List<?> list)) {
+                return new ArrayList<>();
             }
-            
-            // Remove outer brackets
-            String arrayBody = jsonResponse.substring(1, jsonResponse.length() - 1);
-            if (arrayBody.isEmpty()) return documents;
-            
-            // Split by document objects
-            int braceCount = 0;
-            StringBuilder currentDoc = new StringBuilder();
-            
-            for (char c : arrayBody.toCharArray()) {
-                if (c == '{') braceCount++;
-                if (c == '}') braceCount--;
-                
-                currentDoc.append(c);
-                
-                if (braceCount == 0 && currentDoc.length() > 1 && c == '}') {
-                    String doc = currentDoc.toString();
-                    if (doc.contains("\"id\"")) {
-                        Map<String, Object> parsed = parseJsonObject(doc);
-                        if (!parsed.isEmpty()) {
-                            documents.add(parsed);
-                        }
-                    }
-                    currentDoc = new StringBuilder();
+
+            List<Map<String, Object>> out = new ArrayList<>();
+            for (Object el : list) {
+                if (el instanceof Map<?, ?> map) {
+                    out.add(toStringObjectMap(map));
                 }
             }
+            return out;
         } catch (RuntimeException e) {
-            System.err.println("⚠️ Error parsing server response: " + e.getMessage());
+            System.err.println("⚠️ Error parsing server response JSON: " + e.getMessage());
+            return new ArrayList<>();
         }
-        
-        return documents;
-    }
-    
-    /**
-     * Parse JSON object string into map
-     */
-    private static Map<String, Object> parseJsonObject(String jsonStr) {
-        Map<String, Object> map = new HashMap<>();
-        
-        try {
-            // Simple JSON parsing - handles basic types
-            String[] pairs = jsonStr.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-            
-            for (String pair : pairs) {
-                pair = pair.trim().replaceAll("[{}\\[\\]]", "");
-                if (!pair.contains(":")) continue;
-                
-                int colonIdx = pair.indexOf(":");
-                String key = pair.substring(0, colonIdx).trim().replaceAll("\"", "");
-                String value = pair.substring(colonIdx + 1).trim().replaceAll("\"", "");
-                
-                if (!key.isEmpty() && !value.isEmpty()) {
-                    // Try to parse as number
-                    try {
-                        if (value.contains(".")) {
-                            map.put(key, Double.valueOf(value));
-                        } else {
-                            map.put(key, Integer.valueOf(value));
-                        }
-                    } catch (NumberFormatException e) {
-                        // Keep as string
-                        map.put(key, value);
-                    }
-                }
-            }
-        } catch (RuntimeException e) {
-            System.err.println("⚠️ Error parsing JSON: " + e.getMessage());
-        }
-        
-        return map;
     }
     
     /**
@@ -524,137 +465,319 @@ public class FirebaseRestClient {
      * Parse Firestore JSON response into documents
      */
     private static List<Map<String, Object>> parseDocuments(String jsonResponse) {
-        List<Map<String, Object>> documents = new ArrayList<>();
-        
         try {
-            // Simple JSON parsing - in production use JSON library
-            if (!jsonResponse.contains("\"documents\"")) {
-                return documents;
+            Object parsed = Json.parse(Objects.requireNonNullElse(jsonResponse, ""));
+            if (!(parsed instanceof Map<?, ?> root)) {
+                return new ArrayList<>();
             }
-            
-            int startIdx = jsonResponse.indexOf("[");
-            int endIdx = jsonResponse.lastIndexOf("]");
-            if (startIdx == -1 || endIdx == -1) {
-                return documents;
+
+            Object docsObj = root.get("documents");
+            if (!(docsObj instanceof List<?> docs)) {
+                return new ArrayList<>();
             }
-            
-            String docsArray = jsonResponse.substring(startIdx, endIdx + 1);
-            
-            // Split by document objects
-            int braceCount = 0;
-            StringBuilder currentDoc = new StringBuilder();
-            
-            for (char c : docsArray.toCharArray()) {
-                if (c == '{') braceCount++;
-                if (c == '}') braceCount--;
-                
-                currentDoc.append(c);
-                
-                if (braceCount == 0 && currentDoc.length() > 1 && c == '}') {
-                    String doc = currentDoc.toString();
-                    if (doc.contains("\"fields\"")) {
-                        Map<String, Object> parsed = parseDocument(doc);
-                        if (!parsed.isEmpty()) {
-                            documents.add(parsed);
-                        }
-                    }
-                    currentDoc = new StringBuilder();
-                }
+
+            List<Map<String, Object>> out = new ArrayList<>();
+            for (Object docEl : docs) {
+                if (!(docEl instanceof Map<?, ?> docMap)) continue;
+                Map<String, Object> doc = parseFirestoreDocument(docMap);
+                if (!doc.isEmpty()) out.add(doc);
             }
+
+            return out;
         } catch (RuntimeException e) {
-            System.err.println("⚠️ Error parsing documents: " + e.getMessage());
+            System.err.println("⚠️ Error parsing Firestore REST documents JSON: " + e.getMessage());
+            return new ArrayList<>();
         }
-        
-        return documents;
     }
-    
-    /**
-     * Parse a single Firestore document
-     */
-    private static Map<String, Object> parseDocument(String docJson) {
+
+
+    private static Map<String, Object> parseFirestoreDocument(Map<?, ?> docObj) {
         Map<String, Object> doc = new HashMap<>();
-        
+
         try {
-            // Extract document ID
-            int nameIdx = docJson.indexOf("\"name\"");
-            if (nameIdx != -1) {
-                int idStart = docJson.indexOf("/", nameIdx) + 1;
-                int idEnd = docJson.indexOf("\"", idStart);
-                if (idStart > 0 && idEnd > idStart) {
-                    String docId = docJson.substring(idStart, idEnd);
-                    doc.put("id", docId);
+            Object nameObj = docObj.get("name");
+            if (nameObj != null) {
+                String name = String.valueOf(nameObj);
+                int lastSlash = name.lastIndexOf('/');
+                if (lastSlash >= 0 && lastSlash + 1 < name.length()) {
+                    doc.put("id", name.substring(lastSlash + 1));
                 }
             }
-            
-            // Extract fields
-            int fieldsIdx = docJson.indexOf("\"fields\"");
-            if (fieldsIdx != -1) {
-                int start = docJson.indexOf("{", fieldsIdx);
-                int end = docJson.lastIndexOf("}");
-                String fieldsJson = docJson.substring(start, end + 1);
-                
-                // Parse key-value pairs
-                String[] pairs = fieldsJson.split("\"");
-                for (int i = 0; i < pairs.length - 2; i += 2) {
-                    String key = pairs[i];
-                    if (!key.isEmpty() && !key.equals("{") && !key.contains(":")) {
-                        // Try to extract value
-                        String rawValue = extractFieldValue(fieldsJson, key);
-                        doc.put(key.trim(), rawValue != null ? rawValue : "");
-                    }
+
+            Object fieldsObj = docObj.get("fields");
+            if (fieldsObj instanceof Map<?, ?> fields) {
+                for (Map.Entry<?, ?> entry : fields.entrySet()) {
+                    String key = String.valueOf(entry.getKey());
+                    Object value = decodeFirestoreValue(entry.getValue());
+                    doc.put(key, value);
                 }
             }
         } catch (RuntimeException e) {
-            System.err.println("⚠️ Error parsing single document: " + e.getMessage());
+            System.err.println("⚠️ Error parsing Firestore document: " + e.getMessage());
         }
-        
+
         return doc;
     }
-    
-    /**
-     * Extract field value from Firestore JSON
-     */
-    private static String extractFieldValue(String json, String fieldName) {
-        try {
-            String pattern = "\"" + fieldName + "\":{";
-            int idx = json.indexOf(pattern);
-            if (idx == -1) return null;
-            
-            int start = json.indexOf(":", idx) + 1;
-            int depth = 0;
-            int end = start;
-            
-            for (int i = start; i < json.length(); i++) {
-                char c = json.charAt(i);
-                if (c == '{' || c == '[') depth++;
-                if (c == '}' || c == ']') depth--;
-                
-                if (depth == 0) {
-                    end = i;
-                    break;
+
+    private static Object decodeFirestoreValue(Object wrapper) {
+        if (!(wrapper instanceof Map<?, ?> valueObj)) {
+            return wrapper;
+        }
+
+        if (valueObj.containsKey("nullValue")) return null;
+        if (valueObj.containsKey("stringValue")) return String.valueOf(valueObj.get("stringValue"));
+        if (valueObj.containsKey("booleanValue")) return Boolean.valueOf(String.valueOf(valueObj.get("booleanValue")));
+
+        if (valueObj.containsKey("integerValue")) {
+            String s = String.valueOf(valueObj.get("integerValue"));
+            try {
+                return Long.parseLong(s);
+            } catch (NumberFormatException e) {
+                return s;
+            }
+        }
+
+        if (valueObj.containsKey("doubleValue")) {
+            Object v = valueObj.get("doubleValue");
+            if (v instanceof Number n) return n.doubleValue();
+            try {
+                return Double.parseDouble(String.valueOf(v));
+            } catch (NumberFormatException e) {
+                return 0.0;
+            }
+        }
+
+        if (valueObj.containsKey("timestampValue")) return String.valueOf(valueObj.get("timestampValue"));
+
+        if (valueObj.containsKey("mapValue")) {
+            Object mv = valueObj.get("mapValue");
+            if (mv instanceof Map<?, ?> mapValue) {
+                Object fieldsObj = mapValue.get("fields");
+                if (fieldsObj instanceof Map<?, ?> fields) {
+                    Map<String, Object> out = new HashMap<>();
+                    for (Map.Entry<?, ?> entry : fields.entrySet()) {
+                        out.put(String.valueOf(entry.getKey()), decodeFirestoreValue(entry.getValue()));
+                    }
+                    return out;
                 }
             }
-            
-            String value = json.substring(start, end).trim();
-            
-            // Extract actual value from Firestore type wrapper
-            if (value.contains("stringValue")) {
-                int strStart = value.indexOf("\"", value.indexOf("stringValue")) + 1;
-                int strEnd = value.indexOf("\"", strStart);
-                return value.substring(strStart, strEnd);
-            } else if (value.contains("integerValue")) {
-                int intStart = value.indexOf(":") + 1;
-                int intEnd = value.indexOf("}", intStart);
-                return value.substring(intStart, intEnd).trim();
-            } else if (value.contains("doubleValue")) {
-                int doubleStart = value.indexOf(":") + 1;
-                int doubleEnd = value.indexOf("}", doubleStart);
-                return value.substring(doubleStart, doubleEnd).trim();
+            return new HashMap<String, Object>();
+        }
+
+        if (valueObj.containsKey("arrayValue")) {
+            Object av = valueObj.get("arrayValue");
+            if (av instanceof Map<?, ?> arrayValue) {
+                Object valuesObj = arrayValue.get("values");
+                if (valuesObj instanceof List<?> values) {
+                    List<Object> out = new ArrayList<>();
+                    for (Object v : values) {
+                        out.add(decodeFirestoreValue(v));
+                    }
+                    return out;
+                }
             }
-            
-            return value;
-        } catch (RuntimeException e) {
-            return null;
+            return new ArrayList<Object>();
+        }
+
+        // Unknown wrapper type; return as generic map
+        return toStringObjectMap(valueObj);
+    }
+
+    private static Map<String, Object> toStringObjectMap(Map<?, ?> map) {
+        Map<String, Object> out = new HashMap<>();
+        for (Map.Entry<?, ?> e : map.entrySet()) {
+            out.put(String.valueOf(e.getKey()), e.getValue());
+        }
+        return out;
+    }
+
+    /**
+     * Minimal JSON parser (objects, arrays, strings, numbers, booleans, null).
+     * Returns nested Maps/Lists using Java types.
+     */
+    private static final class Json {
+        static Object parse(String input) {
+            Parser p = new Parser(input == null ? "" : input);
+            Object v = p.parseValue();
+            p.skipWhitespace();
+            if (!p.isEof()) {
+                throw new IllegalArgumentException("Trailing data at position " + p.pos);
+            }
+            return v;
+        }
+
+        private static final class Parser {
+            private final String s;
+            private int pos;
+
+            Parser(String s) {
+                this.s = s;
+            }
+
+            boolean isEof() {
+                return pos >= s.length();
+            }
+
+            void skipWhitespace() {
+                while (!isEof()) {
+                    char c = s.charAt(pos);
+                    if (c == ' ' || c == '\n' || c == '\r' || c == '\t') {
+                        pos++;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            Object parseValue() {
+                skipWhitespace();
+                if (isEof()) throw new IllegalArgumentException("Empty JSON");
+                char c = s.charAt(pos);
+                return switch (c) {
+                    case '{' -> parseObject();
+                    case '[' -> parseArray();
+                    case '"' -> parseString();
+                    case 't' -> parseLiteral("true", Boolean.TRUE);
+                    case 'f' -> parseLiteral("false", Boolean.FALSE);
+                    case 'n' -> parseLiteral("null", null);
+                    default -> {
+                        if (c == '-' || (c >= '0' && c <= '9')) {
+                            yield parseNumber();
+                        }
+                        throw new IllegalArgumentException("Unexpected character '" + c + "' at position " + pos);
+                    }
+                };
+            }
+
+            Object parseLiteral(String literal, Object value) {
+                if (s.regionMatches(pos, literal, 0, literal.length())) {
+                    pos += literal.length();
+                    return value;
+                }
+                throw new IllegalArgumentException("Invalid literal at position " + pos);
+            }
+
+            Map<String, Object> parseObject() {
+                expect('{');
+                skipWhitespace();
+                Map<String, Object> obj = new HashMap<>();
+                if (peek('}')) {
+                    pos++;
+                    return obj;
+                }
+                while (true) {
+                    skipWhitespace();
+                    String key = parseString();
+                    skipWhitespace();
+                    expect(':');
+                    Object value = parseValue();
+                    obj.put(key, value);
+                    skipWhitespace();
+                    if (peek(',')) {
+                        pos++;
+                        continue;
+                    }
+                    expect('}');
+                    break;
+                }
+                return obj;
+            }
+
+            List<Object> parseArray() {
+                expect('[');
+                skipWhitespace();
+                List<Object> arr = new ArrayList<>();
+                if (peek(']')) {
+                    pos++;
+                    return arr;
+                }
+                while (true) {
+                    Object value = parseValue();
+                    arr.add(value);
+                    skipWhitespace();
+                    if (peek(',')) {
+                        pos++;
+                        continue;
+                    }
+                    expect(']');
+                    break;
+                }
+                return arr;
+            }
+
+            String parseString() {
+                expect('"');
+                StringBuilder sb = new StringBuilder();
+                while (!isEof()) {
+                    char c = s.charAt(pos++);
+                    if (c == '"') {
+                        return sb.toString();
+                    }
+                    if (c == '\\') {
+                        if (isEof()) throw new IllegalArgumentException("Unterminated escape");
+                        char e = s.charAt(pos++);
+                        switch (e) {
+                            case '"' -> sb.append('"');
+                            case '\\' -> sb.append('\\');
+                            case '/' -> sb.append('/');
+                            case 'b' -> sb.append('\b');
+                            case 'f' -> sb.append('\f');
+                            case 'n' -> sb.append('\n');
+                            case 'r' -> sb.append('\r');
+                            case 't' -> sb.append('\t');
+                            case 'u' -> {
+                                if (pos + 4 > s.length()) throw new IllegalArgumentException("Invalid unicode escape");
+                                String hex = s.substring(pos, pos + 4);
+                                pos += 4;
+                                sb.append((char) Integer.parseInt(hex, 16));
+                            }
+                            default -> throw new IllegalArgumentException("Invalid escape: \\" + e);
+                        }
+                    } else {
+                        sb.append(c);
+                    }
+                }
+                throw new IllegalArgumentException("Unterminated string");
+            }
+
+            Object parseNumber() {
+                int start = pos;
+                if (peek('-')) pos++;
+                while (!isEof() && Character.isDigit(s.charAt(pos))) pos++;
+                boolean isFloat = false;
+                if (!isEof() && s.charAt(pos) == '.') {
+                    isFloat = true;
+                    pos++;
+                    while (!isEof() && Character.isDigit(s.charAt(pos))) pos++;
+                }
+                if (!isEof()) {
+                    char c = s.charAt(pos);
+                    if (c == 'e' || c == 'E') {
+                        isFloat = true;
+                        pos++;
+                        if (!isEof() && (s.charAt(pos) == '+' || s.charAt(pos) == '-')) pos++;
+                        while (!isEof() && Character.isDigit(s.charAt(pos))) pos++;
+                    }
+                }
+                String num = s.substring(start, pos);
+                try {
+                    if (isFloat) return Double.parseDouble(num);
+                    return Long.parseLong(num);
+                } catch (NumberFormatException e) {
+                    return 0;
+                }
+            }
+
+            void expect(char expected) {
+                if (isEof() || s.charAt(pos) != expected) {
+                    throw new IllegalArgumentException("Expected '" + expected + "' at position " + pos);
+                }
+                pos++;
+            }
+
+            boolean peek(char c) {
+                return !isEof() && s.charAt(pos) == c;
+            }
         }
     }
 }

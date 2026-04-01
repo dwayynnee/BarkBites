@@ -9,7 +9,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -30,6 +34,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -96,7 +101,9 @@ class OrderQueuePanel extends JPanel {
     private final JTable ordersTable;
     private final DefaultTableModel tableModel;
     private final JComboBox<String> statusCombo;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+    private final JButton updateStatusBtn;
+    private final JButton refreshBtn;
+    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
     
     public OrderQueuePanel() {
         setLayout(new BorderLayout(10, 10));
@@ -110,7 +117,7 @@ class OrderQueuePanel extends JPanel {
         add(titleLabel, BorderLayout.NORTH);
         
         // Create table
-        String[] columnNames = {"Order ID", "Student ID", "Items", "Total", "Status", "Time"};
+        String[] columnNames = {"Doc ID", "Order #", "Student ID", "Items", "Total", "Status", "Created"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -125,6 +132,38 @@ class OrderQueuePanel extends JPanel {
         ordersTable.getTableHeader().setBackground(BarkBitesApp.PRIMARY_COLOR);
         ordersTable.getTableHeader().setForeground(Color.WHITE);
         ordersTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        ordersTable.setShowGrid(true);
+        ordersTable.setGridColor(new Color(225, 225, 225));
+        ordersTable.getTableHeader().setReorderingAllowed(false);
+
+        // Hide Doc ID column (still used for updates)
+        ordersTable.getColumnModel().getColumn(0).setMinWidth(0);
+        ordersTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        ordersTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+
+        // Status coloring
+        ordersTable.getColumnModel().getColumn(5).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public java.awt.Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                                    boolean hasFocus, int row, int column) {
+                java.awt.Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (!isSelected) {
+                    String text = value != null ? value.toString() : "";
+                    if (text.contains("Pending")) {
+                        c.setBackground(new Color(255, 244, 229));
+                    } else if (text.contains("In Progress")) {
+                        c.setBackground(new Color(232, 244, 253));
+                    } else if (text.contains("Ready")) {
+                        c.setBackground(new Color(232, 245, 233));
+                    } else if (text.contains("Completed")) {
+                        c.setBackground(new Color(240, 240, 240));
+                    } else {
+                        c.setBackground(Color.WHITE);
+                    }
+                }
+                return c;
+            }
+        });
         
         JScrollPane scrollPane = new JScrollPane(ordersTable);
         add(scrollPane, BorderLayout.CENTER);
@@ -136,14 +175,16 @@ class OrderQueuePanel extends JPanel {
         statusCombo = new JComboBox<>(new String[]{"pending", "in_progress", "ready", "completed"});
         statusCombo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         
-        JButton updateStatusBtn = new JButton("Update Status");
+        updateStatusBtn = new JButton("Update Status");
         updateStatusBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         updateStatusBtn.setBackground(BarkBitesApp.PRIMARY_COLOR);
         updateStatusBtn.setForeground(Color.WHITE);
+        updateStatusBtn.setFocusPainted(false);
         updateStatusBtn.addActionListener(e -> updateOrderStatus());
         
-        JButton refreshBtn = new JButton("Refresh");
+        refreshBtn = new JButton("Refresh");
         refreshBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        refreshBtn.setFocusPainted(false);
         refreshBtn.addActionListener(e -> refreshOrders());
         
         controlPanel.add(new JLabel("Update to:"));
@@ -181,23 +222,23 @@ class OrderQueuePanel extends JPanel {
                         }
                         
                         for (Map<String, Object> order : orders) {
-                            String id = (String) order.getOrDefault("id", "");
-                            String studentId = (String) order.getOrDefault("student_id", "--");
-                            String status = (String) order.getOrDefault("status", "pending");
-                            Object totalObj = order.getOrDefault("total_price", 0.0);
-                            double totalPrice = totalObj instanceof Double ? (Double) totalObj : 
-                                               totalObj instanceof Integer ? ((Integer) totalObj).doubleValue() : 0.0;
-                            
-                            if (!status.equals("completed")) {
-                                String time = dateFormat.format(new Date());
-                                
+                            String docId = asString(order.get("id"), "");
+                            String orderNumber = asString(order.get("order_number"), "--");
+                            String studentId = asString(order.get("student_id"), "--");
+                            String status = asString(order.get("status"), "pending");
+                            double totalPrice = asDouble(order.get("total_price"), 0.0);
+                            String itemsSummary = formatOrderItems(order.get("items"));
+                            String createdTime = formatOrderTime(order.get("created_at"));
+
+                            if (!"completed".equalsIgnoreCase(status)) {
                                 tableModel.addRow(new Object[]{
-                                    id,
+                                    docId,
+                                    orderNumber,
                                     studentId,
-                                    "Order Items",
+                                    itemsSummary,
                                     String.format("$%.2f", totalPrice),
                                     formatStatus(status),
-                                    time
+                                    createdTime
                                 });
                             }
                         }
@@ -223,14 +264,27 @@ class OrderQueuePanel extends JPanel {
      * Update selected order status (will sync to Firestore)
      */
     private void updateOrderStatus() {
-        int selectedRow = ordersTable.getSelectedRow();
-        if (selectedRow == -1) {
+        int viewRow = ordersTable.getSelectedRow();
+        if (viewRow == -1) {
             JOptionPane.showMessageDialog(this, "Please select an order", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
-        String orderId = (String) tableModel.getValueAt(selectedRow, 0);
+
+        int selectedRow = viewRow;
+        if (ordersTable.getRowSorter() != null) {
+            selectedRow = ordersTable.convertRowIndexToModel(viewRow);
+        }
+
+        String orderId = asString(tableModel.getValueAt(selectedRow, 0), "");
         String newStatus = (String) statusCombo.getSelectedItem();
+
+        if (orderId.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Selected order has no Doc ID", "Update Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        updateStatusBtn.setEnabled(false);
+        refreshBtn.setEnabled(false);
         
         new SwingWorker<Boolean, Void>() {
             @Override
@@ -242,20 +296,97 @@ class OrderQueuePanel extends JPanel {
             protected void done() {
                 try {
                     boolean success = get();
-                    tableModel.setValueAt(formatStatus(newStatus), selectedRow, 4);
-                    JOptionPane.showMessageDialog(OrderQueuePanel.this, 
-                        success ? "✅ Order updated and synced to Firestore" : "⚠️ Order updated locally (sync may have failed)", 
-                        success ? "Success" : "Warning", 
-                        success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
+                    if (success) {
+                        JOptionPane.showMessageDialog(OrderQueuePanel.this,
+                            "✅ Order updated and synced to Firestore",
+                            "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(OrderQueuePanel.this,
+                            "❌ Failed to update order status.\nMake sure the Node server is running and Firestore is initialized.",
+                            "Update Failed",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+
+                    // Refresh from source of truth (also avoids row-index issues if completed rows disappear)
+                    refreshOrders();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     System.err.println("Error: " + e.getMessage());
                 } catch (ExecutionException e) {
                     Throwable cause = e.getCause();
                     System.err.println("Error: " + (cause != null ? cause.getMessage() : e.getMessage()));
+                    JOptionPane.showMessageDialog(OrderQueuePanel.this,
+                        "❌ Error updating order: " + (cause != null ? cause.getMessage() : e.getMessage()),
+                        "Update Failed",
+                        JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    updateStatusBtn.setEnabled(true);
+                    refreshBtn.setEnabled(true);
                 }
             }
         }.execute();
+    }
+
+    private static String asString(Object value, String defaultValue) {
+        if (value == null) return defaultValue;
+        String s = String.valueOf(value);
+        return s == null || s.isBlank() ? defaultValue : s;
+    }
+
+    private static double asDouble(Object value, double defaultValue) {
+        if (value == null) return defaultValue;
+        if (value instanceof Number n) {
+            return n.doubleValue();
+        }
+        try {
+            return Double.parseDouble(String.valueOf(value));
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    private String formatOrderItems(Object itemsObj) {
+        if (itemsObj == null) return "--";
+
+        if (itemsObj instanceof java.util.List<?> list) {
+            java.util.List<String> parts = new java.util.ArrayList<>();
+            for (Object entry : list) {
+                if (entry instanceof Map<?, ?> m) {
+                    String name = asString(m.get("name"), "Item");
+                    int qty = (int) asDouble(m.get("quantity"), 1);
+                    parts.add(name + " x" + qty);
+                } else {
+                    parts.add(String.valueOf(entry));
+                }
+            }
+            return parts.isEmpty() ? "--" : String.join(", ", parts);
+        }
+
+        return String.valueOf(itemsObj);
+    }
+
+    private String formatOrderTime(Object createdAtObj) {
+        if (createdAtObj == null) return "--";
+
+        if (createdAtObj instanceof String s) {
+            try {
+                Instant inst = Instant.parse(s);
+                return timeFormatter.withZone(ZoneId.systemDefault()).format(inst);
+            } catch (DateTimeParseException e) {
+                return s;
+            }
+        }
+
+        if (createdAtObj instanceof Map<?, ?> m) {
+            Object seconds = m.containsKey("seconds") ? m.get("seconds") : m.get("_seconds");
+            if (seconds instanceof Number n) {
+                Instant inst = Instant.ofEpochSecond(n.longValue());
+                return timeFormatter.withZone(ZoneId.systemDefault()).format(inst);
+            }
+        }
+
+        return String.valueOf(createdAtObj);
     }
     
     /**
@@ -319,18 +450,21 @@ class InventoryPanel extends JPanel {
         addItemBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         addItemBtn.setBackground(new Color(76, 175, 80));
         addItemBtn.setForeground(Color.WHITE);
+        addItemBtn.setFocusPainted(false);
         addItemBtn.addActionListener(e -> showAddMenuItemDialog());
 
         JButton deleteItemBtn = new JButton("🗑 Delete Menu Item");
         deleteItemBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         deleteItemBtn.setBackground(new Color(244, 67, 54));
         deleteItemBtn.setForeground(Color.WHITE);
+        deleteItemBtn.setFocusPainted(false);
         deleteItemBtn.addActionListener(e -> deleteSelectedMenuItem());
         
         JButton refreshBtn = new JButton("Refresh Inventory");
         refreshBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         refreshBtn.setBackground(BarkBitesApp.PRIMARY_COLOR);
         refreshBtn.setForeground(Color.WHITE);
+        refreshBtn.setFocusPainted(false);
         refreshBtn.addActionListener(e -> refreshInventory());
         
         lastUpdatedLabel = new JLabel("Last updated: --:--");
@@ -352,16 +486,21 @@ class InventoryPanel extends JPanel {
      * Refresh inventory from Firestore via REST API
      */
     public final void refreshInventory() {
-        new SwingWorker<java.util.List<Map<String, Object>>, Void>() {
+        new SwingWorker<java.util.Map<String, java.util.List<Map<String, Object>>>, Void>() {
             @Override
-            protected java.util.List<Map<String, Object>> doInBackground() {
-                return FirebaseRestClient.getMenuItems();
+            protected java.util.Map<String, java.util.List<Map<String, Object>>> doInBackground() {
+                java.util.Map<String, java.util.List<Map<String, Object>>> result = new java.util.HashMap<>();
+                result.put("menu_items", FirebaseRestClient.getMenuItems());
+                result.put("inventory", FirebaseRestClient.getInventory());
+                return result;
             }
             
             @Override
             protected void done() {
                 try {
-                    java.util.List<Map<String, Object>> items = get();
+                    java.util.Map<String, java.util.List<Map<String, Object>>> result = get();
+                    java.util.List<Map<String, Object>> items = result != null ? result.get("menu_items") : null;
+                    java.util.List<Map<String, Object>> inventory = result != null ? result.get("inventory") : null;
                     
                     SwingUtilities.invokeLater(() -> {
                         tableModel.setRowCount(0);
@@ -370,21 +509,56 @@ class InventoryPanel extends JPanel {
                             System.out.println("⚠️  No menu items found in Firestore");
                             return;
                         }
+
+                        java.util.Map<String, Map<String, Object>> invByMenuItemId = new java.util.HashMap<>();
+                        if (inventory != null) {
+                            for (Map<String, Object> inv : inventory) {
+                                String menuItemId = String.valueOf(inv.getOrDefault("menu_item_id", inv.getOrDefault("id", "")));
+                                if (menuItemId != null && !menuItemId.isBlank()) {
+                                    invByMenuItemId.put(menuItemId, inv);
+                                }
+                            }
+                        }
                         
                         for (Map<String, Object> item : items) {
                             String id = String.valueOf(item.getOrDefault("id", ""));
-                            String name = (String) item.getOrDefault("name", "");
-                            int available = (int) (Math.random() * 50) + 10;
-                            int sold = (int) (Math.random() * 40);
-                            boolean lowStock = available < 20;
-                            String status = available < 5 ? "❌ Critical" : lowStock ? "⚠️ Low Stock" : "✅ In Stock";
+                            String name = String.valueOf(item.getOrDefault("name", ""));
+
+                            boolean availableFlag = Boolean.TRUE.equals(item.get("available"))
+                                || "true".equalsIgnoreCase(String.valueOf(item.get("available")));
+
+                            Map<String, Object> inv = invByMenuItemId.get(id);
+                            Integer qtyAvailable = inv != null ? toInt(inv.get("quantity_available")) : null;
+                            Integer qtySold = inv != null ? toInt(inv.get("quantity_sold_today")) : null;
+                            Integer threshold = inv != null ? toInt(inv.get("low_stock_threshold")) : null;
+                            Boolean outOfStock = inv != null ? toBool(inv.getOrDefault("is_out_of_stock", inv.get("out_of_stock"))) : null;
+
+                            int availableQtySafe = qtyAvailable != null ? qtyAvailable : 0;
+                            int thresholdSafe = threshold != null ? threshold : 10;
+                            boolean lowStock = qtyAvailable != null && availableQtySafe <= thresholdSafe;
+                            boolean isOut = (outOfStock != null && outOfStock) || (qtyAvailable != null && availableQtySafe <= 0);
+
+                            String status;
+                            if (inv == null) {
+                                status = "⚠️ No Inventory Data";
+                            } else if (!availableFlag) {
+                                status = "⛔ Unavailable";
+                            } else if (isOut) {
+                                status = "❌ Out of Stock";
+                            } else if (lowStock) {
+                                status = "⚠️ Low Stock";
+                            } else {
+                                status = "✅ In Stock";
+                            }
+
+                            String lowStockText = qtyAvailable == null ? "—" : (lowStock ? "Yes ⚠️" : "No");
                             
                             tableModel.addRow(new Object[]{
                                 id,
                                 name,
-                                available,
-                                sold,
-                                lowStock ? "Yes ⚠️" : "No",
+                                qtyAvailable != null ? qtyAvailable : "—",
+                                qtySold != null ? qtySold : "—",
+                                lowStockText,
                                 status
                             });
                         }
@@ -403,6 +577,24 @@ class InventoryPanel extends JPanel {
                 }
             }
         }.execute();
+    }
+
+    private static Integer toInt(Object value) {
+        if (value == null) return null;
+        if (value instanceof Number n) return n.intValue();
+        try {
+            return Integer.parseInt(String.valueOf(value));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private static Boolean toBool(Object value) {
+        if (value == null) return null;
+        if (value instanceof Boolean b) return b;
+        String s = String.valueOf(value).trim();
+        if (s.isEmpty()) return null;
+        return "true".equalsIgnoreCase(s) || "1".equals(s) || "yes".equalsIgnoreCase(s);
     }
 
     private void deleteSelectedMenuItem() {
@@ -566,33 +758,37 @@ class DashboardPanel extends JPanel {
     private final JLabel revenueLabel;
     private final JLabel bestSellerLabel;
     private final JPanel chartPanel;
+    private int[] ordersPerHour = new int[24];
     
     public DashboardPanel() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         setBackground(BarkBitesApp.BG_COLOR);
-        
-        // Title
+
+        // Title + stats (single top panel so NORTH isn't overwritten)
+        JPanel topPanel = new JPanel(new BorderLayout(0, 10));
+        topPanel.setBackground(BarkBitesApp.BG_COLOR);
+
         JLabel titleLabel = new JLabel("📈 Dashboard Analytics");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titleLabel.setForeground(BarkBitesApp.TEXT_COLOR);
-        add(titleLabel, BorderLayout.NORTH);
-        
-        // Stats panel
+        topPanel.add(titleLabel, BorderLayout.NORTH);
+
         JPanel statsPanel = new JPanel(new GridLayout(1, 4, 10, 10));
         statsPanel.setBackground(BarkBitesApp.BG_COLOR);
         
-        totalOrdersLabel = createStatCard("📦 Total Orders", "24", BarkBitesApp.PRIMARY_COLOR);
-        pendingOrdersLabel = createStatCard("⏳ Pending", "3", BarkBitesApp.SECONDARY_COLOR);
-        revenueLabel = createStatCard("💰 Revenue Today", "$156.75", new Color(76, 175, 80));
-        bestSellerLabel = createStatCard("⭐ Best Seller", "Pizza", new Color(156, 39, 176));
+        totalOrdersLabel = createStatCard("📦 Total Orders", "--", BarkBitesApp.PRIMARY_COLOR);
+        pendingOrdersLabel = createStatCard("⏳ Pending", "--", BarkBitesApp.SECONDARY_COLOR);
+        revenueLabel = createStatCard("💰 Revenue Today", "--", new Color(76, 175, 80));
+        bestSellerLabel = createStatCard("⭐ Best Seller", "--", new Color(156, 39, 176));
         
         statsPanel.add(totalOrdersLabel);
         statsPanel.add(pendingOrdersLabel);
         statsPanel.add(revenueLabel);
         statsPanel.add(bestSellerLabel);
-        
-        add(statsPanel, BorderLayout.NORTH);
+
+        topPanel.add(statsPanel, BorderLayout.CENTER);
+        add(topPanel, BorderLayout.NORTH);
         
         // Chart panel
         chartPanel = new JPanel() {
@@ -615,6 +811,7 @@ class DashboardPanel extends JPanel {
         refreshBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         refreshBtn.setBackground(BarkBitesApp.PRIMARY_COLOR);
         refreshBtn.setForeground(Color.WHITE);
+        refreshBtn.setFocusPainted(false);
         refreshBtn.addActionListener(e -> refreshDashboard());
         
         bottomPanel.add(refreshBtn);
@@ -656,28 +853,67 @@ class DashboardPanel extends JPanel {
                         stats.put("pending", 0);
                         stats.put("revenue", 0.0);
                         stats.put("bestSeller", "N/A");
+                        stats.put("ordersPerHour", new int[24]);
                         return stats;
                     }
-                    
+
+                    LocalDate today = LocalDate.now();
                     int totalOrders = orders.size();
                     int pendingCount = 0;
-                    double totalRevenue = 0;
-                    
+                    double revenueToday = 0.0;
+                    java.util.Map<String, Integer> itemCounts = new java.util.HashMap<>();
+
+                    int[] perHour = new int[24];
+                    Instant now = Instant.now();
+
                     for (Map<String, Object> order : orders) {
-                        String status = (String) order.getOrDefault("status", "");
-                        if ("pending".equals(status)) {
+                        String status = String.valueOf(order.getOrDefault("status", ""));
+                        if ("pending".equalsIgnoreCase(status)) {
                             pendingCount++;
                         }
-                        Object totalObj = order.getOrDefault("total_price", 0.0);
-                        double price = totalObj instanceof Double ? (Double) totalObj : 
-                                      totalObj instanceof Integer ? ((Integer) totalObj).doubleValue() : 0.0;
-                        totalRevenue += price;
+
+                        Instant createdAt = parseToInstant(order.get("created_at"));
+                        if (createdAt != null) {
+                            // Revenue + best seller for today's orders
+                            LocalDate createdDate = createdAt.atZone(ZoneId.systemDefault()).toLocalDate();
+                            if (today.equals(createdDate)) {
+                                revenueToday += asDouble(order.get("total_price"), 0.0);
+                                Object itemsObj = order.get("items");
+                                if (itemsObj instanceof java.util.List<?> list) {
+                                    for (Object entry : list) {
+                                        if (entry instanceof Map<?, ?> m) {
+                                            Object nameObj = m.containsKey("name") ? m.get("name") : "Item";
+                                            String name = String.valueOf(nameObj);
+                                            int qty = (int) asDouble(m.get("quantity"), 1);
+                                            itemCounts.put(name, itemCounts.getOrDefault(name, 0) + Math.max(1, qty));
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Orders per hour (last 24h)
+                            long hoursAgo = java.time.Duration.between(createdAt, now).toHours();
+                            if (hoursAgo >= 0 && hoursAgo < 24) {
+                                int bucket = (int) (23 - hoursAgo); // oldest -> newest
+                                perHour[bucket]++;
+                            }
+                        }
                     }
-                    
+
+                    String bestSeller = "N/A";
+                    int bestCount = 0;
+                    for (Map.Entry<String, Integer> e : itemCounts.entrySet()) {
+                        if (e.getValue() > bestCount) {
+                            bestCount = e.getValue();
+                            bestSeller = e.getKey();
+                        }
+                    }
+
                     stats.put("total", totalOrders);
                     stats.put("pending", pendingCount);
-                    stats.put("revenue", totalRevenue);
-                    stats.put("bestSeller", "Pizza");
+                    stats.put("revenue", revenueToday);
+                    stats.put("bestSeller", bestSeller);
+                    stats.put("ordersPerHour", perHour);
                     
                 } catch (Exception e) {
                     System.err.println("Error fetching dashboard stats: " + e.getMessage());
@@ -685,6 +921,7 @@ class DashboardPanel extends JPanel {
                     stats.put("pending", 0);
                     stats.put("revenue", 0.0);
                     stats.put("bestSeller", "N/A");
+                    stats.put("ordersPerHour", new int[24]);
                 }
                 
                 return stats;
@@ -696,10 +933,17 @@ class DashboardPanel extends JPanel {
                     Map<String, Object> stats = get();
                     
                     SwingUtilities.invokeLater(() -> {
-                        int total = (Integer) stats.get("total");
-                        int pending = (Integer) stats.get("pending");
-                        double revenue = (Double) stats.get("revenue");
-                        String bestSeller = (String) stats.get("bestSeller");
+                        int total = (int) asDouble(stats.get("total"), 0);
+                        int pending = (int) asDouble(stats.get("pending"), 0);
+                        double revenue = asDouble(stats.get("revenue"), 0.0);
+                        String bestSeller = String.valueOf(stats.getOrDefault("bestSeller", "N/A"));
+
+                        Object oph = stats.get("ordersPerHour");
+                        if (oph instanceof int[] arr && arr.length == 24) {
+                            ordersPerHour = arr;
+                        } else {
+                            ordersPerHour = new int[24];
+                        }
                         
                         totalOrdersLabel.setText(String.format(
                             "<html><center>📦 Total Orders<br><font size=5><b>%d</b></font></center></html>", total));
@@ -723,6 +967,34 @@ class DashboardPanel extends JPanel {
             }
         }.execute();
     }
+
+    private static double asDouble(Object value, double defaultValue) {
+        if (value == null) return defaultValue;
+        if (value instanceof Number n) return n.doubleValue();
+        try {
+            return Double.parseDouble(String.valueOf(value));
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    private static Instant parseToInstant(Object value) {
+        if (value == null) return null;
+        if (value instanceof String s) {
+            try {
+                return Instant.parse(s);
+            } catch (DateTimeParseException e) {
+                return null;
+            }
+        }
+        if (value instanceof Map<?, ?> m) {
+            Object seconds = m.containsKey("seconds") ? m.get("seconds") : m.get("_seconds");
+            if (seconds instanceof Number n) {
+                return Instant.ofEpochSecond(n.longValue());
+            }
+        }
+        return null;
+    }
     
     /**
      * Draw bar chart for orders per hour
@@ -734,12 +1006,11 @@ class DashboardPanel extends JPanel {
         int chartWidth = width - 2 * padding;
         int chartHeight = height - 2 * padding;
         
-        // Sample data: orders per hour (24 hours)
-        int[] ordersPerHour = {2, 1, 0, 0, 1, 3, 5, 8, 7, 6, 4, 3, 2, 4, 5, 4, 3, 2, 1, 2, 3, 2, 1, 2};
+        int[] data = (ordersPerHour != null && ordersPerHour.length == 24) ? ordersPerHour : new int[24];
         
         // Find max value for scaling
         int maxOrders = 0;
-        for (int orders : ordersPerHour) {
+        for (int orders : data) {
             maxOrders = Math.max(maxOrders, orders);
         }
         if (maxOrders == 0) maxOrders = 1;
@@ -753,10 +1024,10 @@ class DashboardPanel extends JPanel {
         }
         
         // Draw bars
-        int barWidth = chartWidth / ordersPerHour.length;
+        int barWidth = chartWidth / data.length;
         g.setColor(BarkBitesApp.PRIMARY_COLOR);
-        for (int i = 0; i < ordersPerHour.length; i++) {
-            int barHeight = (int) ((ordersPerHour[i] / (double) maxOrders) * chartHeight);
+        for (int i = 0; i < data.length; i++) {
+            int barHeight = (int) ((data[i] / (double) maxOrders) * chartHeight);
             int x = padding + i * barWidth + 2;
             int y = padding + chartHeight - barHeight;
             g.fillRect(x, y, barWidth - 4, barHeight);
@@ -765,7 +1036,7 @@ class DashboardPanel extends JPanel {
         // Draw axis labels
         g.setColor(Color.BLACK);
         g.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        g.drawString("Orders Per Hour (24-hour view)", padding, 15);
+        g.drawString("Orders Per Hour (last 24h)", padding, 15);
         
         // Y-axis scale
         for (int i = 0; i <= 4; i++) {
@@ -775,9 +1046,15 @@ class DashboardPanel extends JPanel {
         }
         
         // X-axis labels (every 3 hours)
-        for (int i = 0; i < ordersPerHour.length; i += 3) {
+        int nowHour = java.time.LocalTime.now().getHour();
+        for (int i = 0; i < data.length; i += 3) {
+            int hoursAgo = 23 - i;
+            int hour = nowHour - hoursAgo;
+            hour %= 24;
+            if (hour < 0) hour += 24;
+
             int x = padding + i * barWidth;
-            g.drawString(String.format("%02d:00", i), x, height - padding + 15);
+            g.drawString(String.format("%02d:00", hour), x, height - padding + 15);
         }
     }
 }

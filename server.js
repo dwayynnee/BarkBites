@@ -29,6 +29,25 @@ try {
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
+// Convert Firestore SDK types (Timestamp, etc.) into JSON-friendly values
+function serializeFirestoreValue(value) {
+  if (value == null) return value;
+  if (value instanceof admin.firestore.Timestamp) {
+    return value.toDate().toISOString();
+  }
+  if (Array.isArray(value)) {
+    return value.map(serializeFirestoreValue);
+  }
+  if (typeof value === 'object') {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) {
+      out[k] = serializeFirestoreValue(v);
+    }
+    return out;
+  }
+  return value;
+}
+
 // Route for home page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -126,7 +145,7 @@ app.get('/api/menu_items', async (req, res) => {
     const snapshot = await db.collection('menu_items').get();
     const items = [];
     snapshot.forEach(doc => {
-      items.push({ id: doc.id, ...doc.data() });
+      items.push(serializeFirestoreValue({ id: doc.id, ...doc.data() }));
     });
     console.log(`✅ Fetched ${items.length} menu items from Firestore`);
     res.json(items);
@@ -134,6 +153,64 @@ app.get('/api/menu_items', async (req, res) => {
     console.error('Error fetching menu:', error.message);
     // Return empty array instead of error - collections might not exist yet
     res.json([]);
+  }
+});
+
+// Add menu item (used by Swing staff kiosk)
+app.post('/api/menu_items/add', async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ error: 'Firebase not initialized' });
+    }
+    const { id, name, description, price, category, available } = req.body || {};
+    if (!id || !name) {
+      return res.status(400).json({ error: 'Missing required fields: id, name' });
+    }
+
+    const payload = {
+      id: String(id),
+      name: String(name),
+      description: description ? String(description) : '',
+      price: typeof price === 'number' ? price : Number(price),
+      category: category ? String(category) : 'Uncategorized',
+      available: typeof available === 'boolean' ? available : true,
+      updated_at: new Date()
+    };
+    if (!Number.isFinite(payload.price)) {
+      return res.status(400).json({ error: 'Invalid price' });
+    }
+
+    await db.collection('menu_items').doc(payload.id).set(payload, { merge: true });
+    console.log(`✅ Added/updated menu item ${payload.id}: ${payload.name}`);
+    res.status(201).json({ success: true });
+  } catch (error) {
+    console.error('Error adding menu item:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete menu item (used by Swing staff kiosk)
+app.delete('/api/menu_items/:itemId', async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ error: 'Firebase not initialized' });
+    }
+    const { itemId } = req.params;
+    if (!itemId) {
+      return res.status(400).json({ error: 'Missing itemId' });
+    }
+
+    await db.collection('menu_items').doc(itemId).delete();
+    // Best-effort: also remove inventory record for the item if present
+    try {
+      await db.collection('inventory').doc(itemId).delete();
+    } catch {}
+
+    console.log(`✅ Deleted menu item ${itemId}`);
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting menu item:', error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -151,7 +228,7 @@ app.get('/api/inventory', async (req, res) => {
     const snapshot = await db.collection('inventory').get();
     const inventory = [];
     snapshot.forEach(doc => {
-      inventory.push({ id: doc.id, ...doc.data() });
+      inventory.push(serializeFirestoreValue({ id: doc.id, ...doc.data() }));
     });
     console.log(`✅ Fetched ${inventory.length} inventory items from Firestore`);
     res.json(inventory);
@@ -170,7 +247,7 @@ app.get('/api/orders', async (req, res) => {
     const snapshot = await db.collection('orders').get();
     const orders = [];
     snapshot.forEach(doc => {
-      orders.push({ id: doc.id, ...doc.data() });
+      orders.push(serializeFirestoreValue({ id: doc.id, ...doc.data() }));
     });
     console.log(`✅ Fetched ${orders.length} orders from Firestore`);
     res.json(orders);
@@ -285,65 +362,7 @@ app.post('/api/seed', async (req, res) => {
 });
 
 // Add new menu item
-app.post('/api/menu_items/add', async (req, res) => {
-  try {
-    if (!db) {
-      return res.status(503).json({ error: 'Firebase not initialized' });
-    }
-    
-    const { id, name, price, category, available, description } = req.body;
-    
-    // Validate required fields
-    if (!id || !name || price === undefined || price === null || !category) {
-      return res.status(400).json({ error: 'Missing required fields: id, name, price, category' });
-    }
-    
-    // Add to Firestore
-    await db.collection('menu_items').doc(id).set({
-      id,
-      name,
-      price: parseFloat(price),
-      category,
-      available: available !== undefined ? available : true,
-      description: description || '',
-      created_at: new Date(),
-      updated_at: new Date()
-    });
-    
-    console.log(`✅ Added menu item: ${name} ($${price})`);
-    res.json({ success: true, message: `Menu item "${name}" added successfully`, item: { id, name, price, category } });
-  } catch (error) {
-    console.error('Error adding menu item:', error.message);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Delete a menu item
-app.delete('/api/menu_items/:itemId', async (req, res) => {
-  try {
-    if (!db) {
-      return res.status(503).json({ error: 'Firebase not initialized' });
-    }
-
-    const { itemId } = req.params;
-    if (!itemId) {
-      return res.status(400).json({ error: 'Missing required parameter: itemId' });
-    }
-
-    const ref = db.collection('menu_items').doc(itemId);
-    const doc = await ref.get();
-    if (!doc.exists) {
-      return res.status(404).json({ error: `Menu item "${itemId}" not found` });
-    }
-
-    await ref.delete();
-    console.log(`✅ Deleted menu item: ${itemId}`);
-    res.json({ success: true, message: `Menu item "${itemId}" deleted successfully` });
-  } catch (error) {
-    console.error('Error deleting menu item:', error.message);
-    res.status(500).json({ error: error.message });
-  }
-});
+// NOTE: menu item add/delete routes are defined earlier for the Swing staff kiosk.
 
 // Start server
 const PORT = process.env.PORT || 3000;
