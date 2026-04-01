@@ -279,6 +279,28 @@ app.patch('/api/orders/:orderId', async (req, res) => {
   }
 });
 
+// Update order status (POST alternative for Java HttpURLConnection compatibility)
+app.post('/api/orders/:orderId', async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ error: 'Firebase not initialized' });
+    }
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    await db.collection('orders').doc(orderId).update({
+      status: status,
+      updated_at: new Date()
+    });
+
+    console.log(`✅ Updated order ${orderId} to ${status} (POST)`);
+    res.json({ success: true, message: `Order ${orderId} updated to ${status}` });
+  } catch (error) {
+    console.error('Error updating order (POST):', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Alternative seed endpoint - uses REST API if Admin SDK fails
 app.post('/api/seed', async (req, res) => {
   try {

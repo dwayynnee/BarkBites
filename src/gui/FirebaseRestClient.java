@@ -193,9 +193,10 @@ public class FirebaseRestClient {
         // Try local server first
         if (USE_LOCAL_SERVER) {
             try {
+                // Use POST instead of PATCH because some Java runtimes reject PATCH with HttpURLConnection
                 String url = SERVER_URL + "/api/orders/" + orderId;
                 HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-                conn.setRequestMethod("PATCH");
+                conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
                 conn.setDoOutput(true);
                 conn.setConnectTimeout(5000);
@@ -309,56 +310,82 @@ public class FirebaseRestClient {
     }
     
     private static boolean updateOrderStatusDirect(String orderId, String newStatus) {
+        // Use Firestore Commit API (POST) to avoid PATCH, which some Java runtimes reject.
         try {
-            String url = FIREBASE_URL + "/orders/" + orderId + "?key=" + API_KEY;
-            HttpsURLConnection conn = (HttpsURLConnection) new URL(url).openConnection();
-            conn.setRequestMethod("PATCH");
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setConnectTimeout(5000);
-            conn.setReadTimeout(5000);
-            
-            // Build update JSON
-            String updateJson = String.format(
-                "{\"fields\":{\"status\":{\"stringValue\":\"%s\"},\"updated_at\":{\"timestampValue\":\"%s\"}}}",
-                newStatus, new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                    .format(new java.util.Date())
+            String url = String.format(
+                "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:commit?key=%s",
+                PROJECT_ID,
+                API_KEY
             );
-            
-            conn.setDoOutput(true);
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(updateJson.getBytes());
-                os.flush();
-            }
-            
-            int responseCode = conn.getResponseCode();
-            conn.disconnect();
-            
-            if (responseCode == 200) {
-                System.out.println("✅ Updated orders/" + orderId);
-                return true;
-            } else {
-                System.err.println("❌ Update failed: HTTP " + responseCode);
-                return false;
-            }
-        } catch (IOException | RuntimeException e) {
-            System.err.println("⚠️ Error updating document: " + e.getMessage());
-            return false;
-        }
-    }
-
-    private static boolean addMenuItemDirect(String id, String name, double price, String category, String description) {
-        try {
-            String url = FIREBASE_URL + "/menu_items/" + URLEncoder.encode(id, "UTF-8") + "?key=" + API_KEY;
             HttpsURLConnection conn = (HttpsURLConnection) new URL(url).openConnection();
-            conn.setRequestMethod("PATCH");
+            conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(5000);
 
             String timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                    .format(new java.util.Date());
+                .format(new java.util.Date());
+
+            String docName = String.format(
+                "projects/%s/databases/(default)/documents/orders/%s",
+                PROJECT_ID,
+                escapeJson(orderId)
+            );
+
+            String updateJson = String.format(
+                "{\"writes\":[{\"update\":{\"name\":\"%s\",\"fields\":{\"status\":{\"stringValue\":\"%s\"},\"updated_at\":{\"timestampValue\":\"%s\"}}},\"updateMask\":{\"fieldPaths\":[\"status\",\"updated_at\"]}}]}",
+                docName,
+                escapeJson(newStatus),
+                timestamp
+            );
+
+            conn.setDoOutput(true);
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(updateJson.getBytes());
+                os.flush();
+            }
+
+            int responseCode = conn.getResponseCode();
+            conn.disconnect();
+
+            if (responseCode == 200) {
+                System.out.println("✅ Updated orders/" + orderId + " (commit)");
+                return true;
+            }
+
+            System.err.println("❌ Commit update failed: HTTP " + responseCode);
+            return false;
+        } catch (IOException | RuntimeException e) {
+            System.err.println("⚠️ Error updating document (commit): " + e.getMessage());
+            return false;
+        }
+    }
+
+    private static boolean addMenuItemDirect(String id, String name, double price, String category, String description) {
+        // Use Firestore Commit API (POST) to avoid PATCH, which some Java runtimes reject.
+        try {
+            String url = String.format(
+                "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:commit?key=%s",
+                PROJECT_ID,
+                API_KEY
+            );
+            HttpsURLConnection conn = (HttpsURLConnection) new URL(url).openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+
+            String timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+                .format(new java.util.Date());
+
+            String docName = String.format(
+                "projects/%s/databases/(default)/documents/menu_items/%s",
+                PROJECT_ID,
+                escapeJson(id)
+            );
+
             String addJson = String.format(
-                "{\"fields\":{" +
+                "{\"writes\":[{\"update\":{\"name\":\"%s\",\"fields\":{" +
                     "\"id\":{\"stringValue\":\"%s\"}," +
                     "\"name\":{\"stringValue\":\"%s\"}," +
                     "\"description\":{\"stringValue\":\"%s\"}," +
@@ -366,7 +393,8 @@ public class FirebaseRestClient {
                     "\"category\":{\"stringValue\":\"%s\"}," +
                     "\"available\":{\"booleanValue\":true}," +
                     "\"updated_at\":{\"timestampValue\":\"%s\"}" +
-                "}}",
+                "}},\"updateMask\":{\"fieldPaths\":[\"id\",\"name\",\"description\",\"price\",\"category\",\"available\",\"updated_at\"]}}]}",
+                docName,
                 escapeJson(id),
                 escapeJson(name),
                 escapeJson(description),
@@ -385,13 +413,13 @@ public class FirebaseRestClient {
             conn.disconnect();
 
             if (responseCode == 200) {
-                System.out.println("✅ Added menu_items/" + id + " (direct REST)");
+                System.out.println("✅ Added menu_items/" + id + " (commit)");
                 return true;
             }
-            System.err.println("❌ Direct add failed: HTTP " + responseCode);
+            System.err.println("❌ Commit add failed: HTTP " + responseCode);
             return false;
         } catch (IOException | RuntimeException e) {
-            System.err.println("⚠️ Error adding menu item (direct REST): " + e.getMessage());
+            System.err.println("⚠️ Error adding menu item (commit): " + e.getMessage());
             return false;
         }
     }
