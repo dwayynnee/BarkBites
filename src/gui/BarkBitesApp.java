@@ -55,7 +55,7 @@ public class BarkBitesApp extends JFrame {
         System.out.println("\n🐾 Bark Bites Staff Kiosk Starting...");
         
         // Set window properties
-        setTitle("🐾 Bark Bites - Staff Kiosk (Firebase-Enabled)");
+        setTitle("Bark Bites - Staff Kiosk");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1200, 700);
         setLocationRelativeTo(null);
