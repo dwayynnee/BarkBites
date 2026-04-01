@@ -125,8 +125,14 @@ npm start
 ```bash
 # Place firebase-key.json in project root
 # Add Firebase Admin SDK JARs to lib/ folder
+
+# Windows (PowerShell / CMD / Git Bash)
+javac -cp ".;lib/*" -d bin src/models/*.java src/data/*.java src/gui/*.java
+java -cp ".;bin;lib/*" gui.BarkBitesApp
+
+# macOS / Linux
 javac -cp ".:lib/*" -d bin src/models/*.java src/data/*.java src/gui/*.java
-java -cp ".:bin;lib/*" src.gui.BarkBitesApp
+java -cp ".:bin:lib/*" gui.BarkBitesApp
 ```
 
 **See [QUICKSTART.md](./QUICKSTART.md) for complete setup guide.**

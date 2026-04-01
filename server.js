@@ -294,7 +294,7 @@ app.post('/api/menu_items/add', async (req, res) => {
     const { id, name, price, category, available, description } = req.body;
     
     // Validate required fields
-    if (!id || !name || !price || !category) {
+    if (!id || !name || price === undefined || price === null || !category) {
       return res.status(400).json({ error: 'Missing required fields: id, name, price, category' });
     }
     
@@ -314,6 +314,33 @@ app.post('/api/menu_items/add', async (req, res) => {
     res.json({ success: true, message: `Menu item "${name}" added successfully`, item: { id, name, price, category } });
   } catch (error) {
     console.error('Error adding menu item:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete a menu item
+app.delete('/api/menu_items/:itemId', async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ error: 'Firebase not initialized' });
+    }
+
+    const { itemId } = req.params;
+    if (!itemId) {
+      return res.status(400).json({ error: 'Missing required parameter: itemId' });
+    }
+
+    const ref = db.collection('menu_items').doc(itemId);
+    const doc = await ref.get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: `Menu item "${itemId}" not found` });
+    }
+
+    await ref.delete();
+    console.log(`✅ Deleted menu item: ${itemId}`);
+    res.json({ success: true, message: `Menu item "${itemId}" deleted successfully` });
+  } catch (error) {
+    console.error('Error deleting menu item:', error.message);
     res.status(500).json({ error: error.message });
   }
 });

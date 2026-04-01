@@ -1,42 +1,46 @@
 package data;
 
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.firestore.*;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
-import com.google.firebase.cloud.FirestoreClient;
-import models.*;
-
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
+import gui.FirebaseRestClient;
+import models.Inventory;
+import models.MenuItem;
+import models.Order;
+import models.User;
+import models.Wallet;
+
 /**
- * FirebaseManager - Singleton class for managing Firestore operations
- * Handles all database interactions for BarkBites
- * 
- * Usage:
- *   FirebaseManager manager = FirebaseManager.getInstance();
- *   manager.initializeFirebase("path/to/firebase-key.json");
- *   List<Order> orders = manager.getAllOrders();
+ * FirebaseManager - Singleton class for managing Firestore operations.
+ *
+ * This repository uses a local Node.js server (see server.js) as an authenticated
+ * API gateway to Firestore via firebase-admin.
+ *
+ * The original Firebase Admin Java SDK implementation required a large set of
+ * external JAR dependencies (firebase-admin + many transitive deps). Those
+ * dependencies are not currently present in this repo, so compiling the Java app
+ * would fail.
+ *
+ * To keep the Java Swing app compiling and usable out of the box, this
+ * FirebaseManager provides a "REST mode" implementation that delegates supported
+ * operations to {@link gui.FirebaseRestClient}. Unsupported operations throw an
+ * exception with guidance.
  */
 public class FirebaseManager {
-    private static FirebaseManager instance = null;
-    private Firestore db = null;
-    private static final String USERS_COLLECTION = "users";
-    private static final String MENU_ITEMS_COLLECTION = "menu_items";
-    private static final String ORDERS_COLLECTION = "orders";
-    private static final String INVENTORY_COLLECTION = "inventory";
-    private static final String WALLETS_COLLECTION = "wallets";
+    private static FirebaseManager instance;
+    private boolean initialized;
 
-    // Private constructor for Singleton
     private FirebaseManager() {
     }
 
     /**
-     * Get singleton instance
+     * Get singleton instance.
      */
     public static synchronized FirebaseManager getInstance() {
         if (instance == null) {
@@ -46,435 +50,352 @@ public class FirebaseManager {
     }
 
     /**
-     * Initialize Firebase with service account key
-     * Must be called once at application startup
-     * 
-     * @param serviceAccountKeyPath Path to firebase-key.json file
-     * @throws IOException If key file not found
+     * Initialize Firebase.
+     *
+     * In REST mode this validates the service account path (if provided) and
+     * marks the manager as initialized. Firestore access is performed by the
+     * Node.js server.
      */
     public void initializeFirebase(String serviceAccountKeyPath) throws IOException {
-        if (FirebaseApp.getApps().isEmpty()) {
-            FileInputStream serviceAccount = new FileInputStream(serviceAccountKeyPath);
-            FirebaseOptions options = new FirebaseOptions.Builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .build();
-            FirebaseApp.initializeApp(options);
-            this.db = FirestoreClient.getFirestore();
-            System.out.println("Firebase initialized successfully!");
+        if (serviceAccountKeyPath != null && !serviceAccountKeyPath.trim().isEmpty()) {
+            File keyFile = new File(serviceAccountKeyPath);
+            if (!keyFile.exists()) {
+                throw new IOException("firebase-key.json not found: " + keyFile.getAbsolutePath());
+            }
         }
+
+        initialized = true;
+        System.out.println("✅ FirebaseManager initialized (REST mode). Start the Node server with: npm start");
     }
 
     /**
-     * Check if Firebase is initialized
+     * Check if Firebase is initialized.
      */
     public boolean isInitialized() {
-        return db != null;
+        return initialized;
     }
 
     // ==================== USER OPERATIONS ====================
 
-    /**
-     * Get user by student ID
-     */
     public User getUserById(String student_id) throws ExecutionException, InterruptedException {
-        DocumentSnapshot doc = db.collection(USERS_COLLECTION).document(student_id).get().get();
-        return doc.exists() ? doc.toObject(User.class) : null;
+        throw unsupported("getUserById");
     }
 
-    /**
-     * Create or update user
-     */
     public void saveUser(User user) throws ExecutionException, InterruptedException {
-        db.collection(USERS_COLLECTION).document(user.getStudent_id()).set(user).get();
-        System.out.println("User saved: " + user.getStudent_id());
+        throw unsupported("saveUser");
     }
 
-    /**
-     * Get all users (staff only operation)
-     */
     public List<User> getAllUsers() throws ExecutionException, InterruptedException {
-        List<QueryDocumentSnapshot> documents = db.collection(USERS_COLLECTION).get().get().getDocuments();
-        List<User> users = new ArrayList<>();
-        for (QueryDocumentSnapshot doc : documents) {
-            users.add(doc.toObject(User.class));
-        }
-        return users;
+        throw unsupported("getAllUsers");
     }
 
-    /**
-     * Update last login time
-     */
     public void updateLastLogin(String student_id) throws ExecutionException, InterruptedException {
-        db.collection(USERS_COLLECTION).document(student_id)
-                .update("last_login", Instant.now()).get();
+        throw unsupported("updateLastLogin");
     }
 
     // ==================== MENU ITEM OPERATIONS ====================
 
-    /**
-     * Get all menu items
-     */
     public List<MenuItem> getAllMenuItems() throws ExecutionException, InterruptedException {
-        List<QueryDocumentSnapshot> documents = db.collection(MENU_ITEMS_COLLECTION)
-                .whereEqualTo("available", true).get().get().getDocuments();
+        List<Map<String, Object>> raw = FirebaseRestClient.getMenuItems();
         List<MenuItem> items = new ArrayList<>();
-        for (QueryDocumentSnapshot doc : documents) {
-            MenuItem item = doc.toObject(MenuItem.class);
-            item.setId(doc.getId());
+        if (raw == null) {
+            return items;
+        }
+
+        for (Map<String, Object> doc : raw) {
+            MenuItem item = new MenuItem();
+            item.setId(asString(doc.get("id")));
+            item.setName(asString(doc.get("name")));
+            item.setDescription(asString(doc.get("description")));
+            item.setCategory(asString(doc.get("category")));
+            item.setAvailable(asBoolean(doc.get("available"), true));
+            item.setPrice(asDouble(doc.get("price"), 0.0));
             items.add(item);
         }
+
         return items;
     }
 
-    /**
-     * Get menu items by category
-     */
     public List<MenuItem> getMenuItemsByCategory(String category) throws ExecutionException, InterruptedException {
-        List<QueryDocumentSnapshot> documents = db.collection(MENU_ITEMS_COLLECTION)
-                .whereEqualTo("category", category)
-                .whereEqualTo("available", true).get().get().getDocuments();
-        List<MenuItem> items = new ArrayList<>();
-        for (QueryDocumentSnapshot doc : documents) {
-            MenuItem item = doc.toObject(MenuItem.class);
-            item.setId(doc.getId());
-            items.add(item);
+        List<MenuItem> all = getAllMenuItems();
+        if (category == null || category.trim().isEmpty()) {
+            return all;
         }
-        return items;
+
+        List<MenuItem> filtered = new ArrayList<>();
+        for (MenuItem item : all) {
+            if (category.equalsIgnoreCase(item.getCategory())) {
+                filtered.add(item);
+            }
+        }
+        return filtered;
     }
 
-    /**
-     * Get menu item by ID
-     */
     public MenuItem getMenuItemById(String itemId) throws ExecutionException, InterruptedException {
-        DocumentSnapshot doc = db.collection(MENU_ITEMS_COLLECTION).document(itemId).get().get();
-        if (doc.exists()) {
-            MenuItem item = doc.toObject(MenuItem.class);
-            item.setId(doc.getId());
-            return item;
+        if (itemId == null || itemId.trim().isEmpty()) {
+            return null;
+        }
+        for (MenuItem item : getAllMenuItems()) {
+            if (itemId.equals(item.getId())) {
+                return item;
+            }
         }
         return null;
     }
 
-    /**
-     * Create new menu item
-     */
     public String createMenuItem(MenuItem item) throws ExecutionException, InterruptedException {
-        DocumentReference ref = db.collection(MENU_ITEMS_COLLECTION).add(item).get();
-        System.out.println("Menu item created: " + ref.getId());
-        return ref.getId();
+        if (item == null) {
+            return null;
+        }
+
+        String id = item.getId();
+        if (id == null || id.trim().isEmpty()) {
+            id = UUID.randomUUID().toString();
+        }
+
+        boolean success = FirebaseRestClient.addMenuItem(
+            id,
+            nullToEmpty(item.getName()),
+            item.getPrice(),
+            nullToEmpty(item.getCategory()),
+            nullToEmpty(item.getDescription())
+        );
+
+        return success ? id : null;
     }
 
-    /**
-     * Update menu item availability
-     */
     public void updateMenuItemAvailability(String itemId, boolean available) throws ExecutionException, InterruptedException {
-        db.collection(MENU_ITEMS_COLLECTION).document(itemId)
-                .update("available", available, "updated_at", Instant.now()).get();
+        throw unsupported("updateMenuItemAvailability");
     }
 
     // ==================== ORDER OPERATIONS ====================
 
-    /**
-     * Get all orders (staff dashboard)
-     */
     public List<Order> getAllOrders() throws ExecutionException, InterruptedException {
-        List<QueryDocumentSnapshot> documents = db.collection(ORDERS_COLLECTION)
-                .orderBy("created_at", Query.Direction.DESCENDING).get().get().getDocuments();
+        List<Map<String, Object>> raw = FirebaseRestClient.getOrders();
         List<Order> orders = new ArrayList<>();
-        for (QueryDocumentSnapshot doc : documents) {
-            Order order = doc.toObject(Order.class);
-            order.setId(doc.getId());
+        if (raw == null) {
+            return orders;
+        }
+
+        for (Map<String, Object> doc : raw) {
+            Order order = new Order();
+            order.setId(asString(doc.get("id")));
+            order.setStudent_id(asString(doc.get("student_id")));
+            order.setStatus(asString(doc.get("status")));
+            order.setTotal_price(asDouble(doc.get("total_price"), 0.0));
+            order.setCreated_at(Instant.now());
             orders.add(order);
         }
+
         return orders;
     }
 
-    /**
-     * Get orders by status (for staff - filtering pending/in_progress/ready)
-     */
     public List<Order> getOrdersByStatus(String status) throws ExecutionException, InterruptedException {
-        List<QueryDocumentSnapshot> documents = db.collection(ORDERS_COLLECTION)
-                .whereEqualTo("status", status)
-                .orderBy("created_at", Query.Direction.DESCENDING).get().get().getDocuments();
-        List<Order> orders = new ArrayList<>();
-        for (QueryDocumentSnapshot doc : documents) {
-            Order order = doc.toObject(Order.class);
-            order.setId(doc.getId());
-            orders.add(order);
+        List<Order> all = getAllOrders();
+        if (status == null || status.trim().isEmpty()) {
+            return all;
         }
-        return orders;
+
+        List<Order> filtered = new ArrayList<>();
+        for (Order order : all) {
+            if (status.equalsIgnoreCase(order.getStatus())) {
+                filtered.add(order);
+            }
+        }
+        return filtered;
     }
 
-    /**
-     * Get orders for a specific student
-     */
     public List<Order> getOrdersByStudent(String student_id) throws ExecutionException, InterruptedException {
-        List<QueryDocumentSnapshot> documents = db.collection(ORDERS_COLLECTION)
-                .whereEqualTo("student_id", student_id)
-                .orderBy("created_at", Query.Direction.DESCENDING).get().get().getDocuments();
-        List<Order> orders = new ArrayList<>();
-        for (QueryDocumentSnapshot doc : documents) {
-            Order order = doc.toObject(Order.class);
-            order.setId(doc.getId());
-            orders.add(order);
+        List<Order> all = getAllOrders();
+        if (student_id == null || student_id.trim().isEmpty()) {
+            return all;
         }
-        return orders;
+
+        List<Order> filtered = new ArrayList<>();
+        for (Order order : all) {
+            if (student_id.equalsIgnoreCase(order.getStudent_id())) {
+                filtered.add(order);
+            }
+        }
+        return filtered;
     }
 
-    /**
-     * Get specific order by ID
-     */
     public Order getOrderById(String orderId) throws ExecutionException, InterruptedException {
-        DocumentSnapshot doc = db.collection(ORDERS_COLLECTION).document(orderId).get().get();
-        if (doc.exists()) {
-            Order order = doc.toObject(Order.class);
-            order.setId(doc.getId());
-            return order;
+        if (orderId == null || orderId.trim().isEmpty()) {
+            return null;
+        }
+        for (Order order : getAllOrders()) {
+            if (orderId.equals(order.getId())) {
+                return order;
+            }
         }
         return null;
     }
 
-    /**
-     * Create new order
-     */
     public String createOrder(Order order) throws ExecutionException, InterruptedException {
-        DocumentReference ref = db.collection(ORDERS_COLLECTION).add(order).get();
-        String orderId = ref.getId();
-        
-        // Generate order number (can be customized)
-        String orderNumber = "#" + String.format("%03d", System.currentTimeMillis() % 1000);
-        db.collection(ORDERS_COLLECTION).document(orderId)
-                .update("order_number", orderNumber).get();
-        
-        System.out.println("Order created: " + orderId + " (" + orderNumber + ")");
-        return orderId;
+        throw unsupported("createOrder");
     }
 
-    /**
-     * Update order status (staff operation)
-     */
     public void updateOrderStatus(String orderId, String newStatus) throws ExecutionException, InterruptedException {
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("status", newStatus);
-        updates.put("updated_at", Instant.now());
-        
-        if ("ready".equalsIgnoreCase(newStatus)) {
-            updates.put("ready_at", Instant.now());
+        if (orderId == null || orderId.trim().isEmpty()) {
+            throw new IllegalArgumentException("orderId is required");
         }
-        
-        db.collection(ORDERS_COLLECTION).document(orderId).update(updates).get();
-        System.out.println("Order " + orderId + " status updated to: " + newStatus);
+        if (newStatus == null || newStatus.trim().isEmpty()) {
+            throw new IllegalArgumentException("newStatus is required");
+        }
+
+        boolean success = FirebaseRestClient.updateOrderStatus(orderId, newStatus);
+        if (!success) {
+            throw new IllegalStateException("Failed to update order status (check server.js is running and Firestore is initialized)");
+        }
     }
 
-    /**
-     * Mark order as picked up
-     */
     public void markOrderPickedUp(String orderId) throws ExecutionException, InterruptedException {
-        db.collection(ORDERS_COLLECTION).document(orderId)
-                .update("picked_up_at", Instant.now(), "status", "completed").get();
+        throw unsupported("markOrderPickedUp");
     }
 
-    /**
-     * Get pending orders count (for staff dashboard)
-     */
     public long getPendingOrderCount() throws ExecutionException, InterruptedException {
-        return db.collection(ORDERS_COLLECTION)
-                .whereEqualTo("status", "pending").get().get().size();
+        long pending = 0;
+        for (Order order : getAllOrders()) {
+            if ("pending".equalsIgnoreCase(order.getStatus())) {
+                pending++;
+            }
+        }
+        return pending;
     }
 
     // ==================== INVENTORY OPERATIONS ====================
 
-    /**
-     * Get inventory item
-     */
     public Inventory getInventoryByItemId(String menu_item_id) throws ExecutionException, InterruptedException {
-        List<QueryDocumentSnapshot> documents = db.collection(INVENTORY_COLLECTION)
-                .whereEqualTo("menu_item_id", menu_item_id).get().get().getDocuments();
-        if (!documents.isEmpty()) {
-            Inventory inv = documents.get(0).toObject(Inventory.class);
-            inv.setId(documents.get(0).getId());
-            return inv;
-        }
-        return null;
+        throw unsupported("getInventoryByItemId");
     }
 
-    /**
-     * Get all inventory
-     */
     public List<Inventory> getAllInventory() throws ExecutionException, InterruptedException {
-        List<QueryDocumentSnapshot> documents = db.collection(INVENTORY_COLLECTION).get().get().getDocuments();
+        List<Map<String, Object>> raw = FirebaseRestClient.getInventory();
         List<Inventory> inventory = new ArrayList<>();
-        for (QueryDocumentSnapshot doc : documents) {
-            Inventory inv = doc.toObject(Inventory.class);
-            inv.setId(doc.getId());
+        if (raw == null) {
+            return inventory;
+        }
+
+        for (Map<String, Object> doc : raw) {
+            Inventory inv = new Inventory();
+            inv.setId(asString(doc.get("id")));
+            inv.setMenu_item_id(asString(doc.get("menu_item_id")));
+            inv.setQuantity_available((int) asDouble(doc.get("quantity_available"), 0));
+            inv.setQuantity_sold_today((int) asDouble(doc.get("quantity_sold_today"), 0));
+            inv.setLow_stock_threshold((int) asDouble(doc.get("low_stock_threshold"), 0));
+            inv.setOut_of_stock(asBoolean(doc.get("is_out_of_stock"), false));
+            inv.setLast_updated(Instant.now());
             inventory.add(inv);
         }
+
         return inventory;
     }
 
-    /**
-     * Create inventory item
-     */
     public String createInventory(Inventory inventory) throws ExecutionException, InterruptedException {
-        DocumentReference ref = db.collection(INVENTORY_COLLECTION).add(inventory).get();
-        System.out.println("Inventory item created: " + ref.getId());
-        return ref.getId();
+        throw unsupported("createInventory");
     }
 
-    /**
-     * Update inventory quantity
-     */
     public void updateInventoryQuantity(String inventoryId, int newQuantity) throws ExecutionException, InterruptedException {
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("quantity_available", newQuantity);
-        updates.put("is_out_of_stock", newQuantity <= 0);
-        updates.put("last_updated", Instant.now());
-        
-        db.collection(INVENTORY_COLLECTION).document(inventoryId).update(updates).get();
+        throw unsupported("updateInventoryQuantity");
     }
 
-    /**
-     * Deduct from inventory when order is placed
-     */
     public void deductInventory(String menu_item_id, int quantity) throws ExecutionException, InterruptedException {
-        Inventory inv = getInventoryByItemId(menu_item_id);
-        if (inv != null) {
-            int newQuantity = inv.getQuantity_available() - quantity;
-            int newSold = inv.getQuantity_sold_today() + quantity;
-            
-            Map<String, Object> updates = new HashMap<>();
-            updates.put("quantity_available", Math.max(0, newQuantity));
-            updates.put("quantity_sold_today", newSold);
-            updates.put("is_out_of_stock", newQuantity <= 0);
-            updates.put("last_updated", Instant.now());
-            
-            db.collection(INVENTORY_COLLECTION).document(inv.getId()).update(updates).get();
-        }
+        throw unsupported("deductInventory");
     }
 
-    /**
-     * Get low stock items (for staff alerts)
-     */
     public List<Inventory> getLowStockItems() throws ExecutionException, InterruptedException {
-        List<QueryDocumentSnapshot> documents = db.collection(INVENTORY_COLLECTION).get().get().getDocuments();
-        List<Inventory> lowStockItems = new ArrayList<>();
-        for (QueryDocumentSnapshot doc : documents) {
-            Inventory inv = doc.toObject(Inventory.class);
-            inv.setId(doc.getId());
+        List<Inventory> lowStock = new ArrayList<>();
+        for (Inventory inv : getAllInventory()) {
             if (inv.isLowStock()) {
-                lowStockItems.add(inv);
+                lowStock.add(inv);
             }
         }
-        return lowStockItems;
+        return lowStock;
     }
 
     // ==================== WALLET OPERATIONS ====================
 
-    /**
-     * Get wallet for student
-     */
     public Wallet getWalletByStudentId(String student_id) throws ExecutionException, InterruptedException {
-        DocumentSnapshot doc = db.collection(WALLETS_COLLECTION).document(student_id).get().get();
-        return doc.exists() ? doc.toObject(Wallet.class) : null;
+        throw unsupported("getWalletByStudentId");
     }
 
-    /**
-     * Create new wallet
-     */
     public void createWallet(Wallet wallet) throws ExecutionException, InterruptedException {
-        db.collection(WALLETS_COLLECTION).document(wallet.getStudent_id()).set(wallet).get();
-        System.out.println("Wallet created for: " + wallet.getStudent_id());
+        throw unsupported("createWallet");
     }
 
-    /**
-     * Deduct amount from wallet when order is placed
-     */
     public void deductFromWallet(String student_id, double amount, String order_id) throws ExecutionException, InterruptedException {
-        Wallet wallet = getWalletByStudentId(student_id);
-        if (wallet != null && wallet.hasSufficientBalance(amount)) {
-            double newBalance = wallet.getBalance() - amount;
-            double newTotalSpent = wallet.getTotal_spent() + amount;
-            
-            Map<String, Object> updates = new HashMap<>();
-            updates.put("balance", newBalance);
-            updates.put("total_spent", newTotalSpent);
-            updates.put("last_transaction", Instant.now());
-            
-            db.collection(WALLETS_COLLECTION).document(student_id).update(updates).get();
-            System.out.println("Deducted $" + amount + " from wallet: " + student_id);
-        }
+        throw unsupported("deductFromWallet");
     }
 
-    /**
-     * Recharge wallet (admin operation)
-     */
     public void rechargeWallet(String student_id, double amount) throws ExecutionException, InterruptedException {
-        Wallet wallet = getWalletByStudentId(student_id);
-        if (wallet != null) {
-            double newBalance = wallet.getBalance() + amount;
-            
-            Map<String, Object> updates = new HashMap<>();
-            updates.put("balance", newBalance);
-            updates.put("last_transaction", Instant.now());
-            
-            db.collection(WALLETS_COLLECTION).document(student_id).update(updates).get();
-            System.out.println("Recharged $" + amount + " to wallet: " + student_id);
-        }
+        throw unsupported("rechargeWallet");
     }
 
-    /**
-     * Get student spending for today
-     */
     public double getDailySpendingByStudent(String student_id) throws ExecutionException, InterruptedException {
-        List<Order> orders = getOrdersByStudent(student_id);
-        Instant today = Instant.now().minusSeconds(24 * 60 * 60); // Last 24 hours
-        
-        double totalSpent = 0;
-        for (Order order : orders) {
-            if (order.getCreated_at().isAfter(today) && "completed".equalsIgnoreCase(order.getStatus())) {
-                totalSpent += order.getTotal_price();
-            }
-        }
-        return totalSpent;
+        throw unsupported("getDailySpendingByStudent");
     }
 
     // ==================== LISTENER OPERATIONS ====================
 
-    /**
-     * Set up real-time listener for orders (staff dashboard)
-     * Calls callback whenever orders change
-     */
-    public ListenerRegistration listenToOrders(
-            com.google.cloud.firestore.EventListener<QuerySnapshot> listener) {
-        return db.collection(ORDERS_COLLECTION)
-                .orderBy("created_at", Query.Direction.DESCENDING)
-                .addSnapshotListener(listener);
+    public void listenToOrders(Runnable listener) {
+        throw unsupported("listenToOrders");
+    }
+
+    public void listenToOrder(String orderId, Runnable listener) {
+        throw unsupported("listenToOrder");
+    }
+
+    public void listenToInventory(Runnable listener) {
+        throw unsupported("listenToInventory");
     }
 
     /**
-     * Set up real-time listener for specific order (student tracking)
+     * Close connection.
      */
-    public ListenerRegistration listenToOrder(String orderId,
-            com.google.cloud.firestore.EventListener<DocumentSnapshot> listener) {
-        return db.collection(ORDERS_COLLECTION).document(orderId)
-                .addSnapshotListener(listener);
+    public void close() {
+        // No-op in REST mode
     }
 
-    /**
-     * Set up real-time listener for inventory
-     */
-    public ListenerRegistration listenToInventory(
-            com.google.cloud.firestore.EventListener<QuerySnapshot> listener) {
-        return db.collection(INVENTORY_COLLECTION).addSnapshotListener(listener);
+    private static UnsupportedOperationException unsupported(String operation) {
+        return new UnsupportedOperationException(
+            "FirebaseManager." + operation + " is not available in REST mode. " +
+            "Use the Node server API (server.js) / FirebaseRestClient instead."
+        );
     }
 
-    /**
-     * Close Firestore connection
-     */
-    public void close() throws Exception {
-        if (db != null) {
-            db.close();
-            System.out.println("Firestore connection closed");
+    private static String asString(Object value) {
+        return value == null ? "" : String.valueOf(value);
+    }
+
+    private static String nullToEmpty(String value) {
+        return value == null ? "" : value;
+    }
+
+    private static double asDouble(Object value, double defaultValue) {
+        if (value == null) {
+            return defaultValue;
         }
+        if (value instanceof Number number) {
+            return number.doubleValue();
+        }
+        try {
+            return Double.parseDouble(String.valueOf(value));
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    private static boolean asBoolean(Object value, boolean defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+        if (value instanceof Boolean bool) {
+            return bool;
+        }
+        String s = String.valueOf(value).trim().toLowerCase();
+        if ("true".equals(s)) return true;
+        if ("false".equals(s)) return false;
+        return defaultValue;
     }
 }

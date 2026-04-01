@@ -197,9 +197,15 @@ npm start
 
 ### Java:
 ```bash
-javac -cp ".:firebase-admin.jar:*" src/gui/BarkBitesApp.java
-java -cp ".:firebase-admin.jar:*" src/gui/BarkBitesApp
-# Should print Firebase connection status
+# Windows
+javac -cp ".;lib/*" -d bin src/models/*.java src/data/*.java src/gui/*.java
+java -cp ".;bin;lib/*" gui.BarkBitesApp
+
+# macOS / Linux
+javac -cp ".:lib/*" -d bin src/models/*.java src/data/*.java src/gui/*.java
+java -cp ".:bin:lib/*" gui.BarkBitesApp
+
+# Should print kiosk startup logs
 ```
 
 ## Next Steps

@@ -128,10 +128,10 @@ If you see an array (may be empty), Firebase is connected! ✅
 #### On Windows (PowerShell):
 ```bash
 # Compile
-javac -cp ".:lib/*" -d bin src/models/*.java src/data/*.java src/gui/*.java
+javac -cp ".;lib/*" -d bin src/models/*.java src/data/*.java src/gui/*.java
 
 # Run
-java -cp ".:bin;lib/*" src.gui.BarkBitesApp
+java -cp ".;bin;lib/*" gui.BarkBitesApp
 ```
 
 #### On macOS/Linux:
@@ -140,7 +140,7 @@ java -cp ".:bin;lib/*" src.gui.BarkBitesApp
 javac -cp ".:lib/*" -d bin src/models/*.java src/data/*.java src/gui/*.java
 
 # Run
-java -cp ".:bin:lib/*" src.gui.BarkBitesApp
+java -cp ".:bin:lib/*" gui.BarkBitesApp
 ```
 
 ### Expected Output:
@@ -318,10 +318,10 @@ npm run dev          # Same as start
 ### Java (Windows)
 ```bash
 # Compile
-javac -cp ".:lib/*" -d bin src/models/*.java src/data/*.java src/gui/*.java
+javac -cp ".;lib/*" -d bin src/models/*.java src/data/*.java src/gui/*.java
 
 # Run
-java -cp ".:bin;lib/*" src.gui.BarkBitesApp
+java -cp ".;bin;lib/*" gui.BarkBitesApp
 ```
 
 ### Java (macOS/Linux)
@@ -330,7 +330,7 @@ java -cp ".:bin;lib/*" src.gui.BarkBitesApp
 javac -cp ".:lib/*" -d bin src/models/*.java src/data/*.java src/gui/*.java
 
 # Run
-java -cp ".:bin:lib/*" src.gui.BarkBitesApp
+java -cp ".:bin:lib/*" gui.BarkBitesApp
 ```
 
 ---

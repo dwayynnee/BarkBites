@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -27,14 +28,14 @@ public class FirebaseRestClient {
     
     // Use local Node.js server as API gateway (authenticates with Firestore)
     // Default server.js runs on port 3000
-    private static String SERVER_URL = "http://localhost:3000";
+    private static final String SERVER_URL = "http://localhost:3000";
     
     // Fallback to direct Firestore if server unavailable
     // Note: database path must be (default), not default
     private static final String FIREBASE_URL = 
         String.format("https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents", PROJECT_ID);
     
-    private static boolean useLocalServer = true;
+    private static final boolean USE_LOCAL_SERVER = true;
     
     static {
         checkFirebaseConfig();
@@ -61,7 +62,7 @@ public class FirebaseRestClient {
                         System.out.println("   Using authenticated Firestore access for write operations");
                         return;
                     }
-                } catch (Exception e) {
+                } catch (IOException | RuntimeException e) {
                     System.err.println("⚠️ Error reading firebase-key.json at " + path + ": " + e.getMessage());
                 }
             }
@@ -100,9 +101,9 @@ public class FirebaseRestClient {
      */
     private static List<Map<String, Object>> getCollection(String collectionName) {
         List<Map<String, Object>> documents = new ArrayList<>();
-        
-        // Try local server first
-        if (useLocalServer) {
+
+        // Try local server first (preferred, authenticated)
+        if (USE_LOCAL_SERVER) {
             try {
                 String url = SERVER_URL + "/api/" + collectionName;
                 URL obj = new URL(url);
@@ -110,29 +111,28 @@ public class FirebaseRestClient {
                 conn.setRequestMethod("GET");
                 conn.setConnectTimeout(5000);
                 conn.setReadTimeout(5000);
-                
+
                 int responseCode = conn.getResponseCode();
-                if (responseCode == 200) {
-                    String response = readResponse(conn);
-                    documents = parseServerResponse(response);
-                    System.out.println("✅ Fetched " + documents.size() + " documents from server: " + collectionName);
-                    return documents;
-                } else if (responseCode == 503) {
-                    System.err.println("⚠️ Server not initialized - Firestore not connected");
-                    useLocalServer = false;  // Fall back to direct API
-                } else {
-                    System.err.println("⚠️ Server returned HTTP " + responseCode);
+                switch (responseCode) {
+                    case 200 -> {
+                        String response = readResponse(conn);
+                        documents = parseServerResponse(response);
+                        System.out.println("✅ Fetched " + documents.size() + " documents from server: " + collectionName);
+                        return documents;
+                    }
+                    case 503 -> System.err.println("⚠️ Server not initialized - Firestore not connected");
+                    default -> System.err.println("⚠️ Server returned HTTP " + responseCode);
                 }
                 conn.disconnect();
-            } catch (Exception e) {
+            } catch (IOException | RuntimeException e) {
                 System.err.println("⚠️ Local server unavailable: " + e.getMessage());
                 System.err.println("   Make sure Node.js server is running: npm start");
-                useLocalServer = false;  // Fall back to direct API
             }
         }
-        
+
         // Fallback: Direct Firestore REST API (for offline/testing)
-        if (!useLocalServer && documents.isEmpty()) {
+        // Only attempt if server was unavailable/unhealthy.
+        if (documents.isEmpty()) {
             try {
                 String url = FIREBASE_URL + "/" + collectionName + "?key=" + API_KEY;
                 HttpsURLConnection conn = (HttpsURLConnection) new URL(url).openConnection();
@@ -154,7 +154,7 @@ public class FirebaseRestClient {
                     }
                 }
                 conn.disconnect();
-            } catch (Exception e) {
+            } catch (IOException | RuntimeException e) {
                 System.err.println("⚠️ Error fetching from Firestore: " + e.getMessage());
             }
         }
@@ -199,7 +199,7 @@ public class FirebaseRestClient {
                     currentDoc = new StringBuilder();
                 }
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println("⚠️ Error parsing server response: " + e.getMessage());
         }
         
@@ -228,9 +228,9 @@ public class FirebaseRestClient {
                     // Try to parse as number
                     try {
                         if (value.contains(".")) {
-                            map.put(key, Double.parseDouble(value));
+                            map.put(key, Double.valueOf(value));
                         } else {
-                            map.put(key, Integer.parseInt(value));
+                            map.put(key, Integer.valueOf(value));
                         }
                     } catch (NumberFormatException e) {
                         // Keep as string
@@ -238,7 +238,7 @@ public class FirebaseRestClient {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println("⚠️ Error parsing JSON: " + e.getMessage());
         }
         
@@ -250,7 +250,7 @@ public class FirebaseRestClient {
      */
     public static boolean updateOrderStatus(String orderId, String newStatus) {
         // Try local server first
-        if (useLocalServer) {
+        if (USE_LOCAL_SERVER) {
             try {
                 String url = SERVER_URL + "/api/orders/" + orderId;
                 HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
@@ -274,11 +274,9 @@ public class FirebaseRestClient {
                     return true;
                 } else {
                     System.err.println("⚠️ Server update failed: HTTP " + responseCode);
-                    useLocalServer = false;
                 }
-            } catch (Exception e) {
+            } catch (IOException | RuntimeException e) {
                 System.err.println("⚠️ Server unavailable: " + e.getMessage());
-                useLocalServer = false;
             }
         }
         
@@ -291,7 +289,7 @@ public class FirebaseRestClient {
      */
     public static boolean addMenuItem(String id, String name, double price, String category, String description) {
         // Try local server first
-        if (useLocalServer) {
+        if (USE_LOCAL_SERVER) {
             try {
                 String url = SERVER_URL + "/api/menu_items/add";
                 HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
@@ -302,8 +300,12 @@ public class FirebaseRestClient {
                 conn.setReadTimeout(5000);
                 
                 String addJson = String.format(
-                    "{\"id\":\"%s\",\"name\":\"%s\",\"price\":%f,\"category\":\"%s\",\"description\":\"%s\",\"available\":true}",
-                    id, name, price, category, description
+                    "{\"id\":\"%s\",\"name\":\"%s\",\"price\":%s,\"category\":\"%s\",\"description\":\"%s\",\"available\":true}",
+                    escapeJson(id),
+                    escapeJson(name),
+                    Double.toString(price),
+                    escapeJson(category),
+                    escapeJson(description)
                 );
                 try (OutputStream os = conn.getOutputStream()) {
                     os.write(addJson.getBytes());
@@ -318,14 +320,51 @@ public class FirebaseRestClient {
                     return true;
                 } else {
                     System.err.println("⚠️ Failed to add menu item: HTTP " + responseCode);
-                    return false;
                 }
-            } catch (Exception e) {
+            } catch (IOException | RuntimeException e) {
                 System.err.println("❌ Error adding menu item: " + e.getMessage());
-                return false;
             }
         }
-        return false;
+
+        // Fallback: Direct Firestore REST (may be blocked by Firestore rules)
+        return addMenuItemDirect(id, name, price, category, description);
+    }
+
+    /**
+     * Delete a menu item from Firestore
+     */
+    public static boolean deleteMenuItem(String id) {
+        if (id == null || id.trim().isEmpty()) {
+            return false;
+        }
+
+        String trimmedId = id.trim();
+
+        // Try local server first
+        if (USE_LOCAL_SERVER) {
+            try {
+                String encodedId = URLEncoder.encode(trimmedId, "UTF-8");
+                String url = SERVER_URL + "/api/menu_items/" + encodedId;
+                HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+                conn.setRequestMethod("DELETE");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+
+                int responseCode = conn.getResponseCode();
+                conn.disconnect();
+
+                if (responseCode == 200 || responseCode == 204) {
+                    System.out.println("✅ Deleted menu item: " + trimmedId);
+                    return true;
+                }
+                System.err.println("⚠️ Failed to delete menu item: HTTP " + responseCode);
+            } catch (IOException | RuntimeException e) {
+                System.err.println("❌ Error deleting menu item: " + e.getMessage());
+            }
+        }
+
+        // Fallback: Direct Firestore REST (may be blocked by rules)
+        return deleteMenuItemDirect(trimmedId);
     }
     
     private static boolean updateOrderStatusDirect(String orderId, String newStatus) {
@@ -360,10 +399,95 @@ public class FirebaseRestClient {
                 System.err.println("❌ Update failed: HTTP " + responseCode);
                 return false;
             }
-        } catch (Exception e) {
+        } catch (IOException | RuntimeException e) {
             System.err.println("⚠️ Error updating document: " + e.getMessage());
             return false;
         }
+    }
+
+    private static boolean addMenuItemDirect(String id, String name, double price, String category, String description) {
+        try {
+            String url = FIREBASE_URL + "/menu_items/" + URLEncoder.encode(id, "UTF-8") + "?key=" + API_KEY;
+            HttpsURLConnection conn = (HttpsURLConnection) new URL(url).openConnection();
+            conn.setRequestMethod("PATCH");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+
+            String timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+                    .format(new java.util.Date());
+            String addJson = String.format(
+                "{\"fields\":{" +
+                    "\"id\":{\"stringValue\":\"%s\"}," +
+                    "\"name\":{\"stringValue\":\"%s\"}," +
+                    "\"description\":{\"stringValue\":\"%s\"}," +
+                    "\"price\":{\"doubleValue\":%s}," +
+                    "\"category\":{\"stringValue\":\"%s\"}," +
+                    "\"available\":{\"booleanValue\":true}," +
+                    "\"updated_at\":{\"timestampValue\":\"%s\"}" +
+                "}}",
+                escapeJson(id),
+                escapeJson(name),
+                escapeJson(description),
+                Double.toString(price),
+                escapeJson(category),
+                timestamp
+            );
+
+            conn.setDoOutput(true);
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(addJson.getBytes());
+                os.flush();
+            }
+
+            int responseCode = conn.getResponseCode();
+            conn.disconnect();
+
+            if (responseCode == 200) {
+                System.out.println("✅ Added menu_items/" + id + " (direct REST)");
+                return true;
+            }
+            System.err.println("❌ Direct add failed: HTTP " + responseCode);
+            return false;
+        } catch (IOException | RuntimeException e) {
+            System.err.println("⚠️ Error adding menu item (direct REST): " + e.getMessage());
+            return false;
+        }
+    }
+
+    private static boolean deleteMenuItemDirect(String id) {
+        try {
+            String url = FIREBASE_URL + "/menu_items/" + URLEncoder.encode(id, "UTF-8") + "?key=" + API_KEY;
+            HttpsURLConnection conn = (HttpsURLConnection) new URL(url).openConnection();
+            conn.setRequestMethod("DELETE");
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+
+            int responseCode = conn.getResponseCode();
+            conn.disconnect();
+
+            if (responseCode == 200) {
+                System.out.println("✅ Deleted menu_items/" + id + " (direct REST)");
+                return true;
+            }
+            System.err.println("❌ Direct delete failed: HTTP " + responseCode);
+            return false;
+        } catch (IOException | RuntimeException e) {
+            System.err.println("⚠️ Error deleting menu item (direct REST): " + e.getMessage());
+            return false;
+        }
+    }
+
+    private static String escapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t");
     }
     
     /**
@@ -437,7 +561,7 @@ public class FirebaseRestClient {
                     currentDoc = new StringBuilder();
                 }
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println("⚠️ Error parsing documents: " + e.getMessage());
         }
         
@@ -480,7 +604,7 @@ public class FirebaseRestClient {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println("⚠️ Error parsing single document: " + e.getMessage());
         }
         
@@ -529,24 +653,8 @@ public class FirebaseRestClient {
             }
             
             return value;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return null;
         }
-    }
-    
-    /**
-     * Demo data removed - showing only real Firestore data
-     */
-    private static List<Map<String, Object>> getDemoOrders() {
-        System.out.println("❌ No orders in Firestore - Sync not working");
-        return new ArrayList<>();
-    }
-    
-    /**
-     * Demo data removed - showing only real Firestore data
-     */
-    private static List<Map<String, Object>> getDemoMenuItems() {
-        System.out.println("❌ No menu items in Firestore - Sync not working");
-        return new ArrayList<>();
     }
 }

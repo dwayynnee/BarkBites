@@ -9,11 +9,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -41,17 +41,17 @@ import javax.swing.table.DefaultTableModel;
  */
 public class BarkBitesApp extends JFrame {
     
-    private JTabbedPane tabbedPane;
-    private OrderQueuePanel orderQueuePanel;
-    private InventoryPanel inventoryPanel;
-    private DashboardPanel dashboardPanel;
+    private final JTabbedPane tabbedPane;
+    private final OrderQueuePanel orderQueuePanel;
+    private final InventoryPanel inventoryPanel;
+    private final DashboardPanel dashboardPanel;
     private java.util.Timer updateTimer;
     
     // Color scheme
-    private static final Color PRIMARY_COLOR = new Color(255, 107, 53);    // Orange
-    private static final Color SECONDARY_COLOR = new Color(247, 147, 30);  // Gold
-    private static final Color BG_COLOR = new Color(245, 245, 245);        // Light gray
-    private static final Color TEXT_COLOR = new Color(51, 51, 51);         // Dark gray
+    static final Color PRIMARY_COLOR = new Color(255, 107, 53);    // Orange
+    static final Color SECONDARY_COLOR = new Color(247, 147, 30);  // Gold
+    static final Color BG_COLOR = new Color(245, 245, 245);        // Light gray
+    static final Color TEXT_COLOR = new Color(51, 51, 51);         // Dark gray
     
     public BarkBitesApp() {
         System.out.println("\n🐾 Bark Bites Staff Kiosk Starting...");
@@ -74,9 +74,9 @@ public class BarkBitesApp extends JFrame {
         dashboardPanel = new DashboardPanel();
         
         // Add tabs
-        tabbedPane.addTab("📦 Order Queue", orderQueuePanel);
-        tabbedPane.addTab("📊 Inventory", inventoryPanel);
-        tabbedPane.addTab("📈 Dashboard", dashboardPanel);
+        tabbedPane.addTab("Order Queue", orderQueuePanel);
+        tabbedPane.addTab("Inventory", inventoryPanel);
+        tabbedPane.addTab("Dashboard", dashboardPanel);
         
         add(tabbedPane);
         
@@ -117,7 +117,7 @@ public class BarkBitesApp extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             System.out.println("🚀 Bark Bites Staff Kiosk Starting...");
-            new BarkBitesApp();
+            new BarkBitesApp().setVisible(true);
         });
     }
 }
@@ -126,39 +126,20 @@ public class BarkBitesApp extends JFrame {
  * Panel for displaying and managing order queue
  */
 class OrderQueuePanel extends JPanel {
-    private JTable ordersTable;
-    private DefaultTableModel tableModel;
-    private JComboBox<String> statusCombo;
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-    
-    // Simple order data class
-    static class OrderData {
-        String id;
-        String studentId;
-        String status;
-        double totalPrice;
-        Date createdAt;
-        java.util.List<String> items;
-        
-        OrderData(String id, String studentId, String status, double totalPrice, Date createdAt) {
-            this.id = id;
-            this.studentId = studentId;
-            this.status = status;
-            this.totalPrice = totalPrice;
-            this.createdAt = createdAt;
-            this.items = new ArrayList<>();
-        }
-    }
+    private final JTable ordersTable;
+    private final DefaultTableModel tableModel;
+    private final JComboBox<String> statusCombo;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
     
     public OrderQueuePanel() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        setBackground(new Color(245, 245, 245));
+        setBackground(BarkBitesApp.BG_COLOR);
         
         // Title
-        JLabel titleLabel = new JLabel("📦 Live Order Queue");
+        JLabel titleLabel = new JLabel("Live Order Queue");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        titleLabel.setForeground(new Color(51, 51, 51));
+        titleLabel.setForeground(BarkBitesApp.TEXT_COLOR);
         add(titleLabel, BorderLayout.NORTH);
         
         // Create table
@@ -174,7 +155,7 @@ class OrderQueuePanel extends JPanel {
         ordersTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         ordersTable.setRowHeight(25);
         ordersTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        ordersTable.getTableHeader().setBackground(new Color(255, 107, 53));
+        ordersTable.getTableHeader().setBackground(BarkBitesApp.PRIMARY_COLOR);
         ordersTable.getTableHeader().setForeground(Color.WHITE);
         ordersTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
@@ -183,14 +164,14 @@ class OrderQueuePanel extends JPanel {
         
         // Control panel
         JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        controlPanel.setBackground(new Color(245, 245, 245));
+        controlPanel.setBackground(BarkBitesApp.BG_COLOR);
         
         statusCombo = new JComboBox<>(new String[]{"pending", "in_progress", "ready", "completed"});
         statusCombo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         
         JButton updateStatusBtn = new JButton("Update Status");
         updateStatusBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        updateStatusBtn.setBackground(new Color(255, 107, 53));
+        updateStatusBtn.setBackground(BarkBitesApp.PRIMARY_COLOR);
         updateStatusBtn.setForeground(Color.WHITE);
         updateStatusBtn.addActionListener(e -> updateOrderStatus());
         
@@ -212,7 +193,7 @@ class OrderQueuePanel extends JPanel {
     /**
      * Refresh orders from Firestore via REST API
      */
-    public void refreshOrders() {
+    public final void refreshOrders() {
         new SwingWorker<java.util.List<Map<String, Object>>, Void>() {
             @Override
             protected java.util.List<Map<String, Object>> doInBackground() {
@@ -228,7 +209,7 @@ class OrderQueuePanel extends JPanel {
                         tableModel.setRowCount(0);
                         
                         if (orders == null || orders.isEmpty()) {
-                            System.out.println("⚠️  No orders found in Firestore");
+                            System.out.println("No orders found in Firestore");
                             return;
                         }
                         
@@ -260,8 +241,12 @@ class OrderQueuePanel extends JPanel {
                             System.out.println("✅ Loaded " + tableModel.getRowCount() + " active orders");
                         }
                     });
-                } catch (Exception e) {
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     System.err.println("Error updating order table: " + e.getMessage());
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    System.err.println("Error updating order table: " + (cause != null ? cause.getMessage() : e.getMessage()));
                 }
             }
         }.execute();
@@ -295,8 +280,12 @@ class OrderQueuePanel extends JPanel {
                         success ? "✅ Order updated and synced to Firestore" : "⚠️ Order updated locally (sync may have failed)", 
                         success ? "Success" : "Warning", 
                         success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
-                } catch (Exception e) {
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     System.err.println("Error: " + e.getMessage());
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    System.err.println("Error: " + (cause != null ? cause.getMessage() : e.getMessage()));
                 }
             }
         }.execute();
@@ -306,13 +295,13 @@ class OrderQueuePanel extends JPanel {
      * Format status with emoji
      */
     private String formatStatus(String status) {
-        switch (status) {
-            case "pending": return "⏳ Pending";
-            case "in_progress": return "👨‍🍳 In Progress";
-            case "ready": return "✅ Ready";
-            case "completed": return "✔️ Completed";
-            default: return status;
-        }
+        return switch (status) {
+            case "pending" -> "⏳ Pending";
+            case "in_progress" -> "👨‍🍳 In Progress";
+            case "ready" -> "✅ Ready";
+            case "completed" -> "✔️ Completed";
+            default -> status;
+        };
     }
 }
 
@@ -320,23 +309,23 @@ class OrderQueuePanel extends JPanel {
  * Panel for displaying and managing inventory
  */
 class InventoryPanel extends JPanel {
-    private JTable inventoryTable;
-    private DefaultTableModel tableModel;
-    private JLabel lastUpdatedLabel;
+    private final JTable inventoryTable;
+    private final DefaultTableModel tableModel;
+    private final JLabel lastUpdatedLabel;
     
     public InventoryPanel() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        setBackground(new Color(245, 245, 245));
+        setBackground(BarkBitesApp.BG_COLOR);
         
         // Title
         JLabel titleLabel = new JLabel("📊 Inventory Management");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        titleLabel.setForeground(new Color(51, 51, 51));
+        titleLabel.setForeground(BarkBitesApp.TEXT_COLOR);
         add(titleLabel, BorderLayout.NORTH);
         
         // Create table
-        String[] columnNames = {"Item Name", "Available", "Sold Today", "Low Stock?", "Status"};
+        String[] columnNames = {"Item ID", "Item Name", "Available", "Sold Today", "Low Stock?", "Status"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -348,25 +337,32 @@ class InventoryPanel extends JPanel {
         inventoryTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         inventoryTable.setRowHeight(25);
         inventoryTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        inventoryTable.getTableHeader().setBackground(new Color(255, 107, 53));
+        inventoryTable.getTableHeader().setBackground(BarkBitesApp.PRIMARY_COLOR);
         inventoryTable.getTableHeader().setForeground(Color.WHITE);
+        inventoryTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
         JScrollPane scrollPane = new JScrollPane(inventoryTable);
         add(scrollPane, BorderLayout.CENTER);
         
         // Control panel
         JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        controlPanel.setBackground(new Color(245, 245, 245));
+        controlPanel.setBackground(BarkBitesApp.BG_COLOR);
         
         JButton addItemBtn = new JButton("+ Add Menu Item");
         addItemBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         addItemBtn.setBackground(new Color(76, 175, 80));
         addItemBtn.setForeground(Color.WHITE);
         addItemBtn.addActionListener(e -> showAddMenuItemDialog());
+
+        JButton deleteItemBtn = new JButton("🗑 Delete Menu Item");
+        deleteItemBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        deleteItemBtn.setBackground(new Color(244, 67, 54));
+        deleteItemBtn.setForeground(Color.WHITE);
+        deleteItemBtn.addActionListener(e -> deleteSelectedMenuItem());
         
         JButton refreshBtn = new JButton("Refresh Inventory");
         refreshBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        refreshBtn.setBackground(new Color(255, 107, 53));
+        refreshBtn.setBackground(BarkBitesApp.PRIMARY_COLOR);
         refreshBtn.setForeground(Color.WHITE);
         refreshBtn.addActionListener(e -> refreshInventory());
         
@@ -374,6 +370,7 @@ class InventoryPanel extends JPanel {
         lastUpdatedLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         
         controlPanel.add(addItemBtn);
+        controlPanel.add(deleteItemBtn);
         controlPanel.add(refreshBtn);
         controlPanel.add(Box.createHorizontalStrut(20));
         controlPanel.add(lastUpdatedLabel);
@@ -387,7 +384,7 @@ class InventoryPanel extends JPanel {
     /**
      * Refresh inventory from Firestore via REST API
      */
-    public void refreshInventory() {
+    public final void refreshInventory() {
         new SwingWorker<java.util.List<Map<String, Object>>, Void>() {
             @Override
             protected java.util.List<Map<String, Object>> doInBackground() {
@@ -408,6 +405,7 @@ class InventoryPanel extends JPanel {
                         }
                         
                         for (Map<String, Object> item : items) {
+                            String id = String.valueOf(item.getOrDefault("id", ""));
                             String name = (String) item.getOrDefault("name", "");
                             int available = (int) (Math.random() * 50) + 10;
                             int sold = (int) (Math.random() * 40);
@@ -415,6 +413,7 @@ class InventoryPanel extends JPanel {
                             String status = available < 5 ? "❌ Critical" : lowStock ? "⚠️ Low Stock" : "✅ In Stock";
                             
                             tableModel.addRow(new Object[]{
+                                id,
                                 name,
                                 available,
                                 sold,
@@ -428,8 +427,74 @@ class InventoryPanel extends JPanel {
                         lastUpdatedLabel.setText("Last updated: " + timeFormat.format(new java.util.Date()));
                         System.out.println("✅ Loaded " + tableModel.getRowCount() + " inventory items");
                     });
-                } catch (Exception e) {
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     System.err.println("Error updating inventory: " + e.getMessage());
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    System.err.println("Error updating inventory: " + (cause != null ? cause.getMessage() : e.getMessage()));
+                }
+            }
+        }.execute();
+    }
+
+    private void deleteSelectedMenuItem() {
+        int selectedRow = inventoryTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a menu item to delete", "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String itemId = String.valueOf(tableModel.getValueAt(selectedRow, 0));
+        String itemName = String.valueOf(tableModel.getValueAt(selectedRow, 1));
+        if (itemId == null || itemId.trim().isEmpty() || "null".equalsIgnoreCase(itemId.trim())) {
+            JOptionPane.showMessageDialog(this, "Selected row has no Item ID", "Delete Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int choice = JOptionPane.showConfirmDialog(
+            this,
+            String.format("Delete menu item '%s' (ID: %s)?\nThis will remove it from Firestore.", itemName, itemId),
+            "Confirm Delete",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+
+        if (choice != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        new SwingWorker<Boolean, Void>() {
+            @Override
+            protected Boolean doInBackground() {
+                return FirebaseRestClient.deleteMenuItem(itemId);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    boolean success = get();
+                    if (success) {
+                        JOptionPane.showMessageDialog(InventoryPanel.this, "✅ Menu item deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        refreshInventory();
+                    } else {
+                        JOptionPane.showMessageDialog(InventoryPanel.this,
+                            "❌ Failed to delete menu item.\nMake sure the Node server is running and Firestore is initialized.",
+                            "Delete Failed",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    JOptionPane.showMessageDialog(InventoryPanel.this,
+                        "❌ Error deleting menu item: " + e.getMessage(),
+                        "Delete Failed",
+                        JOptionPane.ERROR_MESSAGE);
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    JOptionPane.showMessageDialog(InventoryPanel.this,
+                        "❌ Error deleting menu item: " + (cause != null ? cause.getMessage() : e.getMessage()),
+                        "Delete Failed",
+                        JOptionPane.ERROR_MESSAGE);
                 }
             }
         }.execute();
@@ -529,29 +594,29 @@ class InventoryPanel extends JPanel {
  * Panel for displaying dashboard analytics
  */
 class DashboardPanel extends JPanel {
-    private JLabel totalOrdersLabel;
-    private JLabel pendingOrdersLabel;
-    private JLabel revenueLabel;
-    private JLabel bestSellerLabel;
-    private JPanel chartPanel;
+    private final JLabel totalOrdersLabel;
+    private final JLabel pendingOrdersLabel;
+    private final JLabel revenueLabel;
+    private final JLabel bestSellerLabel;
+    private final JPanel chartPanel;
     
     public DashboardPanel() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        setBackground(new Color(245, 245, 245));
+        setBackground(BarkBitesApp.BG_COLOR);
         
         // Title
         JLabel titleLabel = new JLabel("📈 Dashboard Analytics");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        titleLabel.setForeground(new Color(51, 51, 51));
+        titleLabel.setForeground(BarkBitesApp.TEXT_COLOR);
         add(titleLabel, BorderLayout.NORTH);
         
         // Stats panel
         JPanel statsPanel = new JPanel(new GridLayout(1, 4, 10, 10));
-        statsPanel.setBackground(new Color(245, 245, 245));
+        statsPanel.setBackground(BarkBitesApp.BG_COLOR);
         
-        totalOrdersLabel = createStatCard("📦 Total Orders", "24", new Color(255, 107, 53));
-        pendingOrdersLabel = createStatCard("⏳ Pending", "3", new Color(247, 147, 30));
+        totalOrdersLabel = createStatCard("📦 Total Orders", "24", BarkBitesApp.PRIMARY_COLOR);
+        pendingOrdersLabel = createStatCard("⏳ Pending", "3", BarkBitesApp.SECONDARY_COLOR);
         revenueLabel = createStatCard("💰 Revenue Today", "$156.75", new Color(76, 175, 80));
         bestSellerLabel = createStatCard("⭐ Best Seller", "Pizza", new Color(156, 39, 176));
         
@@ -577,11 +642,11 @@ class DashboardPanel extends JPanel {
         
         // Refresh button
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        bottomPanel.setBackground(new Color(245, 245, 245));
+        bottomPanel.setBackground(BarkBitesApp.BG_COLOR);
         
         JButton refreshBtn = new JButton("Refresh Dashboard");
         refreshBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        refreshBtn.setBackground(new Color(255, 107, 53));
+        refreshBtn.setBackground(BarkBitesApp.PRIMARY_COLOR);
         refreshBtn.setForeground(Color.WHITE);
         refreshBtn.addActionListener(e -> refreshDashboard());
         
@@ -610,7 +675,7 @@ class DashboardPanel extends JPanel {
     /**
      * Refresh dashboard from Firestore via REST API
      */
-    public void refreshDashboard() {
+    public final void refreshDashboard() {
         new SwingWorker<Map<String, Object>, Void>() {
             @Override
             protected Map<String, Object> doInBackground() {
@@ -681,8 +746,12 @@ class DashboardPanel extends JPanel {
                         chartPanel.repaint();
                         System.out.println("✅ Dashboard updated: " + total + " orders, $" + String.format("%.2f", revenue));
                     });
-                } catch (Exception e) {
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     System.err.println("Error updating dashboard: " + e.getMessage());
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    System.err.println("Error updating dashboard: " + (cause != null ? cause.getMessage() : e.getMessage()));
                 }
             }
         }.execute();
@@ -718,7 +787,7 @@ class DashboardPanel extends JPanel {
         
         // Draw bars
         int barWidth = chartWidth / ordersPerHour.length;
-        g.setColor(new Color(255, 107, 53));
+        g.setColor(BarkBitesApp.PRIMARY_COLOR);
         for (int i = 0; i < ordersPerHour.length; i++) {
             int barHeight = (int) ((ordersPerHour[i] / (double) maxOrders) * chartHeight);
             int x = padding + i * barWidth + 2;
