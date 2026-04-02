@@ -15,22 +15,26 @@ A dual-stack solution (Web + Java) to eliminate long lines and modernize school 
 
 **Bark Bites** is a comprehensive meal pre-ordering system designed to bridge the gap between students and canteen staff. 
 
-- **👥 Students** use a **web app** (via Vercel) to browse menus and pre-order meals
-- **👨‍🍳 Canteen Staff** use a **Java Swing desktop app** to manage orders and inventory
-- **☁️ Both apps** share a **Firebase Firestore** database for real-time synchronization
+- **👥 Students** use a **web app** to browse the menu, add items to a cart, and place pre-orders
+- **👨‍🍳 Canteen Staff** use a **Java Swing kiosk app** to manage the live order queue, menu items, inventory, and daily stats
+- **☁️ Firebase Firestore** is the shared database (orders/menu/inventory/wallets)
+- **🧩 Node/Express API gateway** serves the web app and provides REST endpoints for the Java kiosk (using the Firebase Admin SDK)
 
 ### Key Features
 
-| Feature | Student App | Staff App |
+| Feature | Student Web App | Staff Kiosk App |
 | :--- | :---: | :---: |
-| 🛒 Browse Menu | ✅ | ✅ |
-| 📦 Pre-order Meals | ✅ | ❌ |
-| 💳 Digital Wallet | ✅ | ❌ |
-| 📊 Order Queue | ❌ | ✅ |
-| ⏱️ Update Order Status | ❌ | ✅ |
-| 📈 Inventory Management | ❌ | ✅ |
-| 📊 Dashboard & Analytics | ❌ | ✅ |
-| 🔔 Real-time Notifications | ✅ | ✅ |
+| 🛒 Browse menu + category filters | ✅ | ✅ |
+| 🧺 Cart + checkout | ✅ | ❌ |
+| 🕒 Pickup time selection | ✅ | ❌ |
+| 📦 Place pre-orders | ✅ | ❌ |
+| 🧾 Order status tracking (pending → ready, etc.) | ✅ | ✅ |
+| 💳 Wallet balance + recharge (demo mode default) | ✅ | ❌ |
+| ⏱️ Update order status | ❌ | ✅ |
+| 🍽️ Menu management (add/delete items) | ❌ | ✅ |
+| 📈 Inventory visibility (stock counts + low stock) | ✅ | ✅ |
+| 📊 Dashboard analytics (revenue, best seller, last-24h chart) | ❌ | ✅ |
+| 🔄 Live sync (Firestore listeners) | ✅ | ⚠️ (refresh-based) |
 
 ## ⚠️ The Problem
 
@@ -55,8 +59,9 @@ A dual-stack solution (Web + Java) to eliminate long lines and modernize school 
 | :--- | :--- | :--- |
 | **Student Frontend** | HTML/CSS/JavaScript | Web browser access via Vercel |
 | **Staff Frontend** | Java Swing/AWT | Desktop app for canteen kiosk |
+| **API Gateway** | Node.js + Express | Hosts the web app + REST endpoints for the kiosk |
 | **Backend Database** | Firebase Firestore | Single source of truth for all data |
-| **Authentication** | Student ID | Simple role-based access |
+| **Authentication** | Student ID + anonymous Firestore auth | Simple ID-based student UX + Firestore access |
 | **Hosting (Web)** | Vercel | Serverless deployment |
 | **Deployment (Java)** | Executable JAR | Single kiosk computer deployment |
 
@@ -69,30 +74,39 @@ A dual-stack solution (Web + Java) to eliminate long lines and modernize school 
 └────┬────────────────────┬────────────────────────┬───────────┘
      │                    │                        │
      ▼                    ▼                        ▼
-┌──────────────────┐  ┌──────────────────┐  ┌───────────────────┐
-│  WEB APP         │  │  JAVA APP        │  │  Admin Panel      │
-│  (Vercel)        │  │  (Kiosk)         │  │  (Firebase Web UI)│
-│                  │  │                  │  │                   │
-│ • Login          │  │ • Order Queue    │  │ • Menu Mgmt       │
-│ • Browse Menu    │  │ • Update Status  │  │ • User Mgmt       │
-│ • Add to Cart    │  │ • Inventory Mgmt │  │ • Analytics       │
-│ • Checkout       │  │ • Dashboard      │  │                   │
-│ • Track Orders   │  │                  │  │                   │
-│ • Wallet         │  │                  │  │                   │
-└──────────────────┘  └──────────────────┘  └───────────────────┘
+┌──────────────────┐       ┌──────────────────────────┐
+│  WEB APP         │       │  NODE/EXPRESS SERVER      │
+│  (Vercel/Local)  │       │  (API gateway for kiosk)  │
+│                  │       │                          │
+│ • Login          │       │ • Serves /public          │
+│ • Browse Menu    │       │ • /api/menu_items         │
+│ • Add to Cart    │       │ • /api/inventory          │
+│ • Checkout       │       │ • /api/orders (+ status)  │
+│ • Track Orders   │       │ • /api/setup seed         │
+│ • Wallet (demo)  │       │                          │
+└─────────┬────────┘       └──────────────┬───────────┘
+    │                               │
+    ▼                               ▼
+   (Firestore SDK)                  (Admin SDK)
+    │                               │
+    ▼                               ▼
+  ┌──────────────────┐         ┌──────────────────┐
+  │  JAVA KIOSK APP   │         │  Admin Panel      │
+  │                  │         │ (Firebase Console)│
+  │ • Order Queue     │         │                   │
+  │ • Update Status   │         │                   │
+  │ • Menu Mgmt       │         │                   │
+  │ • Inventory Mgmt  │         │                   │
+  │ • Dashboard       │         │                   │
+  └──────────────────┘         └───────────────────┘
 ```
 
-## 📚 Documentation
+## 🧭 Project Status
 
-### Getting Started
-- **[QUICKSTART.md](./QUICKSTART.md)** - Set up Firebase, web app, and Java app in 15 minutes
-- **[FIREBASE_SETUP.md](./FIREBASE_SETUP.md)** - Detailed Firebase project and Firestore configuration
-
-### Development
-- **Phase 1** (Current): Firebase setup & data models ✅ COMPLETE
-- **Phase 2** (Next): Student web app (login, menu, orders, wallet)
-- **Phase 3** (Next): Staff Java app (order management, inventory, dashboard)
-- **Phase 4** (Final): Integration, testing, and deployment
+- **Phase 1**: Firebase setup & data models ✅ COMPLETE
+- **Phase 2**: Student web app (login, menu, cart/checkout, orders, wallet demo) ✅ COMPLETE
+- **Phase 3**: Staff kiosk app (order queue, inventory/menu management, dashboard) ✅ COMPLETE
+- **Phase 4**: Integration hardening, testing, and deployment ⏭️ NEXT
 
 ## 🚀 Quick Start (5 min)
 
@@ -102,7 +116,10 @@ A dual-stack solution (Web + Java) to eliminate long lines and modernize school 
 - **Firebase Account** ([free](https://firebase.google.com))
 
 ### 1. Set up Firebase
-Follow [FIREBASE_SETUP.md](./FIREBASE_SETUP.md) - creates project, Firestore, and gets credentials
+
+- Create a Firebase project + Firestore database
+- Put your service account key at `firebase-key.json` (project root) to enable the server + kiosk write access
+- Update the web Firebase config in `public/firebase-config.js` if you’re using your own project
 
 ### 2. Install Dependencies
 ```bash
@@ -123,19 +140,17 @@ npm start
 
 ### 5. Run Java App
 ```bash
-# Place firebase-key.json in project root
-# Add Firebase Admin SDK JARs to lib/ folder
+# Recommended (build + run kiosk)
+npm run kiosk
 
-# Windows (PowerShell / CMD / Git Bash)
-javac -cp ".;lib/*" -d bin src/models/*.java src/data/*.java src/gui/*.java
-java -cp ".;bin;lib/*" gui.BarkBitesApp
-
-# macOS / Linux
-javac -cp ".:lib/*" -d bin src/models/*.java src/data/*.java src/gui/*.java
-java -cp ".:bin:lib/*" gui.BarkBitesApp
+# Or run separately
+npm run build:kiosk
+npm run run:kiosk
 ```
 
-**See [QUICKSTART.md](./QUICKSTART.md) for complete setup guide.**
+Notes:
+- Keep the Node server running while using the kiosk (it’s the kiosk’s primary API gateway).
+- The student wallet is in demo mode by default (localStorage). You can switch to Firestore wallet mode in `public/script.js`.
 
 ## 📁 Project Structure
 
@@ -158,8 +173,6 @@ BarkBites/
 │   ├── script.js            # Student app logic
 │   └── style.css
 ├── .env.example             # Environment template
-├── FIREBASE_SETUP.md        # Firebase configuration guide
-├── QUICKSTART.md            # Getting started guide
 ├── server.js                # Express web server
 ├── package.json             # Node.js dependencies
 └── README.md                # This file
@@ -170,7 +183,7 @@ BarkBites/
 - **Student Data**: Encrypted and role-based access via Firestore security rules
 - **Sensitive Keys**: `firebase-key.json` and `.env` files are in `.gitignore` (never committed)
 - **Transactions**: All orders and wallet updates logged with timestamps
-- **No Passwords**: Student ID-based authentication (school manages ID uniqueness)
+- **No Passwords**: Student ID-based login (demo-friendly), plus anonymous Firebase auth for Firestore access
 
 ## 🎓 Object-Oriented Principles (Java)
 
@@ -189,13 +202,8 @@ BarkBites/
 
 ## 📈 Next Steps
 
-### For Students/Teachers
-- Read [QUICKSTART.md](./QUICKSTART.md) to set everything up
-
 ### For Developers
-- **Phase 2**: Build student web UI (menu browsing, ordering, wallet display)
-- **Phase 3**: Build staff Java UI (order queue, inventory management)
-- **Phase 4**: Deploy to production (Vercel for web, JAR for desktop)
+- **Phase 4**: Deploy to production (Vercel for web, JAR for desktop) + add automated tests and CI
 
 ## 📝 License
 
@@ -213,13 +221,12 @@ Contributions are welcome! Please:
 ## 📧 Support
 
 For questions or issues:
-1. Check [QUICKSTART.md](./QUICKSTART.md) for common solutions
-2. Review [FIREBASE_SETUP.md](./FIREBASE_SETUP.md) for Firebase-specific help
-3. Check browser console (F12) for web app errors
-4. Check terminal output for Java app errors
+1. Check browser console (F12) for web app errors
+2. Check terminal output for Node/Java errors
+3. Confirm Firestore rules allow the intended access patterns
 
 ---
 
-**Ready to get started?** 👉 **[Go to QUICKSTART.md](./QUICKSTART.md)**
+**Ready to get started?** Run `npm install` then `npm start`.
 
 
