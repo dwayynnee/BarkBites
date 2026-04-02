@@ -230,6 +230,13 @@ public class FirebaseRestClient {
      * Add a new menu item to Firestore
      */
     public static boolean addMenuItem(String id, String name, double price, String category, String description) {
+        return addMenuItem(id, name, price, category, description, 0);
+    }
+
+    /**
+     * Add a new menu item to Firestore with an initial quantity available.
+     */
+    public static boolean addMenuItem(String id, String name, double price, String category, String description, int quantityAvailable) {
         // Try local server first
         if (USE_LOCAL_SERVER) {
             try {
@@ -242,12 +249,13 @@ public class FirebaseRestClient {
                 conn.setReadTimeout(5000);
                 
                 String addJson = String.format(
-                    "{\"id\":\"%s\",\"name\":\"%s\",\"price\":%s,\"category\":\"%s\",\"description\":\"%s\",\"available\":true}",
+                    "{\"id\":\"%s\",\"name\":\"%s\",\"price\":%s,\"category\":\"%s\",\"description\":\"%s\",\"available\":true,\"quantity_available\":%d}",
                     escapeJson(id),
                     escapeJson(name),
                     Double.toString(price),
                     escapeJson(category),
-                    escapeJson(description)
+                    escapeJson(description),
+                    quantityAvailable
                 );
                 try (OutputStream os = conn.getOutputStream()) {
                     os.write(addJson.getBytes());
@@ -269,7 +277,7 @@ public class FirebaseRestClient {
         }
 
         // Fallback: Direct Firestore REST (may be blocked by Firestore rules)
-        return addMenuItemDirect(id, name, price, category, description);
+        return addMenuItemDirect(id, name, price, category, description, quantityAvailable);
     }
 
     /**
@@ -361,7 +369,7 @@ public class FirebaseRestClient {
         }
     }
 
-    private static boolean addMenuItemDirect(String id, String name, double price, String category, String description) {
+    private static boolean addMenuItemDirect(String id, String name, double price, String category, String description, int quantityAvailable) {
         // Use Firestore Commit API (POST) to avoid PATCH, which some Java runtimes reject.
         try {
             String url = String.format(
@@ -384,22 +392,43 @@ public class FirebaseRestClient {
                 escapeJson(id)
             );
 
+            String invDocName = String.format(
+                "projects/%s/databases/(default)/documents/inventory/%s",
+                PROJECT_ID,
+                escapeJson(id)
+            );
+
+            String outOfStockLiteral = quantityAvailable <= 0 ? "true" : "false";
+
             String addJson = String.format(
-                "{\"writes\":[{\"update\":{\"name\":\"%s\",\"fields\":{" +
-                    "\"id\":{\"stringValue\":\"%s\"}," +
-                    "\"name\":{\"stringValue\":\"%s\"}," +
-                    "\"description\":{\"stringValue\":\"%s\"}," +
-                    "\"price\":{\"doubleValue\":%s}," +
-                    "\"category\":{\"stringValue\":\"%s\"}," +
-                    "\"available\":{\"booleanValue\":true}," +
-                    "\"updated_at\":{\"timestampValue\":\"%s\"}" +
-                "}},\"updateMask\":{\"fieldPaths\":[\"id\",\"name\",\"description\",\"price\",\"category\",\"available\",\"updated_at\"]}}]}",
+                "{\"writes\":[" +
+                    "{\"update\":{\"name\":\"%s\",\"fields\":{" +
+                        "\"id\":{\"stringValue\":\"%s\"}," +
+                        "\"name\":{\"stringValue\":\"%s\"}," +
+                        "\"description\":{\"stringValue\":\"%s\"}," +
+                        "\"price\":{\"doubleValue\":%s}," +
+                        "\"category\":{\"stringValue\":\"%s\"}," +
+                        "\"available\":{\"booleanValue\":true}," +
+                        "\"updated_at\":{\"timestampValue\":\"%s\"}" +
+                    "}},\"updateMask\":{\"fieldPaths\":[\"id\",\"name\",\"description\",\"price\",\"category\",\"available\",\"updated_at\"]}}," +
+                    "{\"update\":{\"name\":\"%s\",\"fields\":{" +
+                        "\"menu_item_id\":{\"stringValue\":\"%s\"}," +
+                        "\"quantity_available\":{\"integerValue\":\"%d\"}," +
+                        "\"is_out_of_stock\":{\"booleanValue\":%s}," +
+                        "\"last_updated\":{\"timestampValue\":\"%s\"}" +
+                    "}},\"updateMask\":{\"fieldPaths\":[\"menu_item_id\",\"quantity_available\",\"is_out_of_stock\",\"last_updated\"]}}" +
+                "]}",
                 docName,
                 escapeJson(id),
                 escapeJson(name),
                 escapeJson(description),
                 Double.toString(price),
                 escapeJson(category),
+                timestamp,
+                invDocName,
+                escapeJson(id),
+                quantityAvailable,
+                outOfStockLiteral,
                 timestamp
             );
 

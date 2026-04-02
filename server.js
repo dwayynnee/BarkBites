@@ -162,9 +162,18 @@ app.post('/api/menu_items/add', async (req, res) => {
     if (!db) {
       return res.status(503).json({ error: 'Firebase not initialized' });
     }
-    const { id, name, description, price, category, available } = req.body || {};
+    const { id, name, description, price, category, available, quantity_available } = req.body || {};
     if (!id || !name) {
       return res.status(400).json({ error: 'Missing required fields: id, name' });
+    }
+
+    let quantityAvailable = null;
+    if (quantity_available !== undefined && quantity_available !== null && String(quantity_available).trim() !== '') {
+      const parsed = Number.parseInt(quantity_available, 10);
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        return res.status(400).json({ error: 'Invalid quantity_available (must be a non-negative integer)' });
+      }
+      quantityAvailable = parsed;
     }
 
     const payload = {
@@ -181,6 +190,29 @@ app.post('/api/menu_items/add', async (req, res) => {
     }
 
     await db.collection('menu_items').doc(payload.id).set(payload, { merge: true });
+
+    // If quantity is provided, also create/update inventory for the item.
+    if (quantityAvailable !== null) {
+      const invRef = db.collection('inventory').doc(payload.id);
+      const invSnap = await invRef.get();
+
+      const invBase = {
+        menu_item_id: payload.id,
+        quantity_available: quantityAvailable,
+        is_out_of_stock: quantityAvailable <= 0,
+        last_updated: new Date()
+      };
+
+      if (invSnap.exists) {
+        await invRef.set(invBase, { merge: true });
+      } else {
+        await invRef.set({
+          ...invBase,
+          quantity_sold_today: 0,
+          low_stock_threshold: 10
+        }, { merge: true });
+      }
+    }
     console.log(`✅ Added/updated menu item ${payload.id}: ${payload.name}`);
     res.status(201).json({ success: true });
   } catch (error) {

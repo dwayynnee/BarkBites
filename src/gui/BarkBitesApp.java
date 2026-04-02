@@ -679,6 +679,9 @@ class InventoryPanel extends JPanel {
         
         JLabel priceLabel = new JLabel("Price:");
         JTextField priceField = new JTextField();
+
+        JLabel qtyLabel = new JLabel("Quantity Available:");
+        JTextField qtyField = new JTextField("0");
         
         JLabel categoryLabel = new JLabel("Category:");
         JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"Main Course", "Sides", "Dessert", "Drink"});
@@ -693,6 +696,8 @@ class InventoryPanel extends JPanel {
         panel.add(nameField);
         panel.add(priceLabel);
         panel.add(priceField);
+        panel.add(qtyLabel);
+        panel.add(qtyField);
         panel.add(categoryLabel);
         panel.add(categoryCombo);
         panel.add(descLabel);
@@ -708,19 +713,33 @@ class InventoryPanel extends JPanel {
             String id = idField.getText().trim();
             String name = nameField.getText().trim();
             String priceStr = priceField.getText().trim();
+            String qtyStr = qtyField.getText().trim();
             String category = (String) categoryCombo.getSelectedItem();
             String description = descField.getText().trim();
             
-            if (id.isEmpty() || name.isEmpty() || priceStr.isEmpty()) {
+            if (id.isEmpty() || name.isEmpty() || priceStr.isEmpty() || qtyStr.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Please fill all required fields", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             try {
                 double price = Double.parseDouble(priceStr);
+
+                int quantityAvailable;
+                try {
+                    quantityAvailable = Integer.parseInt(qtyStr);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(dialog, "Quantity must be a whole number", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (quantityAvailable < 0) {
+                    JOptionPane.showMessageDialog(dialog, "Quantity cannot be negative", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 
                 // Add to Firestore via server
-                boolean success = FirebaseRestClient.addMenuItem(id, name, price, category, description);
+                boolean success = FirebaseRestClient.addMenuItem(id, name, price, category, description, quantityAvailable);
                 
                 if (success) {
                     JOptionPane.showMessageDialog(dialog, "Menu item added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
