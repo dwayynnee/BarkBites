@@ -1,10 +1,24 @@
 // ===== DOM ELEMENTS =====
+const landingScreen = document.getElementById('landingScreen');
+const enterAppBtn = document.getElementById('enterAppBtn');
+const landingToLoginBtn = document.getElementById('landingToLoginBtn');
+
 const loginScreen = document.getElementById('loginScreen');
 const appScreen = document.getElementById('appScreen');
 const loginForm = document.getElementById('loginForm');
 const studentIdInput = document.getElementById('studentId');
 const loginError = document.getElementById('loginError');
 const logoutBtn = document.getElementById('logoutBtn');
+
+// Registration
+const showRegisterBtn = document.getElementById('showRegisterBtn');
+const registerPanel = document.getElementById('registerPanel');
+const registerForm = document.getElementById('registerForm');
+const registerStudentIdInput = document.getElementById('registerStudentId');
+const registerNameInput = document.getElementById('registerName');
+const registerEmailInput = document.getElementById('registerEmail');
+const registerError = document.getElementById('registerError');
+const cancelRegisterBtn = document.getElementById('cancelRegisterBtn');
 
 // Navigation
 const navBtns = document.querySelectorAll('.nav-btn:not(.logout)');
@@ -187,14 +201,25 @@ function defaultPickupTimeValue() {
 // ===== INITIALIZATION =====
 async function init() {
     setupEventListeners();
+    showLandingScreen();
+    setupParallax();
     console.log('App initialized');
 }
 
 // ===== EVENT LISTENERS =====
 function setupEventListeners() {
+    // Landing
+    enterAppBtn?.addEventListener('click', () => showLoginScreen());
+    landingToLoginBtn?.addEventListener('click', () => showLoginScreen());
+
     // Login
     loginForm.addEventListener('submit', handleLogin);
     logoutBtn.addEventListener('click', handleLogout);
+
+    // Register
+    showRegisterBtn?.addEventListener('click', () => openRegisterPanel());
+    cancelRegisterBtn?.addEventListener('click', () => closeRegisterPanel());
+    registerForm?.addEventListener('submit', handleRegister);
 
     // Navigation
     navBtns.forEach(btn => {
@@ -272,7 +297,8 @@ function setupEventListeners() {
 // ===== AUTHENTICATION =====
 async function handleLogin(e) {
     e.preventDefault();
-    const studentId = studentIdInput.value.trim();
+    const studentId = studentIdInput.value.trim().toUpperCase();
+    studentIdInput.value = studentId;
 
     if (!studentId) {
         loginError.textContent = 'Please enter a Student ID';
@@ -280,24 +306,16 @@ async function handleLogin(e) {
     }
 
     try {
-        // Try normal Firestore-backed login first
+        // Firestore-backed login: user must already be registered
         const userDoc = await firestoreService.getUserByStudentId(studentId);
-        
         if (!userDoc) {
-            const newUser = {
-                student_id: studentId,
-                name: `Student ${studentId}`,
-                email: `${studentId}@school.edu`,
-                role: 'student',
-                created_at: new Date(),
-                last_login: new Date()
-            };
-            await firestoreService.createUser(newUser);
-            currentStudent = { id: studentId, ...newUser };
-        } else {
-            currentStudent = { id: studentId, ...userDoc };
-            await firestoreService.updateUser(studentId, { last_login: new Date() });
+            loginError.textContent = 'Student ID not registered. Click “Register” to create an account.';
+            showRegisterBtn?.focus?.();
+            return;
         }
+
+        currentStudent = { id: studentId, ...userDoc };
+        await firestoreService.updateUser(studentId, { last_login: new Date() });
 
         if (WALLET_MODE === 'mock') {
             currentWallet = loadMockWallet(studentId);
@@ -345,6 +363,58 @@ async function handleLogin(e) {
     }
 }
 
+async function handleRegister(e) {
+    e.preventDefault();
+
+    const studentId = String(registerStudentIdInput?.value || '').trim();
+    const name = String(registerNameInput?.value || '').trim();
+    const emailRaw = String(registerEmailInput?.value || '').trim();
+
+    if (!studentId || !name) {
+        if (registerError) registerError.textContent = 'Student ID and Full Name are required.';
+        return;
+    }
+
+    const normalizedStudentId = studentId.toUpperCase();
+    if (registerStudentIdInput) registerStudentIdInput.value = normalizedStudentId;
+    const email = emailRaw || `${normalizedStudentId}@school.edu`;
+
+    try {
+        if (registerError) registerError.textContent = '';
+        loginError.textContent = '';
+
+        const existing = await firestoreService.getUserByStudentId(normalizedStudentId);
+        if (existing) {
+            if (registerError) registerError.textContent = 'That Student ID is already registered. Please login.';
+            studentIdInput.value = normalizedStudentId;
+            closeRegisterPanel();
+            return;
+        }
+
+        const newUser = {
+            student_id: normalizedStudentId,
+            name,
+            email,
+            role: 'student',
+            created_at: new Date(),
+            last_login: new Date()
+        };
+
+        await firestoreService.createUser(newUser);
+        showToast('Account created. You can now login.', 'success');
+
+        studentIdInput.value = normalizedStudentId;
+        closeRegisterPanel();
+        studentIdInput.focus();
+    } catch (error) {
+        console.error('Registration error:', error);
+        if (registerError) {
+            registerError.textContent = 'Registration failed. Please check Firestore rules or try again.';
+        }
+        showToast('Registration failed', 'error');
+    }
+}
+
 function handleLogout() {
     currentStudent = null;
     currentWallet = null;
@@ -362,23 +432,77 @@ function handleLogout() {
         try { ordersUnsubscribe(); } catch {}
         ordersUnsubscribe = null;
     }
-    showLoginScreen();
+    showLandingScreen();
     showToast('Logged out successfully', 'info');
 }
 
 // ===== SCREEN MANAGEMENT =====
+function showLandingScreen() {
+    landingScreen?.classList.add('active');
+    loginScreen.classList.remove('active');
+    appScreen.classList.remove('active');
+    closeRegisterPanel();
+}
+
 function showLoginScreen() {
+    landingScreen?.classList.remove('active');
     loginScreen.classList.add('active');
     appScreen.classList.remove('active');
+    closeRegisterPanel();
 }
 
 function showAppScreen() {
+    landingScreen?.classList.remove('active');
     loginScreen.classList.remove('active');
     appScreen.classList.add('active');
     switchTab('menu');
     loadMenuItems();
     loadOrders();
     loadWallet();
+}
+
+function openRegisterPanel() {
+    if (!registerPanel) return;
+    registerPanel.hidden = false;
+    if (loginForm) loginForm.style.display = 'none';
+    if (showRegisterBtn) showRegisterBtn.style.display = 'none';
+    if (registerError) registerError.textContent = '';
+
+    // Pre-fill student id if user already typed it
+    const sid = String(studentIdInput?.value || '').trim();
+    if (registerStudentIdInput && sid && !registerStudentIdInput.value) {
+        registerStudentIdInput.value = sid;
+    }
+    registerStudentIdInput?.focus?.();
+}
+
+function closeRegisterPanel() {
+    if (registerPanel) registerPanel.hidden = true;
+    if (loginForm) loginForm.style.display = '';
+    if (showRegisterBtn) showRegisterBtn.style.display = '';
+    if (registerError) registerError.textContent = '';
+}
+
+// ===== PARALLAX (landing + global background) =====
+function setupParallax() {
+    let ticking = false;
+
+    const update = () => {
+        ticking = false;
+        const y = window.scrollY || 0;
+        // Set explicit px values (avoids unsupported calc multiplications)
+        document.documentElement.style.setProperty('--parallaxY', `${Math.round(y * -0.10)}px`);
+        document.documentElement.style.setProperty('--parallaxYSmall', `${Math.round(y * -0.03)}px`);
+    };
+
+    const onScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(update);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    update();
 }
 
 // ===== TAB SWITCHING =====

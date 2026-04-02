@@ -33,11 +33,14 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // Simple auth so Firestore rules that require authentication can pass
-auth.signInAnonymously().then(() => {
-  console.log("Signed in anonymously for Firestore access");
-}).catch((error) => {
-  console.error("Anonymous sign-in failed:", error);
-});
+const authReady = auth.signInAnonymously()
+  .then(() => {
+    console.log("Signed in anonymously for Firestore access");
+  })
+  .catch((error) => {
+    console.error("Anonymous sign-in failed:", error);
+    // Keep the promise chain alive so callers can await safely
+  });
 
 /**
  * Database Collections Reference
@@ -57,14 +60,44 @@ const COLLECTIONS = {
 const firestoreService = {
   
   // ==================== USER OPERATIONS ====================
+
+  async _ensureAuthReady() {
+    try {
+      await authReady;
+    } catch {
+      // ignore
+    }
+  },
+
+  async _findUserDocByStudentId(studentId) {
+    await this._ensureAuthReady();
+    const sid = String(studentId || '').trim();
+    if (!sid) return null;
+
+    // Prefer direct doc lookup (doc-id == studentId)
+    const direct = await db.collection(COLLECTIONS.USERS).doc(sid).get();
+    if (direct.exists) return { id: direct.id, data: direct.data() };
+
+    // Fallback: doc-id could be auth.uid; search by field
+    const snapshot = await db
+      .collection(COLLECTIONS.USERS)
+      .where('student_id', '==', sid)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) return null;
+    const doc = snapshot.docs[0];
+    return { id: doc.id, data: doc.data() };
+  },
   
   /**
    * Get user by student ID
    */
   async getUserByStudentId(studentId) {
     try {
-      const doc = await db.collection(COLLECTIONS.USERS).doc(studentId).get();
-      return doc.exists ? doc.data() : null;
+      await this._ensureAuthReady();
+      const found = await this._findUserDocByStudentId(studentId);
+      return found ? found.data : null;
     } catch (error) {
       console.error("Error getting user:", error);
       return null;
@@ -83,9 +116,31 @@ const firestoreService = {
    */
   async createUser(user) {
     try {
-      await db.collection(COLLECTIONS.USERS).doc(user.student_id).set(user);
-      console.log("User created:", user.student_id);
-      return true;
+      await this._ensureAuthReady();
+      const studentId = String(user?.student_id || '').trim();
+      if (!studentId) throw new Error('Missing user.student_id');
+
+      // Primary: doc-id == studentId (simple to reason about)
+      try {
+        await db.collection(COLLECTIONS.USERS).doc(studentId).set({
+          ...user,
+          student_id: studentId
+        });
+        console.log("User created:", studentId);
+        return true;
+      } catch (primaryError) {
+        // Fallback: some rulesets only allow writes to doc-id == request.auth.uid
+        const uid = auth?.currentUser?.uid;
+        if (!uid) throw primaryError;
+
+        await db.collection(COLLECTIONS.USERS).doc(uid).set({
+          ...user,
+          student_id: studentId,
+          auth_uid: uid
+        });
+        console.log("User created (uid doc):", uid, "for", studentId);
+        return true;
+      }
     } catch (error) {
       console.error("Error creating user:", error);
       throw error;
@@ -97,9 +152,24 @@ const firestoreService = {
    */
   async updateUser(studentId, updates) {
     try {
-      await db.collection(COLLECTIONS.USERS).doc(studentId).update(updates);
-      console.log("User updated:", studentId);
-      return true;
+      await this._ensureAuthReady();
+      const sid = String(studentId || '').trim();
+      if (!sid) throw new Error('Missing studentId');
+
+      // Try direct doc-id == studentId
+      try {
+        await db.collection(COLLECTIONS.USERS).doc(sid).update(updates);
+        console.log("User updated:", sid);
+        return true;
+      } catch (primaryError) {
+        // Fallback: resolve doc-id by querying student_id
+        const found = await this._findUserDocByStudentId(sid);
+        if (!found) throw primaryError;
+
+        await db.collection(COLLECTIONS.USERS).doc(found.id).update(updates);
+        console.log("User updated (resolved doc):", found.id, "for", sid);
+        return true;
+      }
     } catch (error) {
       console.error("Error updating user:", error);
       throw error;
@@ -125,9 +195,7 @@ const firestoreService = {
    */
   async updateLastLogin(studentId) {
     try {
-      await db.collection(COLLECTIONS.USERS).doc(studentId).update({
-        last_login: new Date()
-      });
+      await this.updateUser(studentId, { last_login: new Date() });
     } catch (error) {
       console.error("Error updating last login:", error);
     }
