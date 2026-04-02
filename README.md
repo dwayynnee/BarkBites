@@ -106,7 +106,8 @@ A dual-stack solution (Web + Java) to eliminate long lines and modernize school 
 - **Phase 1**: Firebase setup & data models ✅ COMPLETE
 - **Phase 2**: Student web app (login, menu, cart/checkout, orders, wallet demo) ✅ COMPLETE
 - **Phase 3**: Staff kiosk app (order queue, inventory/menu management, dashboard) ✅ COMPLETE
-- **Phase 4**: Integration hardening, testing, and deployment ⏭️ NEXT
+- **Phase 4**: Finalizing Design, logos and flow ⏭️ NEXT
+- **Phase 5**: Integration hardening, testing, and deployment ⏭️ NEXT
 
 ## 🚀 Quick Start (5 min)
 
