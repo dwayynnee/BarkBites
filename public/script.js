@@ -81,9 +81,21 @@ let currentModalItem = null;
 let inventoryByMenuItemId = {};
 let inventoryUnsubscribe = null;
 let ordersUnsubscribe = null;
+let walletUnsubscribe = null;
 
 // Wallet mode: mock = localStorage backed (cashless simulation)
-const WALLET_MODE = 'mock'; // 'mock' | 'firestore'
+const WALLET_MODE = 'firestore'; // 'mock' | 'firestore'
+
+// Currency formatting (Philippine Peso)
+const moneyFormatter = new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP'
+});
+
+function formatMoney(value) {
+    const amount = Number(value);
+    return moneyFormatter.format(Number.isFinite(amount) ? amount : 0);
+}
 
 function walletStorageKey(studentId) {
     return `barkbites_wallet_${studentId}`;
@@ -143,7 +155,7 @@ function mockAddToWallet(amount) {
     });
     saveMockWallet(currentWallet);
     displayWallet();
-    showToast(`Added $${amt.toFixed(2)} to wallet`, 'success');
+    showToast(`Added ${formatMoney(amt)} to wallet`, 'success');
 }
 
 function mockDeductFromWallet(amount, orderId = null) {
@@ -273,16 +285,29 @@ function setupEventListeners() {
         checkoutModal.classList.remove('active');
     });
 
-    // Mock wallet recharge
+    // Wallet recharge
     walletRechargeBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const amount = e.currentTarget.getAttribute('data-recharge');
-            if (!currentWallet) return;
-            if (WALLET_MODE !== 'mock') {
-                showToast('Recharge is mock-only in this demo', 'info');
-                return;
+        btn.addEventListener('click', async (e) => {
+            const amountRaw = e.currentTarget.getAttribute('data-recharge');
+            const amount = Number(amountRaw);
+            if (!currentStudent || !currentWallet) return;
+            if (!Number.isFinite(amount) || amount <= 0) return;
+
+            try {
+                if (WALLET_MODE === 'mock') {
+                    mockAddToWallet(amount);
+                    return;
+                }
+
+                await firestoreService.addToWallet(currentStudent.id, amount);
+                showToast(`Added ${formatMoney(amount)} to wallet`, 'success');
+
+                // UI should refresh via the wallet listener; refresh once if listener isn't active yet.
+                if (!walletUnsubscribe) await loadWallet();
+            } catch (error) {
+                console.error('Wallet recharge error:', error);
+                showToast('Failed to add funds to wallet', 'error');
             }
-            mockAddToWallet(amount);
         });
     });
 
@@ -432,6 +457,11 @@ function handleLogout() {
         try { ordersUnsubscribe(); } catch {}
         ordersUnsubscribe = null;
     }
+
+    if (walletUnsubscribe) {
+        try { walletUnsubscribe(); } catch {}
+        walletUnsubscribe = null;
+    }
     showLandingScreen();
     showToast('Logged out successfully', 'info');
 }
@@ -579,7 +609,7 @@ function displayMenuItems() {
                 <div class="menu-card-body">
                     <div class="menu-card-name">${item.name}</div>
                     <div class="menu-card-category">${item.category}</div>
-                    <div class="menu-card-price">$${item.price.toFixed(2)}</div>
+                    <div class="menu-card-price">${formatMoney(item.price)}</div>
                     <div class="help" style="margin: 0 0 10px;">Stock: <strong>${stockLabel}</strong></div>
                     <button class="menu-card-btn" onclick="openItemModal('${item.id}', '${item.name}', '${item.description}', ${item.price}, ${inStock}, ${hasStock ? item.stock : 'null'})">
                         ${inStock ? 'View & Order' : 'Out of Stock'}
@@ -601,7 +631,7 @@ function openItemModal(itemId, itemName, itemDescription, itemPrice, available, 
     currentModalItem = { id: itemId, name: itemName, price: itemPrice, stock: Number.isFinite(stockNumber) ? stockNumber : null };
     itemModalName.textContent = itemName;
     itemModalDescription.textContent = itemDescription;
-    itemModalPrice.textContent = `$${itemPrice.toFixed(2)}`;
+    itemModalPrice.textContent = formatMoney(itemPrice);
     itemModalStock.textContent = (typeof currentModalItem.stock === 'number') ? `${currentModalItem.stock}` : '—';
     qtyInput.value = '1';
 
@@ -625,7 +655,7 @@ function updateModalSubtotal() {
     }
 
     const subtotal = currentModalItem.price * qty;
-    modalSubtotal.textContent = `$${subtotal.toFixed(2)}`;
+    modalSubtotal.textContent = formatMoney(subtotal);
 }
 
 // ===== CART MANAGEMENT =====
@@ -693,25 +723,25 @@ function updateCartDisplay() {
             <div class="cart-item">
                 <div class="cart-item-info">
                     <div class="cart-item-name">${item.name}</div>
-                    <div class="cart-item-price">$${item.price.toFixed(2)} each</div>
+                    <div class="cart-item-price">${formatMoney(item.price)} each</div>
                 </div>
                 <div class="cart-item-controls">
                     <button class="qty-btn" onclick="updateCartQuantity('${item.itemId}', ${item.quantity - 1})">−</button>
                     <input type="number" class="cart-item-qty" value="${item.quantity}" onchange="updateCartQuantity('${item.itemId}', this.value)">
                     <button class="qty-btn" onclick="updateCartQuantity('${item.itemId}', ${item.quantity + 1})">+</button>
                 </div>
-                <div class="cart-item-subtotal">$${(item.price * item.quantity).toFixed(2)}</div>
+                <div class="cart-item-subtotal">${formatMoney(item.price * item.quantity)}</div>
                 <button class="cart-item-remove" onclick="removeFromCart('${item.itemId}')">Remove</button>
             </div>
         `).join('');
     }
 
     // Update summary
-    subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
-    taxEl.textContent = `$${tax.toFixed(2)}`;
-    totalEl.textContent = `$${total.toFixed(2)}`;
+    subtotalEl.textContent = formatMoney(subtotal);
+    taxEl.textContent = formatMoney(tax);
+    totalEl.textContent = formatMoney(total);
     if (currentWallet) {
-        cartWalletBalance.textContent = `$${currentWallet.balance.toFixed(2)}`;
+        cartWalletBalance.textContent = formatMoney(currentWallet.balance);
     }
 }
 
@@ -736,19 +766,19 @@ function openCheckoutModal() {
     checkoutSummary.innerHTML = `
         <div class="checkout-item">
             <span>Subtotal</span>
-            <span>$${subtotal.toFixed(2)}</span>
+            <span>${formatMoney(subtotal)}</span>
         </div>
         <div class="checkout-item">
             <span>Tax (5%)</span>
-            <span>$${tax.toFixed(2)}</span>
+            <span>${formatMoney(tax)}</span>
         </div>
         <div class="checkout-item" style="border-top: 1px solid var(--border-color); padding-top: 10px; font-weight: bold; font-size: 18px;">
             <span>Total</span>
-            <span>$${total.toFixed(2)}</span>
+            <span>${formatMoney(total)}</span>
         </div>
         <div style="margin-top: 15px; padding: 10px; background: var(--light-bg); border-radius: 6px;">
-            <p>Current Balance: <strong>$${currentWallet.balance.toFixed(2)}</strong></p>
-            <p>After Payment: <strong>$${(currentWallet.balance - total).toFixed(2)}</strong></p>
+            <p>Current Balance: <strong>${formatMoney(currentWallet.balance)}</strong></p>
+            <p>After Payment: <strong>${formatMoney(currentWallet.balance - total)}</strong></p>
         </div>
     `;
 
@@ -909,12 +939,12 @@ function displayOrders(orders) {
                 ${order.items.map(item => `
                     <div class="order-item">
                         <span>${item.name} × ${item.quantity}</span>
-                        <span>$${(item.unit_price * item.quantity).toFixed(2)}</span>
+                        <span>${formatMoney(item.unit_price * item.quantity)}</span>
                     </div>
                 `).join('')}
             </div>
             <div class="order-summary">
-                <span>Total: <strong>$${order.total_price.toFixed(2)}</strong></span>
+                <span>Total: <strong>${formatMoney(order.total_price)}</strong></span>
                 <span>${new Date(order.created_at?.toDate?.() || order.created_at).toLocaleDateString()}</span>
             </div>
         </div>
@@ -936,10 +966,12 @@ async function loadWallet() {
         displayWallet();
 
         // Set up real-time listener
-        firestoreService.onWalletChange(currentStudent.id, (updatedWallet) => {
-            currentWallet = updatedWallet;
-            displayWallet();
-        });
+        if (!walletUnsubscribe) {
+            walletUnsubscribe = firestoreService.onWalletChange(currentStudent.id, (updatedWallet) => {
+                currentWallet = updatedWallet;
+                displayWallet();
+            });
+        }
     } catch (error) {
         console.error('Error loading wallet:', error);
     }
@@ -948,7 +980,7 @@ async function loadWallet() {
 function displayWallet() {
     if (!currentWallet) return;
 
-    walletBalanceLarge.textContent = `$${currentWallet.balance.toFixed(2)}`;
+    walletBalanceLarge.textContent = formatMoney(currentWallet.balance);
 
     // Calculate total spent
     const transactions = currentWallet.transactions || [];
@@ -959,7 +991,7 @@ function displayWallet() {
     // Count orders
     const orders = transactions.filter(t => t.type === 'order').length;
 
-    totalSpent.textContent = `$${totalSpentAmount.toFixed(2)}`;
+    totalSpent.textContent = formatMoney(totalSpentAmount);
     orderCount.textContent = orders;
 
     // Display transactions
@@ -979,14 +1011,14 @@ function displayWallet() {
                         <div class="transaction-date">${new Date(transaction.date?.toDate?.() || transaction.date).toLocaleDateString()}</div>
                     </div>
                     <div class="transaction-amount ${transaction.type === 'order' ? 'debit' : 'credit'}">
-                        ${transaction.type === 'order' ? '-' : '+'}$${transaction.amount.toFixed(2)}
+                        ${transaction.type === 'order' ? '-' : '+'}${formatMoney(transaction.amount)}
                     </div>
                 </div>
             `).join('');
     }
 
     // Update cart wallet display
-    cartWalletBalance.textContent = `$${currentWallet.balance.toFixed(2)}`;
+    cartWalletBalance.textContent = formatMoney(currentWallet.balance);
 }
 
 // ===== NOTIFICATIONS =====

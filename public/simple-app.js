@@ -97,7 +97,7 @@ function loadMenu() {
         card.innerHTML = `
             <h3>${item.name}</h3>
             <p>${item.category}</p>
-            <div class="item-price">$${item.price.toFixed(2)}</div>
+            <div class="item-price">₱${item.price.toFixed(2)}</div>
         `;
         card.addEventListener('click', () => openItemModal(item));
         grid.appendChild(card);
@@ -109,7 +109,7 @@ function openItemModal(item) {
     currentModalItem = item;
     document.getElementById('modalName').textContent = item.name;
     document.getElementById('modalDesc').textContent = item.category;
-    document.getElementById('modalPrice').textContent = '$' + item.price.toFixed(2);
+    document.getElementById('modalPrice').textContent = '₱' + item.price.toFixed(2);
     document.getElementById('qtyInput').value = 1;
     
     document.getElementById('itemModal').classList.add('active');
@@ -165,7 +165,7 @@ function updateCartDisplay() {
         cartItem.innerHTML = `
             <div>
                 <strong>${item.name}</strong><br>
-                $${item.price.toFixed(2)} x ${item.qty} = $${subtotal.toFixed(2)}
+                ₱${item.price.toFixed(2)} x ${item.qty} = ₱${subtotal.toFixed(2)}
             </div>
             <button onclick="removeFromCart(${item.id})" style="width: auto; padding: 5px 10px;">Remove</button>
         `;
@@ -186,10 +186,10 @@ function updateCartSummary() {
     const tax = subtotal * 0.05;
     const total = subtotal + tax;
     
-    document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
-    document.getElementById('tax').textContent = '$' + tax.toFixed(2);
-    document.getElementById('total').textContent = '$' + total.toFixed(2);
-    document.getElementById('balance').textContent = '$' + currentBalance.toFixed(2);
+    document.getElementById('subtotal').textContent = '₱' + subtotal.toFixed(2);
+    document.getElementById('tax').textContent = '₱' + tax.toFixed(2);
+    document.getElementById('total').textContent = '₱' + total.toFixed(2);
+    document.getElementById('balance').textContent = '₱' + currentBalance.toFixed(2);
 }
 
 // ===== CHECKOUT =====
@@ -204,15 +204,15 @@ function openCheckout() {
     const total = subtotal + tax;
     
     if (total > currentBalance) {
-        alert('Insufficient balance! Need $' + total.toFixed(2) + ', have $' + currentBalance.toFixed(2));
+        alert('Insufficient balance! Need ₱' + total.toFixed(2) + ', have ₱' + currentBalance.toFixed(2));
         return;
     }
     
     let summary = '<strong>Order Summary:</strong><br><br>';
     cart.forEach(item => {
-        summary += `${item.name} x${item.qty}: $${(item.price * item.qty).toFixed(2)}<br>`;
+        summary += `${item.name} x${item.qty}: ₱${(item.price * item.qty).toFixed(2)}<br>`;
     });
-    summary += `<br>Subtotal: $${subtotal.toFixed(2)}<br>Tax: $${tax.toFixed(2)}<br><strong>Total: $${total.toFixed(2)}</strong>`;
+    summary += `<br>Subtotal: ₱${subtotal.toFixed(2)}<br>Tax: ₱${tax.toFixed(2)}<br><strong>Total: ₱${total.toFixed(2)}</strong>`;
     
     document.getElementById('checkoutSummary').innerHTML = summary;
     document.getElementById('checkoutModal').classList.add('active');
@@ -277,7 +277,7 @@ function loadStudentOrders() {
         orderDiv.innerHTML = `
             <p><strong>Order ID:</strong> ${order.id}</p>
             <p><strong>Items:</strong> ${itemsList}</p>
-            <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
+            <p><strong>Total:</strong> ₱${order.total.toFixed(2)}</p>
             <p><strong>Status:</strong> <span class="status ${order.status}">${order.status.toUpperCase()}</span></p>
             <p style="color: #999; font-size: 12px;">${order.created_at}</p>
         `;
@@ -292,8 +292,8 @@ function updateWallet() {
         currentBalance = parseFloat(saved);
     }
     
-    document.getElementById('walletBalance').textContent = '$' + currentBalance.toFixed(2);
-    document.getElementById('balance').textContent = '$' + currentBalance.toFixed(2);
+    document.getElementById('walletBalance').textContent = '₱' + currentBalance.toFixed(2);
+    document.getElementById('balance').textContent = '₱' + currentBalance.toFixed(2);
     updateCartSummary();
 }
 

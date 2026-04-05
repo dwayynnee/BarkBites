@@ -446,6 +446,7 @@ const firestoreService = {
    */
   async getWalletByStudentId(studentId) {
     try {
+      await this._ensureAuthReady();
       const doc = await db.collection(COLLECTIONS.WALLETS).doc(studentId).get();
       return doc.exists ? doc.data() : null;
     } catch (error) {
@@ -459,6 +460,7 @@ const firestoreService = {
    */
   async createWallet(wallet) {
     try {
+      await this._ensureAuthReady();
       await db.collection(COLLECTIONS.WALLETS).doc(wallet.student_id).set(wallet);
       console.log("Wallet created:", wallet.student_id);
       return true;
@@ -473,6 +475,7 @@ const firestoreService = {
    */
   async deductFromWallet(studentId, amount, orderId) {
     try {
+      await this._ensureAuthReady();
       const wallet = await this.getWalletByStudentId(studentId);
       if (!wallet) {
         throw new Error("Wallet not found");
@@ -511,6 +514,7 @@ const firestoreService = {
    */
   async addToWallet(studentId, amount) {
     try {
+      await this._ensureAuthReady();
       const wallet = await this.getWalletByStudentId(studentId);
       if (!wallet) {
         throw new Error("Wallet not found");
@@ -543,6 +547,7 @@ const firestoreService = {
    */
   onWalletChange(studentId, callback) {
     try {
+      this._ensureAuthReady().catch(() => {});
       return db.collection(COLLECTIONS.WALLETS)
         .doc(studentId)
         .onSnapshot(doc => {
