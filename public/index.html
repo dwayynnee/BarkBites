@@ -363,6 +363,26 @@
             gap: 12px;
         }
 
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .brand img {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .brand h2 {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .navbar h2 {
             font-size: 18px;
             letter-spacing: -0.02em;
@@ -373,6 +393,14 @@
             flex-wrap: wrap;
             gap: 10px;
             justify-content: flex-end;
+        }
+
+        .landing-logo {
+            display: block;
+            width: 92px;
+            height: auto;
+            margin: 0 auto 10px;
+            object-fit: contain;
         }
 
         .nav-buttons button {
@@ -886,6 +914,7 @@
     <div id="landingScreen" class="screen active">
         <div class="container landing">
             <section class="landing-hero" aria-label="Bark Bites landing">
+                <img class="landing-logo" src="logo.png" alt="Bark Bites logo">
                 <div class="landing-kicker">Skip the line. Pre‑order your canteen meal.</div>
                 <h1>Welcome to Bark Bites</h1>
                 <p>
@@ -979,7 +1008,10 @@
     <!-- App Screen -->
     <div id="appScreen" class="screen">
         <div class="navbar">
-            <h2>Bark Bites</h2>
+            <div class="brand">
+                <img src="logo.png" alt="Bark Bites logo">
+                <h2>Bark Bites</h2>
+            </div>
             <div class="nav-buttons">
                 <button class="nav-btn" data-tab="menu">Menu</button>
                 <button class="nav-btn" data-tab="cart">Cart (<span id="cartCount">0</span>)</button>
