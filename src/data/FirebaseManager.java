@@ -65,7 +65,7 @@ public class FirebaseManager {
         }
 
         initialized = true;
-        System.out.println("✅ FirebaseManager initialized (REST mode). Start the Node server with: npm start");
+        System.out.println("FirebaseManager initialized (REST mode). Start the Node server with: npm start");
     }
 
     /**

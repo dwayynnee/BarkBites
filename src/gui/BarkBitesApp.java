@@ -61,7 +61,7 @@ public class BarkBitesApp extends JFrame {
     static final Color TEXT_COLOR = new Color(51, 51, 51);         // Dark gray
     
     public BarkBitesApp() {
-        System.out.println("\n🐾 Bark Bites Staff Kiosk Starting...");
+        System.out.println("\nBark Bites Staff Kiosk Starting...");
         
         // Set window properties
         setTitle("Bark Bites - Staff Kiosk");
@@ -100,7 +100,7 @@ public class BarkBitesApp extends JFrame {
     
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            System.out.println("🚀 Bark Bites Staff Kiosk Starting...");
+            System.out.println("Bark Bites Staff Kiosk Starting...");
             new BarkBitesApp().setVisible(true);
         });
     }
@@ -288,9 +288,9 @@ class OrderQueuePanel extends JPanel {
                         }
                         
                         if (tableModel.getRowCount() == 0) {
-                            System.out.println("📭 No active orders to display");
+                            System.out.println("No active orders to display");
                         } else {
-                            System.out.println("✅ Loaded " + tableModel.getRowCount() + " active orders");
+                            System.out.println("Loaded " + tableModel.getRowCount() + " active orders");
                         }
                     });
                 } catch (InterruptedException e) {
@@ -342,12 +342,12 @@ class OrderQueuePanel extends JPanel {
                     boolean success = get();
                     if (success) {
                         JOptionPane.showMessageDialog(OrderQueuePanel.this,
-                            "✅ Order updated and synced to Firestore",
+                            "Order updated and synced to Firestore",
                             "Success",
                             JOptionPane.INFORMATION_MESSAGE);
                     } else {
                         JOptionPane.showMessageDialog(OrderQueuePanel.this,
-                            "❌ Failed to update order status.\nMake sure the Node server is running and Firestore is initialized.",
+                            "Failed to update order status.\nMake sure the Node server is running and Firestore is initialized.",
                             "Update Failed",
                             JOptionPane.ERROR_MESSAGE);
                     }
@@ -361,7 +361,7 @@ class OrderQueuePanel extends JPanel {
                     Throwable cause = e.getCause();
                     System.err.println("Error: " + (cause != null ? cause.getMessage() : e.getMessage()));
                     JOptionPane.showMessageDialog(OrderQueuePanel.this,
-                        "❌ Error updating order: " + (cause != null ? cause.getMessage() : e.getMessage()),
+                        "Error updating order: " + (cause != null ? cause.getMessage() : e.getMessage()),
                         "Update Failed",
                         JOptionPane.ERROR_MESSAGE);
                 } finally {
@@ -438,10 +438,10 @@ class OrderQueuePanel extends JPanel {
      */
     private String formatStatus(String status) {
         return switch (status) {
-            case "pending" -> "⏳ Pending";
-            case "in_progress" -> "👨‍🍳 In Progress";
-            case "ready" -> "✅ Ready";
-            case "completed" -> "✔️ Completed";
+            case "pending" -> "Pending";
+            case "in_progress" -> "In Progress";
+            case "ready" -> "Ready";
+            case "completed" -> "Completed";
             default -> status;
         };
     }
@@ -550,7 +550,7 @@ class InventoryPanel extends JPanel {
                         tableModel.setRowCount(0);
                         
                         if (items == null || items.isEmpty()) {
-                            System.out.println("⚠️  No menu items found in Firestore");
+                            System.out.println("No menu items found in Firestore");
                             return;
                         }
 
@@ -584,24 +584,24 @@ class InventoryPanel extends JPanel {
 
                             String status;
                             if (inv == null) {
-                                status = "⚠️ No Inventory Data";
+                                status = "No Inventory Data";
                             } else if (!availableFlag) {
-                                status = "⛔ Unavailable";
+                                status = "Unavailable";
                             } else if (isOut) {
-                                status = "❌ Out of Stock";
+                                status = "Out of Stock";
                             } else if (lowStock) {
-                                status = "⚠️ Low Stock";
+                                status = "Low Stock";
                             } else {
-                                status = "✅ In Stock";
+                                status = "In Stock";
                             }
 
-                            String lowStockText = qtyAvailable == null ? "—" : (lowStock ? "Yes ⚠️" : "No");
+                            String lowStockText = qtyAvailable == null ? "--" : (lowStock ? "Yes" : "No");
                             
                             tableModel.addRow(new Object[]{
                                 id,
                                 name,
-                                qtyAvailable != null ? qtyAvailable : "—",
-                                qtySold != null ? qtySold : "—",
+                                qtyAvailable != null ? qtyAvailable : "--",
+                                qtySold != null ? qtySold : "--",
                                 lowStockText,
                                 status
                             });
@@ -610,7 +610,7 @@ class InventoryPanel extends JPanel {
                         // Update timestamp
                         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
                         lastUpdatedLabel.setText("Last updated: " + timeFormat.format(new java.util.Date()));
-                        System.out.println("✅ Loaded " + tableModel.getRowCount() + " inventory items");
+                        System.out.println("Loaded " + tableModel.getRowCount() + " inventory items");
                     });
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -678,24 +678,24 @@ class InventoryPanel extends JPanel {
                 try {
                     boolean success = get();
                     if (success) {
-                        JOptionPane.showMessageDialog(InventoryPanel.this, "✅ Menu item deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(InventoryPanel.this, "Menu item deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
                         refreshInventory();
                     } else {
                         JOptionPane.showMessageDialog(InventoryPanel.this,
-                            "❌ Failed to delete menu item.\nMake sure the Node server is running and Firestore is initialized.",
+                            "Failed to delete menu item.\nMake sure the Node server is running and Firestore is initialized.",
                             "Delete Failed",
                             JOptionPane.ERROR_MESSAGE);
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     JOptionPane.showMessageDialog(InventoryPanel.this,
-                        "❌ Error deleting menu item: " + e.getMessage(),
+                        "Error deleting menu item: " + e.getMessage(),
                         "Delete Failed",
                         JOptionPane.ERROR_MESSAGE);
                 } catch (ExecutionException e) {
                     Throwable cause = e.getCause();
                     JOptionPane.showMessageDialog(InventoryPanel.this,
-                        "❌ Error deleting menu item: " + (cause != null ? cause.getMessage() : e.getMessage()),
+                        "Error deleting menu item: " + (cause != null ? cause.getMessage() : e.getMessage()),
                         "Delete Failed",
                         JOptionPane.ERROR_MESSAGE);
                 }
@@ -750,7 +750,7 @@ class InventoryPanel extends JPanel {
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         
-        JButton addBtn = new JButton("✓ Add Item");
+        JButton addBtn = new JButton("Add Item");
         addBtn.setBackground(new Color(76, 175, 80));
         addBtn.setForeground(Color.WHITE);
         addBtn.addActionListener(e -> {
@@ -797,7 +797,7 @@ class InventoryPanel extends JPanel {
             }
         });
         
-        JButton cancelBtn = new JButton("✗ Cancel");
+        JButton cancelBtn = new JButton("Cancel");
         cancelBtn.setBackground(new Color(244, 67, 54));
         cancelBtn.setForeground(Color.WHITE);
         cancelBtn.addActionListener(e -> dialog.dispose());
@@ -840,10 +840,10 @@ class DashboardPanel extends JPanel {
         JPanel statsPanel = new JPanel(new GridLayout(1, 4, 10, 10));
         statsPanel.setBackground(BarkBitesApp.BG_COLOR);
         
-        totalOrdersLabel = createStatCard("📦 Total Orders", "--", BarkBitesApp.PRIMARY_COLOR);
-        pendingOrdersLabel = createStatCard("⏳ Pending", "--", BarkBitesApp.SECONDARY_COLOR);
-        revenueLabel = createStatCard("💰 Revenue Today", "--", new Color(76, 175, 80));
-        bestSellerLabel = createStatCard("⭐ Best Seller", "--", new Color(156, 39, 176));
+        totalOrdersLabel = createStatCard("Total Orders", "--", BarkBitesApp.PRIMARY_COLOR);
+        pendingOrdersLabel = createStatCard("Pending", "--", BarkBitesApp.SECONDARY_COLOR);
+        revenueLabel = createStatCard("Revenue Today", "--", new Color(76, 175, 80));
+        bestSellerLabel = createStatCard("Best Seller", "--", new Color(156, 39, 176));
         
         statsPanel.add(totalOrdersLabel);
         statsPanel.add(pendingOrdersLabel);
@@ -1009,16 +1009,16 @@ class DashboardPanel extends JPanel {
                         }
                         
                         totalOrdersLabel.setText(String.format(
-                            "<html><center>📦 Total Orders<br><font size=5><b>%d</b></font></center></html>", total));
+                            "<html><center>Total Orders<br><font size=5><b>%d</b></font></center></html>", total));
                         pendingOrdersLabel.setText(String.format(
-                            "<html><center>⏳ Pending<br><font size=5><b>%d</b></font></center></html>", pending));
+                            "<html><center>Pending<br><font size=5><b>%d</b></font></center></html>", pending));
                         revenueLabel.setText(String.format(
-                            "<html><center>💰 Revenue Today<br><font size=5><b>$%.2f</b></font></center></html>", revenue));
+                            "<html><center>Revenue Today<br><font size=5><b>$%.2f</b></font></center></html>", revenue));
                         bestSellerLabel.setText(String.format(
-                            "<html><center>⭐ Best Seller<br><font size=5><b>%s</b></font></center></html>", bestSeller));
+                            "<html><center>Best Seller<br><font size=5><b>%s</b></font></center></html>", bestSeller));
                         
                         chartPanel.repaint();
-                        System.out.println("✅ Dashboard updated: " + total + " orders, $" + String.format("%.2f", revenue));
+                        System.out.println("Dashboard updated: " + total + " orders, $" + String.format("%.2f", revenue));
                     });
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();

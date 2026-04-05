@@ -59,17 +59,17 @@ public class FirebaseRestClient {
                 try {
                     String content = new String(Files.readAllBytes(Paths.get(path)));
                     if (content.contains("\"project_id\"") && content.contains(PROJECT_ID)) {
-                        System.out.println("✅ Firebase Service Account Found: " + configFile.getAbsolutePath());
+                        System.out.println("Firebase Service Account Found: " + configFile.getAbsolutePath());
                         System.out.println("   Using authenticated Firestore access for write operations");
                         return;
                     }
                 } catch (IOException | RuntimeException e) {
-                    System.err.println("⚠️ Error reading firebase-key.json at " + path + ": " + e.getMessage());
+                    System.err.println("Error reading firebase-key.json at " + path + ": " + e.getMessage());
                 }
             }
         }
 
-        System.out.println("⚠️ firebase-key.json not found - Using Demo Data Mode");
+        System.out.println("firebase-key.json not found - Using Demo Data Mode");
         System.out.println("   To enable full Firestore sync: Add firebase-key.json to project root");
         System.out.println("   Current working directory: " + new File(".").getAbsolutePath());
     }
@@ -118,15 +118,15 @@ public class FirebaseRestClient {
                     case 200 -> {
                         String response = readResponse(conn);
                         documents = parseServerResponse(response);
-                        System.out.println("✅ Fetched " + documents.size() + " documents from server: " + collectionName);
+                        System.out.println("Fetched " + documents.size() + " documents from server: " + collectionName);
                         return documents;
                     }
-                    case 503 -> System.err.println("⚠️ Server not initialized - Firestore not connected");
-                    default -> System.err.println("⚠️ Server returned HTTP " + responseCode);
+                    case 503 -> System.err.println("Server not initialized - Firestore not connected");
+                    default -> System.err.println("Server returned HTTP " + responseCode);
                 }
                 conn.disconnect();
             } catch (IOException | RuntimeException e) {
-                System.err.println("⚠️ Local server unavailable: " + e.getMessage());
+                System.err.println("Local server unavailable: " + e.getMessage());
                 System.err.println("   Make sure Node.js server is running: npm start");
             }
         }
@@ -146,9 +146,9 @@ public class FirebaseRestClient {
                 if (responseCode == 200) {
                     String response = readResponse(conn);
                     documents = parseDocuments(response);
-                    System.out.println("✅ Fetched " + documents.size() + " documents from Firestore: " + collectionName);
+                    System.out.println("Fetched " + documents.size() + " documents from Firestore: " + collectionName);
                 } else {
-                    System.err.println("❌ Firebase API Error: HTTP " + responseCode);
+                    System.err.println("Firebase API Error: HTTP " + responseCode);
                     if (responseCode == 403) {
                         System.err.println("   → Firestore rules might be blocking REST API");
                         System.err.println("   → Make sure Node.js server is running for authenticated access");
@@ -156,7 +156,7 @@ public class FirebaseRestClient {
                 }
                 conn.disconnect();
             } catch (IOException | RuntimeException e) {
-                System.err.println("⚠️ Error fetching from Firestore: " + e.getMessage());
+                System.err.println("Error fetching from Firestore: " + e.getMessage());
             }
         }
         
@@ -181,7 +181,7 @@ public class FirebaseRestClient {
             }
             return out;
         } catch (RuntimeException e) {
-            System.err.println("⚠️ Error parsing server response JSON: " + e.getMessage());
+            System.err.println("Error parsing server response JSON: " + e.getMessage());
             return new ArrayList<>();
         }
     }
@@ -212,13 +212,13 @@ public class FirebaseRestClient {
                 conn.disconnect();
                 
                 if (responseCode == 200 || responseCode == 201) {
-                    System.out.println("✅ Updated " + orderId + " to " + newStatus);
+                    System.out.println("Updated " + orderId + " to " + newStatus);
                     return true;
                 } else {
-                    System.err.println("⚠️ Server update failed: HTTP " + responseCode);
+                    System.err.println("Server update failed: HTTP " + responseCode);
                 }
             } catch (IOException | RuntimeException e) {
-                System.err.println("⚠️ Server unavailable: " + e.getMessage());
+                System.err.println("Server unavailable: " + e.getMessage());
             }
         }
         
@@ -266,13 +266,13 @@ public class FirebaseRestClient {
                 conn.disconnect();
                 
                 if (responseCode == 200 || responseCode == 201) {
-                    System.out.println("✅ Added menu item: " + name);
+                    System.out.println("Added menu item: " + name);
                     return true;
                 } else {
-                    System.err.println("⚠️ Failed to add menu item: HTTP " + responseCode);
+                    System.err.println("Failed to add menu item: HTTP " + responseCode);
                 }
             } catch (IOException | RuntimeException e) {
-                System.err.println("❌ Error adding menu item: " + e.getMessage());
+                System.err.println("Error adding menu item: " + e.getMessage());
             }
         }
 
@@ -304,12 +304,12 @@ public class FirebaseRestClient {
                 conn.disconnect();
 
                 if (responseCode == 200 || responseCode == 204) {
-                    System.out.println("✅ Deleted menu item: " + trimmedId);
+                    System.out.println("Deleted menu item: " + trimmedId);
                     return true;
                 }
-                System.err.println("⚠️ Failed to delete menu item: HTTP " + responseCode);
+                System.err.println("Failed to delete menu item: HTTP " + responseCode);
             } catch (IOException | RuntimeException e) {
-                System.err.println("❌ Error deleting menu item: " + e.getMessage());
+                System.err.println("Error deleting menu item: " + e.getMessage());
             }
         }
 
@@ -357,14 +357,14 @@ public class FirebaseRestClient {
             conn.disconnect();
 
             if (responseCode == 200) {
-                System.out.println("✅ Updated orders/" + orderId + " (commit)");
+                System.out.println("Updated orders/" + orderId + " (commit)");
                 return true;
             }
 
-            System.err.println("❌ Commit update failed: HTTP " + responseCode);
+            System.err.println("Commit update failed: HTTP " + responseCode);
             return false;
         } catch (IOException | RuntimeException e) {
-            System.err.println("⚠️ Error updating document (commit): " + e.getMessage());
+            System.err.println("Error updating document (commit): " + e.getMessage());
             return false;
         }
     }
@@ -442,13 +442,13 @@ public class FirebaseRestClient {
             conn.disconnect();
 
             if (responseCode == 200) {
-                System.out.println("✅ Added menu_items/" + id + " (commit)");
+                System.out.println("Added menu_items/" + id + " (commit)");
                 return true;
             }
-            System.err.println("❌ Commit add failed: HTTP " + responseCode);
+            System.err.println("Commit add failed: HTTP " + responseCode);
             return false;
         } catch (IOException | RuntimeException e) {
-            System.err.println("⚠️ Error adding menu item (commit): " + e.getMessage());
+            System.err.println("Error adding menu item (commit): " + e.getMessage());
             return false;
         }
     }
@@ -465,13 +465,13 @@ public class FirebaseRestClient {
             conn.disconnect();
 
             if (responseCode == 200) {
-                System.out.println("✅ Deleted menu_items/" + id + " (direct REST)");
+                System.out.println("Deleted menu_items/" + id + " (direct REST)");
                 return true;
             }
-            System.err.println("❌ Direct delete failed: HTTP " + responseCode);
+            System.err.println("Direct delete failed: HTTP " + responseCode);
             return false;
         } catch (IOException | RuntimeException e) {
-            System.err.println("⚠️ Error deleting menu item (direct REST): " + e.getMessage());
+            System.err.println("Error deleting menu item (direct REST): " + e.getMessage());
             return false;
         }
     }
@@ -542,7 +542,7 @@ public class FirebaseRestClient {
 
             return out;
         } catch (RuntimeException e) {
-            System.err.println("⚠️ Error parsing Firestore REST documents JSON: " + e.getMessage());
+            System.err.println("Error parsing Firestore REST documents JSON: " + e.getMessage());
             return new ArrayList<>();
         }
     }
@@ -570,7 +570,7 @@ public class FirebaseRestClient {
                 }
             }
         } catch (RuntimeException e) {
-            System.err.println("⚠️ Error parsing Firestore document: " + e.getMessage());
+            System.err.println("Error parsing Firestore document: " + e.getMessage());
         }
 
         return doc;
