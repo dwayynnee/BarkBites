@@ -4,21 +4,32 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
+import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -37,6 +48,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 /**
  * Bark Bites - Staff Kiosk Application (Firebase-Integrated)
@@ -69,6 +82,12 @@ public class BarkBitesApp extends JFrame {
         setSize(1200, 700);
         setLocationRelativeTo(null);
         setBackground(BG_COLOR);
+
+        BufferedImage logo = loadLogoImage();
+        if (logo != null) {
+            // Provide multiple icon sizes so Windows can choose the best one
+            setIconImages(buildWindowIconSet(logo));
+        }
         
         // Create tabbed pane
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -90,12 +109,236 @@ public class BarkBitesApp extends JFrame {
         rootPanel = new JPanel(cardLayout);
         rootPanel.setBackground(BG_COLOR);
 
-        JPanel homePanel = new HomePanel(() -> cardLayout.show(rootPanel, "MAIN"));
+        JPanel homePanel = new HomePanel(logo, () -> cardLayout.show(rootPanel, "MAIN"));
         rootPanel.add(homePanel, "HOME");
         rootPanel.add(tabbedPane, "MAIN");
 
         setContentPane(rootPanel);
         cardLayout.show(rootPanel, "HOME");
+    }
+
+    private static BufferedImage loadLogoImage() {
+        String[] candidatePaths = new String[] {
+            "images" + File.separator + "logo.png",
+            ".." + File.separator + "images" + File.separator + "logo.png",
+            ".." + File.separator + ".." + File.separator + "images" + File.separator + "logo.png"
+        };
+
+        for (String path : candidatePaths) {
+            try {
+                File f = new File(path);
+                if (!f.exists()) continue;
+                BufferedImage img = ImageIO.read(f);
+                if (img != null) return img;
+            } catch (IOException | RuntimeException ignored) {
+                // Best-effort logo load; UI still works without it.
+            }
+        }
+        return null;
+    }
+
+    private static List<Image> buildWindowIconSet(BufferedImage baseLogo) {
+        int[] sizes = new int[] { 16, 20, 24, 32, 40, 48, 64, 128, 256 };
+        List<Image> images = new ArrayList<>(sizes.length);
+        BufferedImage prepared = prepareIconBase(baseLogo);
+        if (prepared == null) return images;
+        for (int s : sizes) {
+            BufferedImage icon = renderLogoIcon(prepared, s);
+            if (icon != null) images.add(icon);
+        }
+        return images;
+    }
+
+    /**
+     * Crops away near-black borders so the logo fills small icon sizes better.
+     * This keeps the icon readable in the title bar/taskbar (which are always small).
+     */
+    private static BufferedImage prepareIconBase(BufferedImage src) {
+        if (src == null) return null;
+
+        int w = src.getWidth();
+        int h = src.getHeight();
+        if (w <= 0 || h <= 0) return src;
+
+        int minX = w, minY = h, maxX = -1, maxY = -1;
+
+        // Treat very dark pixels as background (your logo has a black backdrop).
+        // Keep anything else as content.
+        final int darkThreshold = 40; // 0..255
+
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int argb = src.getRGB(x, y);
+                int a = (argb >>> 24) & 0xFF;
+                if (a < 8) continue;
+
+                int r = (argb >>> 16) & 0xFF;
+                int g = (argb >>> 8) & 0xFF;
+                int b = (argb) & 0xFF;
+
+                if (r < darkThreshold && g < darkThreshold && b < darkThreshold) {
+                    continue;
+                }
+
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
+            }
+        }
+
+        // If we didn't find content (or cropping would be too aggressive), keep original.
+        if (maxX < minX || maxY < minY) {
+            return src;
+        }
+
+        // Add a small margin so edges don't get cut off.
+        // Keep it small so the logo fills 16–32px icons better.
+        int margin = Math.max(2, Math.min(w, h) / 200);
+        minX = Math.max(0, minX - margin);
+        minY = Math.max(0, minY - margin);
+        maxX = Math.min(w - 1, maxX + margin);
+        maxY = Math.min(h - 1, maxY + margin);
+
+        int cropW = Math.max(1, maxX - minX + 1);
+        int cropH = Math.max(1, maxY - minY + 1);
+
+        // Return the tight crop (NOT padded). We'll render into a square icon using a
+        // "cover" fit so the logo occupies more pixels at small sizes.
+        BufferedImage cropped = src.getSubimage(minX, minY, cropW, cropH);
+
+        // Make the dark backdrop transparent so the icon is readable on dark taskbars.
+        BufferedImage transparent = new BufferedImage(cropW, cropH, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < cropH; y++) {
+            for (int x = 0; x < cropW; x++) {
+                int argb = cropped.getRGB(x, y);
+                int a = (argb >>> 24) & 0xFF;
+                if (a < 8) {
+                    transparent.setRGB(x, y, 0);
+                    continue;
+                }
+
+                int r = (argb >>> 16) & 0xFF;
+                int g = (argb >>> 8) & 0xFF;
+                int b = (argb) & 0xFF;
+
+                if (r < darkThreshold && g < darkThreshold && b < darkThreshold) {
+                    transparent.setRGB(x, y, 0);
+                } else {
+                    transparent.setRGB(x, y, argb);
+                }
+            }
+        }
+
+        return transparent;
+    }
+
+    private static BufferedImage renderLogoIcon(BufferedImage base, int size) {
+        if (base == null) return null;
+
+        // Render to a larger intermediate image first, then downscale in steps.
+        // This tends to preserve edge definition better than a single heavy downscale.
+        int intermediate = Math.max(256, size * 6);
+        BufferedImage cover = renderCover(base, intermediate);
+        BufferedImage down = downscaleTo(cover, size);
+
+        if (size <= 32) return sharpenSmall(down, size);
+        if (size <= 48) return sharpen(down);
+        return down;
+    }
+
+    private static BufferedImage renderCover(BufferedImage base, int size) {
+        BufferedImage out = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = out.createGraphics();
+        try {
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int bw = Math.max(1, base.getWidth());
+            int bh = Math.max(1, base.getHeight());
+
+            double scale = Math.max((double) size / bw, (double) size / bh);
+            int dw = (int) Math.ceil(bw * scale);
+            int dh = (int) Math.ceil(bh * scale);
+            int dx = (size - dw) / 2;
+            int dy = (size - dh) / 2;
+            g2.drawImage(base, dx, dy, dw, dh, null);
+        } finally {
+            g2.dispose();
+        }
+        return out;
+    }
+
+    private static BufferedImage downscaleTo(BufferedImage src, int targetSize) {
+        if (src == null) return null;
+        int w = src.getWidth();
+        int h = src.getHeight();
+        if (w == targetSize && h == targetSize) return src;
+
+        BufferedImage current = src;
+        int cur = Math.max(w, h);
+        while (cur / 2 >= targetSize) {
+            int next = cur / 2;
+            current = scaleTo(current, next);
+            cur = next;
+        }
+        if (cur != targetSize) {
+            current = scaleTo(current, targetSize);
+        }
+        return current;
+    }
+
+    private static BufferedImage scaleTo(BufferedImage src, int size) {
+        BufferedImage out = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = out.createGraphics();
+        try {
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.drawImage(src, 0, 0, size, size, null);
+        } finally {
+            g2.dispose();
+        }
+        return out;
+    }
+
+    private static BufferedImage sharpen(BufferedImage src) {
+        float[] kernel = new float[] {
+            0f, -1f, 0f,
+            -1f, 5f, -1f,
+            0f, -1f, 0f
+        };
+        ConvolveOp op = new ConvolveOp(new Kernel(3, 3, kernel), ConvolveOp.EDGE_NO_OP, null);
+        BufferedImage dst = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        op.filter(src, dst);
+        return dst;
+    }
+
+    private static BufferedImage sharpenSmall(BufferedImage src, int size) {
+        // Less aggressive sharpen for very tiny icons to avoid halos.
+        float center;
+        float edge;
+        if (size <= 16) {
+            center = 2.6f;
+            edge = -0.4f;
+        } else if (size <= 20) {
+            center = 3.0f;
+            edge = -0.5f;
+        } else {
+            center = 3.4f;
+            edge = -0.6f;
+        }
+
+        float[] kernel = new float[] {
+            0f, edge, 0f,
+            edge, center, edge,
+            0f, edge, 0f
+        };
+        ConvolveOp op = new ConvolveOp(new Kernel(3, 3, kernel), ConvolveOp.EDGE_NO_OP, null);
+        BufferedImage dst = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        op.filter(src, dst);
+        return dst;
     }
     
     public static void main(String[] args) {
@@ -110,15 +353,33 @@ public class BarkBitesApp extends JFrame {
  * Simple home screen shown before the main panels.
  */
 class HomePanel extends JPanel {
-    public HomePanel(Runnable onGetStarted) {
+    public HomePanel(Image logoImage, Runnable onGetStarted) {
         setLayout(new BorderLayout());
         setBackground(BarkBitesApp.BG_COLOR);
         setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
+        JPanel center = new JPanel(new BorderLayout(0, 20));
+        center.setBackground(BarkBitesApp.BG_COLOR);
+
+        if (logoImage != null) {
+            ImageIcon raw = new ImageIcon(logoImage);
+            int w = Math.max(1, raw.getIconWidth());
+            int h = Math.max(1, raw.getIconHeight());
+            int targetW = 260;
+            int targetH = (int) Math.round(h * (targetW / (double) w));
+
+            Image scaled = logoImage.getScaledInstance(targetW, targetH, Image.SCALE_SMOOTH);
+            JLabel logoLabel = new JLabel(new ImageIcon(scaled));
+            logoLabel.setHorizontalAlignment(JLabel.CENTER);
+            center.add(logoLabel, BorderLayout.NORTH);
+        }
+
         JLabel welcome = new JLabel("Welcome to Bark Bites Staff Menu", JLabel.CENTER);
         welcome.setFont(new Font("Segoe UI", Font.BOLD, 26));
         welcome.setForeground(BarkBitesApp.TEXT_COLOR);
-        add(welcome, BorderLayout.CENTER);
+        center.add(welcome, BorderLayout.CENTER);
+
+        add(center, BorderLayout.CENTER);
 
         JButton getStarted = new JButton("Get Started");
         getStarted.setFont(new Font("Segoe UI", Font.BOLD, 16));
@@ -147,7 +408,9 @@ class OrderQueuePanel extends JPanel {
     private final JComboBox<String> statusCombo;
     private final JButton updateStatusBtn;
     private final JButton refreshBtn;
+    private final JLabel lastUpdatedLabel;
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final SimpleDateFormat LAST_UPDATED_FORMAT = new SimpleDateFormat("hh:mm:ss a");
     
     public OrderQueuePanel() {
         setLayout(new BorderLayout(10, 10));
@@ -227,14 +490,23 @@ class OrderQueuePanel extends JPanel {
         updateStatusBtn.addActionListener(e -> updateOrderStatus());
         
         refreshBtn = new JButton("Refresh");
-        refreshBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        refreshBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        refreshBtn.setBackground(BarkBitesApp.PRIMARY_COLOR);
+        refreshBtn.setForeground(Color.WHITE);
         refreshBtn.setFocusPainted(false);
+        refreshBtn.setIcon(new RefreshIcon(14, 14, Color.WHITE));
         refreshBtn.addActionListener(e -> refreshOrders());
+
+        lastUpdatedLabel = new JLabel("Last updated: --:--:-- --");
+        lastUpdatedLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lastUpdatedLabel.setForeground(BarkBitesApp.TEXT_COLOR);
         
         controlPanel.add(new JLabel("Update to:"));
         controlPanel.add(statusCombo);
         controlPanel.add(updateStatusBtn);
         controlPanel.add(refreshBtn);
+        controlPanel.add(Box.createHorizontalStrut(20));
+        controlPanel.add(lastUpdatedLabel);
         
         add(controlPanel, BorderLayout.SOUTH);
         
@@ -259,6 +531,8 @@ class OrderQueuePanel extends JPanel {
                     
                     SwingUtilities.invokeLater(() -> {
                         tableModel.setRowCount(0);
+
+                        lastUpdatedLabel.setText("Last updated: " + LAST_UPDATED_FORMAT.format(new java.util.Date()));
                         
                         if (orders == null || orders.isEmpty()) {
                             System.out.println("No orders found in Firestore");
@@ -280,7 +554,7 @@ class OrderQueuePanel extends JPanel {
                                     orderNumber,
                                     studentId,
                                     itemsSummary,
-                                    String.format("$%.2f", totalPrice),
+                                    String.format("₱%.2f", totalPrice),
                                     formatStatus(status),
                                     createdTime
                                 });
@@ -434,7 +708,7 @@ class OrderQueuePanel extends JPanel {
     }
     
     /**
-     * Format status with emoji
+     * Format status text for display
      */
     private String formatStatus(String status) {
         return switch (status) {
@@ -445,6 +719,58 @@ class OrderQueuePanel extends JPanel {
             default -> status;
         };
     }
+
+    private static final class RefreshIcon implements Icon {
+        private final int width;
+        private final int height;
+        private final Color color;
+
+        RefreshIcon(int width, int height, Color color) {
+            this.width = Math.max(8, width);
+            this.height = Math.max(8, height);
+            this.color = color != null ? color : Color.WHITE;
+        }
+
+        @Override
+        public int getIconWidth() {
+            return width;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return height;
+        }
+
+        @Override
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            try {
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(color);
+                g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+
+                int pad = 2;
+                int w = width - pad * 2;
+                int h = height - pad * 2;
+
+                int arcX = x + pad;
+                int arcY = y + pad;
+                int arcW = w;
+                int arcH = h;
+
+                // Draw most of a circle
+                g2.drawArc(arcX, arcY, arcW, arcH, 35, 290);
+
+                // Small arrow head near the top-right
+                int ax = arcX + (int) (arcW * 0.82);
+                int ay = arcY + (int) (arcH * 0.25);
+                g2.drawLine(ax, ay, ax - 4, ay + 1);
+                g2.drawLine(ax, ay, ax - 1, ay + 4);
+            } finally {
+                g2.dispose();
+            }
+        }
+    }
 }
 
 /**
@@ -454,6 +780,9 @@ class InventoryPanel extends JPanel {
     private final JTable inventoryTable;
     private final DefaultTableModel tableModel;
     private final JLabel lastUpdatedLabel;
+    private java.util.Map<String, Map<String, Object>> menuItemById = new java.util.HashMap<>();
+    private java.util.Map<String, Map<String, Object>> inventoryByMenuItemId = new java.util.HashMap<>();
+    private static final SimpleDateFormat LAST_UPDATED_FORMAT = new SimpleDateFormat("hh:mm:ss a");
     
     public InventoryPanel() {
         setLayout(new BorderLayout(10, 10));
@@ -503,6 +832,13 @@ class InventoryPanel extends JPanel {
         deleteItemBtn.setForeground(Color.WHITE);
         deleteItemBtn.setFocusPainted(false);
         deleteItemBtn.addActionListener(e -> deleteSelectedMenuItem());
+
+        JButton editItemBtn = new JButton("Edit Menu Item");
+        editItemBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        editItemBtn.setBackground(BarkBitesApp.PRIMARY_COLOR);
+        editItemBtn.setForeground(Color.WHITE);
+        editItemBtn.setFocusPainted(false);
+        editItemBtn.addActionListener(e -> showEditMenuItemDialog());
         
         JButton refreshBtn = new JButton("Refresh Inventory");
         refreshBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -515,6 +851,7 @@ class InventoryPanel extends JPanel {
         lastUpdatedLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         
         controlPanel.add(addItemBtn);
+        controlPanel.add(editItemBtn);
         controlPanel.add(deleteItemBtn);
         controlPanel.add(refreshBtn);
         controlPanel.add(Box.createHorizontalStrut(20));
@@ -563,6 +900,16 @@ class InventoryPanel extends JPanel {
                                 }
                             }
                         }
+
+                        java.util.Map<String, Map<String, Object>> miById = new java.util.HashMap<>();
+                        for (Map<String, Object> item : items) {
+                            String id = String.valueOf(item.getOrDefault("id", ""));
+                            if (id != null && !id.isBlank() && !"null".equalsIgnoreCase(id)) {
+                                miById.put(id, item);
+                            }
+                        }
+                        menuItemById = miById;
+                        inventoryByMenuItemId = invByMenuItemId;
                         
                         for (Map<String, Object> item : items) {
                             String id = String.valueOf(item.getOrDefault("id", ""));
@@ -608,8 +955,7 @@ class InventoryPanel extends JPanel {
                         }
                         
                         // Update timestamp
-                        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-                        lastUpdatedLabel.setText("Last updated: " + timeFormat.format(new java.util.Date()));
+                        lastUpdatedLabel.setText("Last updated: " + LAST_UPDATED_FORMAT.format(new java.util.Date()));
                         System.out.println("Loaded " + tableModel.getRowCount() + " inventory items");
                     });
                 } catch (InterruptedException e) {
@@ -701,6 +1047,143 @@ class InventoryPanel extends JPanel {
                 }
             }
         }.execute();
+    }
+
+    private void showEditMenuItemDialog() {
+        int selectedRow = inventoryTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a menu item to edit", "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String itemId = String.valueOf(tableModel.getValueAt(selectedRow, 0));
+        if (itemId == null || itemId.trim().isEmpty() || "null".equalsIgnoreCase(itemId.trim())) {
+            JOptionPane.showMessageDialog(this, "Selected row has no Item ID", "Edit Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        itemId = itemId.trim();
+        final String itemIdFinal = itemId;
+
+        Map<String, Object> menuItem = menuItemById.get(itemId);
+        Map<String, Object> inv = inventoryByMenuItemId.get(itemId);
+
+        String currentName = menuItem != null ? String.valueOf(menuItem.getOrDefault("name", "")) : String.valueOf(tableModel.getValueAt(selectedRow, 1));
+        String currentCategory = menuItem != null ? String.valueOf(menuItem.getOrDefault("category", "Main Course")) : "Main Course";
+        String currentDescription = menuItem != null ? String.valueOf(menuItem.getOrDefault("description", "")) : "";
+        Double currentPrice = menuItem != null ? toDouble(menuItem.get("price")) : null;
+        Integer currentQty = inv != null ? toInt(inv.get("quantity_available")) : null;
+
+        JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(this), "Edit Menu Item", true);
+        dialog.setSize(420, 320);
+        dialog.setLocationRelativeTo(this);
+
+        JPanel panel = new JPanel(new GridLayout(6, 2, 5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel idLabel = new JLabel("Item ID:");
+        JTextField idField = new JTextField(itemId);
+        idField.setEnabled(false);
+
+        JLabel nameLabel = new JLabel("Item Name:");
+        JTextField nameField = new JTextField(currentName != null ? currentName : "");
+
+        JLabel priceLabel = new JLabel("Price:");
+        JTextField priceField = new JTextField(currentPrice != null ? String.valueOf(currentPrice) : "");
+
+        JLabel qtyLabel = new JLabel("Quantity Available:");
+        JTextField qtyField = new JTextField(currentQty != null ? String.valueOf(currentQty) : "0");
+
+        JLabel categoryLabel = new JLabel("Category:");
+        JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"Main Course", "Sides", "Dessert", "Drink"});
+        categoryCombo.setSelectedItem(currentCategory);
+
+        JLabel descLabel = new JLabel("Description:");
+        JTextField descField = new JTextField(currentDescription != null ? currentDescription : "");
+
+        panel.add(idLabel);
+        panel.add(idField);
+        panel.add(nameLabel);
+        panel.add(nameField);
+        panel.add(priceLabel);
+        panel.add(priceField);
+        panel.add(qtyLabel);
+        panel.add(qtyField);
+        panel.add(categoryLabel);
+        panel.add(categoryCombo);
+        panel.add(descLabel);
+        panel.add(descField);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        JButton saveBtn = new JButton("Save Changes");
+        saveBtn.setBackground(BarkBitesApp.PRIMARY_COLOR);
+        saveBtn.setForeground(Color.WHITE);
+        saveBtn.setFocusPainted(false);
+        saveBtn.addActionListener(e -> {
+            String name = nameField.getText().trim();
+            String priceStr = priceField.getText().trim();
+            String qtyStr = qtyField.getText().trim();
+            String category = (String) categoryCombo.getSelectedItem();
+            String description = descField.getText().trim();
+
+            if (name.isEmpty() || priceStr.isEmpty() || qtyStr.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Please fill all required fields", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            double price;
+            try {
+                price = Double.parseDouble(priceStr);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, "Price must be a valid number", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            int quantityAvailable;
+            try {
+                quantityAvailable = Integer.parseInt(qtyStr);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, "Quantity must be a whole number", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (quantityAvailable < 0) {
+                JOptionPane.showMessageDialog(dialog, "Quantity cannot be negative", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            boolean success = FirebaseRestClient.addMenuItem(itemIdFinal, name, price, category, description, quantityAvailable);
+            if (success) {
+                JOptionPane.showMessageDialog(dialog, "Menu item updated!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+                refreshInventory();
+            } else {
+                JOptionPane.showMessageDialog(dialog, "Failed to update menu item", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        JButton cancelBtn = new JButton("Cancel");
+        cancelBtn.setBackground(new Color(244, 67, 54));
+        cancelBtn.setForeground(Color.WHITE);
+        cancelBtn.setFocusPainted(false);
+        cancelBtn.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(saveBtn);
+        buttonPanel.add(cancelBtn);
+
+        dialog.add(panel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setVisible(true);
+    }
+
+    private static Double toDouble(Object value) {
+        if (value == null) return null;
+        if (value instanceof Number n) return n.doubleValue();
+        try {
+            return Double.parseDouble(String.valueOf(value));
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
     
     /**
@@ -821,7 +1304,9 @@ class DashboardPanel extends JPanel {
     private final JLabel revenueLabel;
     private final JLabel bestSellerLabel;
     private final JPanel chartPanel;
+    private final JLabel lastUpdatedLabel;
     private int[] ordersPerHour = new int[24];
+    private static final SimpleDateFormat LAST_UPDATED_FORMAT = new SimpleDateFormat("hh:mm:ss a");
     
     public DashboardPanel() {
         setLayout(new BorderLayout(10, 10));
@@ -876,8 +1361,14 @@ class DashboardPanel extends JPanel {
         refreshBtn.setForeground(Color.WHITE);
         refreshBtn.setFocusPainted(false);
         refreshBtn.addActionListener(e -> refreshDashboard());
+
+        lastUpdatedLabel = new JLabel("Last updated: --:--:-- --");
+        lastUpdatedLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lastUpdatedLabel.setForeground(BarkBitesApp.TEXT_COLOR);
         
         bottomPanel.add(refreshBtn);
+        bottomPanel.add(Box.createHorizontalStrut(20));
+        bottomPanel.add(lastUpdatedLabel);
         add(bottomPanel, BorderLayout.SOUTH);
         
         // Initialize data
@@ -1013,12 +1504,14 @@ class DashboardPanel extends JPanel {
                         pendingOrdersLabel.setText(String.format(
                             "<html><center>Pending<br><font size=5><b>%d</b></font></center></html>", pending));
                         revenueLabel.setText(String.format(
-                            "<html><center>Revenue Today<br><font size=5><b>$%.2f</b></font></center></html>", revenue));
+                            "<html><center>Revenue Today<br><font size=5><b>₱%.2f</b></font></center></html>", revenue));
                         bestSellerLabel.setText(String.format(
                             "<html><center>Best Seller<br><font size=5><b>%s</b></font></center></html>", bestSeller));
+
+                        lastUpdatedLabel.setText("Last updated: " + LAST_UPDATED_FORMAT.format(new java.util.Date()));
                         
                         chartPanel.repaint();
-                        System.out.println("Dashboard updated: " + total + " orders, $" + String.format("%.2f", revenue));
+                        System.out.println("Dashboard updated: " + total + " orders, ₱" + String.format("%.2f", revenue));
                     });
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
