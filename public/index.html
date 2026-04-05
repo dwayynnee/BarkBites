@@ -183,6 +183,7 @@
             overflow: hidden;
             margin: 34px auto 18px;
             max-width: 980px;
+            text-align: center;
         }
 
         .landing-hero::before {
@@ -226,6 +227,8 @@
             color: var(--muted);
             font-size: 15px;
             max-width: 60ch;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .landing-actions {
@@ -234,6 +237,8 @@
             gap: 10px;
             margin-top: 18px;
             max-width: 360px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .landing-grid {
@@ -881,8 +886,8 @@
     <div id="landingScreen" class="screen active">
         <div class="container landing">
             <section class="landing-hero" aria-label="Bark Bites landing">
-                <div class="landing-kicker">🐾 Bark Bites • Pre-order made simple</div>
-                <h1>Skip the line. Pre‑order your canteen meal.</h1>
+                <div class="landing-kicker">Skip the line. Pre‑order your canteen meal.</div>
+                <h1>Welcome to Bark Bites</h1>
                 <p>
                     Browse today’s menu, choose a pickup time, and pay with your digital wallet.
                     Fast ordering for students — smoother prep for the canteen.
@@ -891,25 +896,6 @@
                 <div class="landing-actions">
                     <button id="enterAppBtn" type="button">Get Started</button>
                     <button id="landingToLoginBtn" type="button" class="btn-secondary">Go to Login</button>
-                </div>
-
-                <div class="landing-grid" aria-label="Highlights">
-                    <div class="landing-card">
-                        <h3>🛒 Order ahead</h3>
-                        <p>Add items to your cart and confirm in seconds.</p>
-                    </div>
-                    <div class="landing-card">
-                        <h3>🕒 Pickup time</h3>
-                        <p>Choose when you’ll pick up — reduce crowding.</p>
-                    </div>
-                    <div class="landing-card">
-                        <h3>📦 Track status</h3>
-                        <p>See progress from pending → ready → completed.</p>
-                    </div>
-                    <div class="landing-card">
-                        <h3>💳 Wallet (demo)</h3>
-                        <p>Recharge and pay from a mock balance stored locally.</p>
-                    </div>
                 </div>
             </section>
 
@@ -985,7 +971,7 @@
             
             <div id="loginError" class="error" aria-live="polite"></div>
             <p style="text-align: center; color: #999; font-size: 12px; margin-top: 20px;">
-                Demo Mode: No password required. If your Student ID isn’t registered yet, tap “Register” to create your account.
+                Demo Mode: No password required. Tap “Register” to create your account.
             </p>
         </div>
     </div>
@@ -1062,7 +1048,7 @@
                     <button type="button" class="wallet-action" data-recharge="20">Add $20</button>
                     <button type="button" class="wallet-action" data-recharge="50">Add $50</button>
                 </div>
-                <div class="help">Mock wallet: balance is stored on this device.</div>
+                <div class="help">Mock Wallet for Demonstration Purposes</div>
                 <div id="transactionHistory"></div>
             </div>
         </div>
