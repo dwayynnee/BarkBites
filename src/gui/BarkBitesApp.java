@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -49,6 +50,9 @@ public class BarkBitesApp extends JFrame {
     private final OrderQueuePanel orderQueuePanel;
     private final InventoryPanel inventoryPanel;
     private final DashboardPanel dashboardPanel;
+
+    private final CardLayout cardLayout;
+    private final JPanel rootPanel;
     
     // Color scheme
     static final Color PRIMARY_COLOR = new Color(255, 107, 53);    // Orange
@@ -80,10 +84,18 @@ public class BarkBitesApp extends JFrame {
         tabbedPane.addTab("Order Queue", orderQueuePanel);
         tabbedPane.addTab("Inventory", inventoryPanel);
         tabbedPane.addTab("Dashboard", dashboardPanel);
-        
-        add(tabbedPane);
 
-        setVisible(true);
+        // Root: Home screen -> Main tabs
+        cardLayout = new CardLayout();
+        rootPanel = new JPanel(cardLayout);
+        rootPanel.setBackground(BG_COLOR);
+
+        JPanel homePanel = new HomePanel(() -> cardLayout.show(rootPanel, "MAIN"));
+        rootPanel.add(homePanel, "HOME");
+        rootPanel.add(tabbedPane, "MAIN");
+
+        setContentPane(rootPanel);
+        cardLayout.show(rootPanel, "HOME");
     }
     
     public static void main(String[] args) {
@@ -91,6 +103,38 @@ public class BarkBitesApp extends JFrame {
             System.out.println("🚀 Bark Bites Staff Kiosk Starting...");
             new BarkBitesApp().setVisible(true);
         });
+    }
+}
+
+/**
+ * Simple home screen shown before the main panels.
+ */
+class HomePanel extends JPanel {
+    public HomePanel(Runnable onGetStarted) {
+        setLayout(new BorderLayout());
+        setBackground(BarkBitesApp.BG_COLOR);
+        setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+
+        JLabel welcome = new JLabel("Welcome to Bark Bites Staff Menu", JLabel.CENTER);
+        welcome.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        welcome.setForeground(BarkBitesApp.TEXT_COLOR);
+        add(welcome, BorderLayout.CENTER);
+
+        JButton getStarted = new JButton("Get Started");
+        getStarted.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        getStarted.setBackground(BarkBitesApp.PRIMARY_COLOR);
+        getStarted.setForeground(Color.WHITE);
+        getStarted.setFocusPainted(false);
+        getStarted.addActionListener(e -> {
+            if (onGetStarted != null) {
+                onGetStarted.run();
+            }
+        });
+
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        bottom.setBackground(BarkBitesApp.BG_COLOR);
+        bottom.add(getStarted);
+        add(bottom, BorderLayout.SOUTH);
     }
 }
 
