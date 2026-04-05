@@ -497,7 +497,7 @@ class InventoryPanel extends JPanel {
         addItemBtn.setFocusPainted(false);
         addItemBtn.addActionListener(e -> showAddMenuItemDialog());
 
-        JButton deleteItemBtn = new JButton("Delete Menu Item");
+        JButton deleteItemBtn = new JButton("- Delete Menu Item");
         deleteItemBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         deleteItemBtn.setBackground(new Color(244, 67, 54));
         deleteItemBtn.setForeground(Color.WHITE);
