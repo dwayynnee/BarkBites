@@ -461,7 +461,7 @@ class InventoryPanel extends JPanel {
         setBackground(BarkBitesApp.BG_COLOR);
         
         // Title
-        JLabel titleLabel = new JLabel("📊 Inventory Management");
+        JLabel titleLabel = new JLabel("Inventory Management");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titleLabel.setForeground(BarkBitesApp.TEXT_COLOR);
         add(titleLabel, BorderLayout.NORTH);
@@ -832,7 +832,7 @@ class DashboardPanel extends JPanel {
         JPanel topPanel = new JPanel(new BorderLayout(0, 10));
         topPanel.setBackground(BarkBitesApp.BG_COLOR);
 
-        JLabel titleLabel = new JLabel("📈 Dashboard Analytics");
+        JLabel titleLabel = new JLabel("Dashboard Analytics");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titleLabel.setForeground(BarkBitesApp.TEXT_COLOR);
         topPanel.add(titleLabel, BorderLayout.NORTH);
