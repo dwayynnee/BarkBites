@@ -973,7 +973,10 @@ class InventoryPanel extends JPanel {
         if (value == null) return null;
         if (value instanceof Number n) return n.intValue();
         try {
-            return Integer.parseInt(String.valueOf(value));
+            if (value instanceof String) {
+                return Integer.parseInt(((String) value).trim());
+            }
+            return Integer.parseInt(value.toString().trim());
         } catch (NumberFormatException e) {
             return null;
         }
@@ -1180,7 +1183,10 @@ class InventoryPanel extends JPanel {
         if (value == null) return null;
         if (value instanceof Number n) return n.doubleValue();
         try {
-            return Double.parseDouble(String.valueOf(value));
+            if (value instanceof String) {
+                return Double.parseDouble(((String) value).trim());
+            }
+            return Double.parseDouble(value.toString().trim());
         } catch (NumberFormatException e) {
             return null;
         }
