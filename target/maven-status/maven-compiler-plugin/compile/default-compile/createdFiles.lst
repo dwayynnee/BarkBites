@@ -1,4 +1,3 @@
-com\mycompany\barkbites\CustomerForms\CustomerProfilePanelVisible$4.class
 com\mycompany\barkbites\CustomerForms\CustomerMenuPanel$1.class
 com\mycompany\barkbites\CustomerForms\CustomerLoginOptions$1.class
 com\mycompany\barkbites\CustomerForms\CustomerShowFoodPanel$1.class
@@ -20,7 +19,6 @@ com\mycompany\barkbites\CustomerForms\CustomerLandingPage$1.class
 com\mycompany\barkbites\CustomerForms\CustomerMenuPanel.class
 com\mycompany\barkbites\CustomerForms\CustomerHomePagePanel$5.class
 com\mycompany\barkbites\CustomerForms\CustomerProfilePanelNotVisible$1.class
-com\mycompany\barkbites\CustomerForms\CustomerProfilePanelVisible$2.class
 com\mycompany\barkbites\CustomerForms\CustomerProfilePanelNotVisible.class
 com\mycompany\barkbites\CustomerForms\CustomerSignupPanel.class
 com\mycompany\barkbites\CustomerForms\CustomerHomePagePanel$2.class
@@ -37,7 +35,6 @@ com\mycompany\barkbites\CustomerForms\CustomerSignupPanel$1.class
 com\mycompany\barkbites\CustomerForms\CustomerLoginPanel$2.class
 com\mycompany\barkbites\CustomerForms\CustomerHomePagePanel$3.class
 com\mycompany\barkbites\CustomerForms\CustomerQrScannerPanel.class
-com\mycompany\barkbites\CustomerForms\CustomerProfilePanelVisible$3.class
 com\mycompany\barkbites\CustomerForms\CustomerQrScanPanel$1.class
 com\mycompany\barkbites\CustomerForms\CustomerCartPanel$3.class
 com\mycompany\barkbites\CustomerForms\CustomerQrScannerPanel$1.class
