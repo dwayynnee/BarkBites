@@ -17,13 +17,13 @@ public class StaffLandingPage extends javax.swing.JFrame {
         initComponents();
 
         makeButtonInvisible(jButton1);
-        jButton1.addActionListener(evt -> openStaffOrders());
+        jButton1.addActionListener(evt -> openStaffPassword());
 
         this.setResizable(false);
     }
 
-    private void openStaffOrders() {
-        new StaffOrders().setVisible(true);
+    private void openStaffPassword() {
+        new StaffPassword().setVisible(true);
         this.dispose();
     }
 
