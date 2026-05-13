@@ -10,6 +10,7 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         getContentPane().setComponentZOrder(jButton1, 0);
         getContentPane().setComponentZOrder(jButton2, 0);
         getContentPane().setComponentZOrder(jButton3, 0);
+        getContentPane().setComponentZOrder(jButton4, 0);
         getContentPane().setComponentZOrder(jButton5, 0);
         getContentPane().setComponentZOrder(jButton6, 0);
 
@@ -17,12 +18,14 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         jButton1.addActionListener(this::jButton1ActionPerformed);
         jButton2.addActionListener(this::jButton2ActionPerformed);
         jButton3.addActionListener(this::jButton3ActionPerformed);
+        jButton4.addActionListener(this::jButton4ActionPerformed);
         jButton5.addActionListener(this::jButton5ActionPerformed);
         jButton6.addActionListener(this::jButton6ActionPerformed);
 
         makeButtonInvisible(jButton1);
         makeButtonInvisible(jButton2);
         makeButtonInvisible(jButton3);
+        makeButtonInvisible(jButton4);
         makeButtonInvisible(jButton5);
         makeButtonInvisible(jButton6);
 
@@ -47,6 +50,7 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
         jButton5 = new javax.swing.JButton();
         jButton6 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
@@ -62,6 +66,9 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
 
         jButton3.setText("jButton3");
         getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 570, -1, 60));
+
+        jButton4.setText("jButton4");
+        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 290, 150, 55));
 
         jButton5.setText("jButton5");
         getContentPane().add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 400, 120, 130));
@@ -89,6 +96,11 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         new CustomerCartPanel().setVisible(true);
         this.dispose();
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        new CustomerCashInPanel().setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_jButton4ActionPerformed
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {                                         
         new CustomerQrScannerPanel().setVisible(true);
         this.dispose();
@@ -109,6 +121,7 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
