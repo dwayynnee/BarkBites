@@ -2,10 +2,40 @@ package com.mycompany.barkbites.CustomerForms;
 
 public class CustomerRegistrationCompletePanel extends javax.swing.JFrame {
 
+    private javax.swing.Timer redirectTimer;
+
     public CustomerRegistrationCompletePanel() {
         initComponents();
 
+        scheduleAutoRedirect();
+
+        // Cleanup if the user closes the window before redirect.
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent e) {
+                stopRedirectTimer();
+            }
+        });
+
         this.setResizable(false);
+    }
+
+    private void scheduleAutoRedirect() {
+        stopRedirectTimer();
+
+        redirectTimer = new javax.swing.Timer(4000, e -> {
+            new CustomerHomePagePanel().setVisible(true);
+            CustomerRegistrationCompletePanel.this.dispose();
+        });
+        redirectTimer.setRepeats(false);
+        redirectTimer.start();
+    }
+
+    private void stopRedirectTimer() {
+        if (redirectTimer != null) {
+            redirectTimer.stop();
+            redirectTimer = null;
+        }
     }
 
 
