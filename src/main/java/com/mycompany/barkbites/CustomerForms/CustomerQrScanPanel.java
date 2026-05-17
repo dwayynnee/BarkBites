@@ -1,5 +1,7 @@
 package com.mycompany.barkbites.CustomerForms;
 
+import com.mycompany.barkbites.FormNavigator;
+
 public class CustomerQrScanPanel extends javax.swing.JFrame {
 
     public CustomerQrScanPanel() {
@@ -57,28 +59,23 @@ public class CustomerQrScanPanel extends javax.swing.JFrame {
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        new CustomerProfilePanelVisible().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new CustomerProfilePanelVisible());
     }
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
-        new CustomerHomePagePanel().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new CustomerHomePagePanel());
     }
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
-        new CustomerMenuPanel().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new CustomerMenuPanel());
     }
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {
-        new CustomerCartPanel().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new CustomerCartPanel());
     }
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {
-        new CustomerProfilePanelVisible().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new CustomerProfilePanelVisible());
     }
 
     @SuppressWarnings("unchecked")

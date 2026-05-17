@@ -1,5 +1,7 @@
 package com.mycompany.barkbites.CustomerForms;
 
+import com.mycompany.barkbites.FormNavigator;
+
 public class CustomerSignupPanel extends javax.swing.JFrame {
 
     public CustomerSignupPanel() {
@@ -12,12 +14,10 @@ public class CustomerSignupPanel extends javax.swing.JFrame {
 
         // Wire button navigation.
         jButton1.addActionListener(e -> {
-            new CustomerLoginPanel().setVisible(true);
-            this.dispose();
+            FormNavigator.redirect(this, new CustomerLoginPanel());
         });
         jButton2.addActionListener(e -> {
-            new CustomerRegistrationCompletePanel().setVisible(true);
-            this.dispose();
+            FormNavigator.redirect(this, new CustomerRegistrationCompletePanel());
         });
 
         // Make buttons invisible but still clickable.

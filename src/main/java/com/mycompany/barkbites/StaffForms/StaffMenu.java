@@ -4,6 +4,8 @@
  */
 package com.mycompany.barkbites.StaffForms;
 
+import com.mycompany.barkbites.FormNavigator;
+
 /**
  *
  * @author markd
@@ -30,23 +32,19 @@ public class StaffMenu extends javax.swing.JFrame {
     }
 
     private void openStaffOrders() {
-        new StaffOrders().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new StaffOrders());
     }
 
     private void openStaffInventory() {
-        new StaffInventory().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new StaffInventory());
     }
 
     private void openStaffStatistics() {
-        new StaffStatistics().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new StaffStatistics());
     }
 
     private void openStaffLandingPage() {
-        new StaffLandingPage().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new StaffLandingPage());
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {

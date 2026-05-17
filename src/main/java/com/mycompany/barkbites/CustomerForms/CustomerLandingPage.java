@@ -1,4 +1,7 @@
 package com.mycompany.barkbites.CustomerForms;
+
+import com.mycompany.barkbites.FormNavigator;
+
 public class CustomerLandingPage extends javax.swing.JFrame {
 
     public CustomerLandingPage() {
@@ -8,8 +11,7 @@ public class CustomerLandingPage extends javax.swing.JFrame {
 
         javax.swing.Timer timer = new javax.swing.Timer(4000, e -> {
             ((javax.swing.Timer) e.getSource()).stop();
-            new CustomerLoginOptions().setVisible(true);
-            this.dispose();
+            FormNavigator.redirect(this, new CustomerLoginOptions());
         });
         timer.setRepeats(false);
         timer.start();

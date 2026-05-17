@@ -1,5 +1,7 @@
 package com.mycompany.barkbites.CustomerForms;
 
+import com.mycompany.barkbites.FormNavigator;
+
 public class CustomerLoginOptions extends javax.swing.JFrame {
 
     public CustomerLoginOptions() {
@@ -50,13 +52,11 @@ public class CustomerLoginOptions extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        new CustomerSignupPanel().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new CustomerSignupPanel());
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        new CustomerLoginPanel().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new CustomerLoginPanel());
     }//GEN-LAST:event_jButton1ActionPerformed
 
     public static void main(String args[]) {

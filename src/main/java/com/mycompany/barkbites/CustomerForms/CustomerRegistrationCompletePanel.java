@@ -1,5 +1,7 @@
 package com.mycompany.barkbites.CustomerForms;
 
+import com.mycompany.barkbites.FormNavigator;
+
 public class CustomerRegistrationCompletePanel extends javax.swing.JFrame {
 
     private javax.swing.Timer redirectTimer;
@@ -24,8 +26,7 @@ public class CustomerRegistrationCompletePanel extends javax.swing.JFrame {
         stopRedirectTimer();
 
         redirectTimer = new javax.swing.Timer(4000, e -> {
-            new CustomerHomePagePanel().setVisible(true);
-            CustomerRegistrationCompletePanel.this.dispose();
+            FormNavigator.redirect(CustomerRegistrationCompletePanel.this, new CustomerHomePagePanel());
         });
         redirectTimer.setRepeats(false);
         redirectTimer.start();
