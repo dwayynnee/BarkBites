@@ -23,7 +23,7 @@ Bark Bites is a high-fidelity mock-up designed for OOP assessment.
 ## Quick Start
 
 ### Prerequisites
-- Java JDK 11+
+- Java JDK 25+
 
 ### Run (VS Code)
 - Use the task: **BarkBites: Run Standalone Mock**
