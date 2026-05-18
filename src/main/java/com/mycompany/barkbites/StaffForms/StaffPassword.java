@@ -4,6 +4,8 @@
  */
 package com.mycompany.barkbites.StaffForms;
 
+import com.mycompany.barkbites.FormNavigator;
+
 /**
  *
  * @author markd
@@ -23,8 +25,7 @@ public class StaffPassword extends javax.swing.JFrame {
     }
 
     private void openStaffOrders() {
-        new StaffOrders().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new StaffOrders());
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {

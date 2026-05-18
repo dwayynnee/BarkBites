@@ -1,5 +1,7 @@
 package com.mycompany.barkbites.CustomerForms;
 
+import com.mycompany.barkbites.FormNavigator;
+
 public class CustomerCartPanel extends javax.swing.JFrame {
 
     public CustomerCartPanel() {
@@ -57,18 +59,15 @@ public class CustomerCartPanel extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        new CustomerHomePagePanel().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new CustomerHomePagePanel());
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        new CustomerMenuPanel().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new CustomerMenuPanel());
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        new CustomerProfilePanelVisible().setVisible(true);
-        this.dispose();
+        FormNavigator.redirect(this, new CustomerProfilePanelVisible());
     }//GEN-LAST:event_jButton3ActionPerformed
 
     public static void main(String args[]) {
