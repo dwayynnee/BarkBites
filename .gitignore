@@ -1,0 +1,22 @@
+# --- Secrets (DO NOT COMMIT) ---
+# Firebase / Google service account keys
+*-firebase-adminsdk-*.json
+*serviceAccount*.json
+
+# Local per-device config (if someone accidentally places it in the repo)
+.barkbites/
+app.properties
+
+# --- Maven / Java build outputs ---
+/target/
+*.class
+
+# --- IDE noise ---
+/.idea/
+*.iml
+/.classpath
+/.project
+/.settings/
+
+# VS Code (optional)
+.vscode/

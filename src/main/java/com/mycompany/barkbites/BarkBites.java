@@ -2,6 +2,7 @@ package com.mycompany.barkbites;
 
 import com.mycompany.barkbites.CustomerForms.CustomerLandingPage;
 import com.mycompany.barkbites.StaffForms.StaffLandingPage;
+import com.mycompany.barkbites.data.FirebasePublicConfig;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -9,6 +10,7 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 public class BarkBites {
 
@@ -16,6 +18,26 @@ public class BarkBites {
         setNimbusLookAndFeelIfAvailable();
 
         java.awt.EventQueue.invokeLater(() -> {
+            String firebaseWarning = null;
+            try {
+                FirebasePublicConfig.load();
+            } catch (Exception ex) {
+                firebaseWarning = ex.getMessage();
+            }
+
+            if (firebaseWarning != null && !firebaseWarning.isBlank()) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Firebase is not configured.\n\n" +
+                                "Update src/main/resources/firebase.properties with:\n" +
+                                "- firebase.projectId\n" +
+                                "- firebase.webApiKey\n\n" +
+                                "Error: " + firebaseWarning,
+                        "Firebase Setup",
+                        JOptionPane.WARNING_MESSAGE
+                );
+            }
+
             StaffLandingPage staffLandingPage = new StaffLandingPage();
             staffLandingPage.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 

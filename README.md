@@ -23,7 +23,19 @@ Bark Bites is a high-fidelity mock-up designed for OOP assessment.
 ## Quick Start
 
 ### Prerequisites
-- Java JDK 25+
+- Java JDK 24+
+
+### Firebase (no per-device setup)
+
+This project is set up to use **Firebase Auth + Firestore via REST** using only:
+- Firebase **Project ID**
+- Firebase **Web API Key**
+
+These values are configured in [src/main/resources/firebase.properties](src/main/resources/firebase.properties) and are safe to share in the repo.
+
+Optional dev overrides (environment variables):
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_WEB_API_KEY`
 
 ### Run (VS Code)
 - Use the task: **BarkBites: Run Standalone Mock**
