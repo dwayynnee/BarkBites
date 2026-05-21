@@ -37,6 +37,16 @@ Optional dev overrides (environment variables):
 - `FIREBASE_PROJECT_ID`
 - `FIREBASE_WEB_API_KEY`
 
+### Verify Firebase is connected
+
+Run the manual smoke test main class:
+- [src/main/java/com/mycompany/barkbites/tools/FirebaseSmokeTest.java](src/main/java/com/mycompany/barkbites/tools/FirebaseSmokeTest.java)
+
+It will:
+- prompt for Student ID + password
+- sign in using Firebase Auth REST
+- write a small document to Firestore (`smoketests/{uid}`)
+
 ### Run (VS Code)
 - Use the task: **BarkBites: Run Standalone Mock**
 

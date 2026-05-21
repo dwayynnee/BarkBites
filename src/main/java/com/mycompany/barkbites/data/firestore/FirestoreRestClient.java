@@ -43,9 +43,19 @@ public final class FirestoreRestClient {
 
     private JsonNode send(String idToken, HttpRequest request) {
         try {
-            HttpRequest authed = HttpRequest.newBuilder(request)
-                    .header("Authorization", "Bearer " + idToken)
-                    .build();
+            HttpRequest.Builder builder = HttpRequest.newBuilder(request.uri())
+                    .method(request.method(), request.bodyPublisher().orElse(HttpRequest.BodyPublishers.noBody()));
+
+            request.headers().map().forEach((name, values) -> {
+                for (String value : values) {
+                    builder.header(name, value);
+                }
+            });
+
+            // Ensure Authorization is present and not duplicated.
+            builder.setHeader("Authorization", "Bearer " + idToken);
+
+            HttpRequest authed = builder.build();
             HttpResponse<String> resp = FirebaseHttp.client().send(authed, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
                 return MAPPER.readTree(resp.body());
