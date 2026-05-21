@@ -1,13 +1,193 @@
 package com.mycompany.barkbites.CustomerForms;
 
 import com.mycompany.barkbites.FormNavigator;
+import com.mycompany.barkbites.data.FirebasePublicConfig;
+import com.mycompany.barkbites.data.auth.AuthSession;
+import com.mycompany.barkbites.data.auth.AuthState;
+import com.mycompany.barkbites.data.auth.FirebaseAuthRestService;
+import java.awt.Color;
+import java.util.concurrent.ExecutionException;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 public class CustomerLoginPanel extends javax.swing.JFrame {
+
+    private char passwordEchoChar;
+    private boolean passwordVisible;
 
     public CustomerLoginPanel() {
         initComponents();
 
+        // Keep the background image behind the click targets.
+        getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
+        getContentPane().setComponentZOrder(jButton1, 0);
+        getContentPane().setComponentZOrder(jButton2, 0);
+        getContentPane().setComponentZOrder(jButton3, 0);
+        getContentPane().setComponentZOrder(jButton4, 0);
+        getContentPane().setComponentZOrder(jTextField1, 0);
+        getContentPane().setComponentZOrder(jTextField2, 0);
+
+        // Email + Password inputs.
+        jTextField1.setText("");
+        jTextField2.setText("");
+
+        makeTextFieldTransparent(jTextField1);
+        makePasswordFieldTransparent(jTextField2);
+
+        // Buttons are click targets over the background image.
+        makeButtonInvisible(jButton1); // Login
+        makeButtonInvisible(jButton2); // Sign up
+        makeButtonInvisible(jButton3); // Back
+        makeButtonInvisible(jButton4); // Toggle password visibility (eye)
+
+        // Capture default echo char for show/hide.
+        passwordEchoChar = jTextField2.getEchoChar();
+
+        // Enter on password triggers login.
+        jTextField2.addActionListener(e -> attemptLogin());
+
         this.setResizable(false);
+    }
+
+    private static void makeButtonInvisible(javax.swing.JButton button) {
+        if (button == null) {
+            return;
+        }
+
+        java.awt.Dimension size = button.getSize();
+        if (size == null || size.width <= 0 || size.height <= 0) {
+            size = button.getPreferredSize();
+        }
+        if (size != null && size.width > 0 && size.height > 0) {
+            button.setPreferredSize(size);
+            button.setMinimumSize(size);
+            button.setMaximumSize(size);
+            button.setSize(size);
+            button.setBounds(button.getX(), button.getY(), size.width, size.height);
+        }
+
+        button.setEnabled(true);
+        button.setVisible(true);
+        button.setText("");
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setFocusPainted(false);
+        button.setOpaque(false);
+    }
+
+    private static void makeTextFieldTransparent(javax.swing.JTextField field) {
+        if (field == null) {
+            return;
+        }
+        field.setOpaque(false);
+        field.setBackground(new Color(0, 0, 0, 0));
+        field.setBorder(null);
+        field.setCaretColor(field.getForeground());
+    }
+
+    private static void makePasswordFieldTransparent(javax.swing.JPasswordField field) {
+        if (field == null) {
+            return;
+        }
+        field.setOpaque(false);
+        field.setBackground(new Color(0, 0, 0, 0));
+        field.setBorder(null);
+        field.setCaretColor(field.getForeground());
+    }
+
+    private void setBusy(boolean busy) {
+        jButton1.setEnabled(!busy);
+        jButton2.setEnabled(!busy);
+        jButton3.setEnabled(!busy);
+        jButton4.setEnabled(!busy);
+        jTextField1.setEnabled(!busy);
+        jTextField2.setEnabled(!busy);
+        setCursor(busy ? java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR) : java.awt.Cursor.getDefaultCursor());
+    }
+
+    private void attemptLogin() {
+        String identifier = jTextField1.getText() != null ? jTextField1.getText().trim() : "";
+        char[] passwordChars = jTextField2.getPassword();
+        String password = passwordChars != null ? new String(passwordChars) : "";
+        if (passwordChars != null) {
+            java.util.Arrays.fill(passwordChars, '\0');
+        }
+
+        if (identifier.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter your email.", "Missing email", JOptionPane.WARNING_MESSAGE);
+            jTextField1.requestFocusInWindow();
+            return;
+        }
+        if (password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter your password.", "Missing password", JOptionPane.WARNING_MESSAGE);
+            jTextField2.requestFocusInWindow();
+            return;
+        }
+
+        FirebasePublicConfig config;
+        try {
+            config = FirebasePublicConfig.load();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Firebase config error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Accept either a real email (contains '@') or a student-id style identifier.
+        String email = identifier.contains("@") ? identifier : config.emailFromStudentId(identifier);
+
+        FirebaseAuthRestService auth = new FirebaseAuthRestService(config);
+
+        setBusy(true);
+        javax.swing.SwingWorker<AuthSession, Void> worker = new javax.swing.SwingWorker<>() {
+            @Override
+            protected AuthSession doInBackground() {
+                return auth.signInWithEmail(email, password);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    AuthSession session = get();
+                    AuthState.set(session);
+                    FormNavigator.redirect(CustomerLoginPanel.this, new CustomerHomePagePanel());
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    JOptionPane.showMessageDialog(CustomerLoginPanel.this, "Login interrupted.", "Login failed", JOptionPane.ERROR_MESSAGE);
+                    setBusy(false);
+                } catch (ExecutionException ee) {
+                    String msg = ee.getCause() != null ? ee.getCause().getMessage() : ee.getMessage();
+                    JOptionPane.showMessageDialog(CustomerLoginPanel.this, friendlyAuthError(msg), "Login failed", JOptionPane.ERROR_MESSAGE);
+                    jTextField2.setText("");
+                    SwingUtilities.invokeLater(() -> jTextField2.requestFocusInWindow());
+                    setBusy(false);
+                } catch (Exception ex) {
+                    String msg = ex.getMessage() != null ? ex.getMessage() : "Login failed.";
+                    JOptionPane.showMessageDialog(CustomerLoginPanel.this, msg, "Login failed", JOptionPane.ERROR_MESSAGE);
+                    setBusy(false);
+                }
+            }
+        };
+
+        worker.execute();
+    }
+
+    private static String friendlyAuthError(String message) {
+        if (message == null || message.isBlank()) {
+            return "Login failed.";
+        }
+        // Firebase common errors (keep minimal; avoid changing UX).
+        return switch (message) {
+            case "EMAIL_NOT_FOUND", "INVALID_PASSWORD", "INVALID_LOGIN_CREDENTIALS" -> "Invalid email or password.";
+            case "USER_DISABLED" -> "This account is disabled.";
+            case "TOO_MANY_ATTEMPTS_TRY_LATER" -> "Too many attempts. Try again later.";
+            default -> message;
+        };
+    }
+
+    private void togglePasswordVisibility() {
+        passwordVisible = !passwordVisible;
+        jTextField2.setEchoChar(passwordVisible ? (char) 0 : passwordEchoChar);
+        jTextField2.requestFocusInWindow();
     }
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -16,25 +196,77 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
+        jTextField1 = new javax.swing.JTextField();
+        jTextField2 = new javax.swing.JPasswordField();
+        jButton4 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jButton1.setText("jButton1");
+        jButton1.setText("");
+        jButton1.setContentAreaFilled(false);
+        jButton1.setBorderPainted(false);
+        jButton1.setFocusPainted(false);
+        jButton1.setOpaque(false);
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
         getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 420, 230, 40));
 
-        jButton2.setText("jButton2");
+        jButton2.setText("");
+        jButton2.setContentAreaFilled(false);
+        jButton2.setBorderPainted(false);
+        jButton2.setFocusPainted(false);
+        jButton2.setOpaque(false);
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
         getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 500, -1, -1));
 
-        jButton3.setText("jButton3");
+        jButton3.setText("");
+        jButton3.setContentAreaFilled(false);
+        jButton3.setBorderPainted(false);
+        jButton3.setFocusPainted(false);
+        jButton3.setOpaque(false);
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
         getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 20, 60, 50));
+
+        jTextField1.setText("");
+        getContentPane().add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 260, 200, 40));
+
+        jTextField2.setText("");
+        getContentPane().add(jTextField2, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 340, 200, 40));
+
+        jButton4.setText("");
+        jButton4.setContentAreaFilled(false);
+        jButton4.setBorderPainted(false);
+        jButton4.setFocusPainted(false);
+        jButton4.setOpaque(false);
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 380, 90, -1));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/CustomerDesign/CustomerLoginPanel.png"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        attemptLogin();
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         FormNavigator.redirect(this, new CustomerSignupPanel());
@@ -43,6 +275,10 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         FormNavigator.redirect(this, new CustomerLoginOptions());
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        togglePasswordVisibility();
+    }//GEN-LAST:event_jButton4ActionPerformed
 
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -56,6 +292,9 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JTextField jTextField1;
+    private javax.swing.JPasswordField jTextField2;
     // End of variables declaration//GEN-END:variables
 }

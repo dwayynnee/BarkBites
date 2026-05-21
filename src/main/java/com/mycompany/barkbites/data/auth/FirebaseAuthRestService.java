@@ -29,8 +29,16 @@ public final class FirebaseAuthRestService {
         return callAuthEndpoint("signUp", email, password);
     }
 
+    public AuthSession signUpWithEmail(String email, String password) {
+        return callAuthEndpoint("signUp", email, password);
+    }
+
     public AuthSession signIn(String studentId, String password) {
         String email = config.emailFromStudentId(studentId);
+        return callAuthEndpoint("signInWithPassword", email, password);
+    }
+
+    public AuthSession signInWithEmail(String email, String password) {
         return callAuthEndpoint("signInWithPassword", email, password);
     }
 
