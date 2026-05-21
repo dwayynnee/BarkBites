@@ -1,6 +1,6 @@
 ## Plan: BarkBites Customer + Staff Flow (Simple In‑Memory)
 
-Implement the requested CustomerForms and StaffForms flows by adding minimal input overlays (JTextField/JPasswordField) and a small set of in-memory “Manager” classes (arrays + simple methods). Keep existing navigation via FormNavigator (JFrame swapping) and wire missing actions (login validation, signup add, add-to-cart, place order checkout, staff PIN validation, staff manage screens). Add clear comments marking OOP pillars and a separate README listing where each pillar is used.
+Implement the requested CustomerForms and StaffForms flows by adding minimal input overlays (JTextField/JPasswordField) and a small set of in-memory “Manager” classes (arrays + simple methods). Keep existing navigation via FormNavigator (JFrame swapping) and wire missing actions (login validation, signup add, add-to-cart, place order checkout, staff PIN validation, staff manage screens). Add clear comments marking OOP pillars and a sepaarate README listing where each pillar is used.
 
 **Steps**
 1. Align terminology and IDs
