@@ -24,12 +24,24 @@ public class StaffInventory extends javax.swing.JFrame {
         makeButtonInvisible(jButton4);
 
         jButton1.addActionListener(evt -> openStaffOrders());
+        jButton2.addActionListener(evt -> openStaffMenu());
+        jButton3.addActionListener(evt -> openStaffStatistics());
+        jButton4.addActionListener(evt -> logout());
 
         this.setResizable(false);
     }
 
     private void openStaffOrders() {
         FormNavigator.redirect(this, new StaffOrders());
+    }
+    private void openStaffMenu() {
+        FormNavigator.redirect(this, new StaffMenu());
+    }
+    private void openStaffStatistics() {
+        FormNavigator.redirect(this, new StaffStatistics());
+    }
+    private void logout() {
+        FormNavigator.redirect(this, new StaffLandingPage());
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {
