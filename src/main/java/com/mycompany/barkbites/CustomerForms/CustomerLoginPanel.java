@@ -43,8 +43,7 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
         // Capture default echo char for show/hide.
         passwordEchoChar = jTextField2.getEchoChar();
 
-        // Enter on password triggers login.
-        jTextField2.addActionListener(e -> attemptLogin());
+        // Login is confirmed via jButton1.
 
         this.setResizable(false);
     }
@@ -106,15 +105,20 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
     }
 
     private void attemptLogin() {
-        String identifier = jTextField1.getText() != null ? jTextField1.getText().trim() : "";
+        String email = jTextField1.getText() != null ? jTextField1.getText().trim() : "";
         char[] passwordChars = jTextField2.getPassword();
         String password = passwordChars != null ? new String(passwordChars) : "";
         if (passwordChars != null) {
             java.util.Arrays.fill(passwordChars, '\0');
         }
 
-        if (identifier.isEmpty()) {
+        if (email.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter your email.", "Missing email", JOptionPane.WARNING_MESSAGE);
+            jTextField1.requestFocusInWindow();
+            return;
+        }
+        if (!email.contains("@")) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid email address.", "Invalid email", JOptionPane.WARNING_MESSAGE);
             jTextField1.requestFocusInWindow();
             return;
         }
@@ -131,9 +135,6 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Firebase config error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        // Accept either a real email (contains '@') or a student-id style identifier.
-        String email = identifier.contains("@") ? identifier : config.emailFromStudentId(identifier);
 
         FirebaseAuthRestService auth = new FirebaseAuthRestService(config);
 
