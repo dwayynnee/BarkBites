@@ -78,7 +78,6 @@ public class CustomerQrScannerPanel extends javax.swing.JFrame {
         FormNavigator.redirect(this, new CustomerProfilePanelVisible());
     }
 
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
