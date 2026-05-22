@@ -26,6 +26,18 @@ public final class FirestoreDocuments {
         return root;
     }
 
+    public static ObjectNode customerDocumentWithEmail(String studentId, String name, String email, long walletBalanceCents) {
+        ObjectNode root = MAPPER.createObjectNode();
+        ObjectNode fields = root.putObject("fields");
+
+        fields.set("studentId", stringValue(studentId));
+        fields.set("name", stringValue(name));
+        fields.set("email", stringValue(email));
+        fields.set("walletBalanceCents", integerValue(walletBalanceCents));
+
+        return root;
+    }
+
     public static Long readWalletBalanceCents(JsonNode firestoreDoc) {
         if (firestoreDoc == null) {
             return null;
