@@ -56,6 +56,16 @@ public final class FirebaseAuthRestService {
             HttpResponse<String> resp = FirebaseHttp.client().send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
                 JsonNode json = MAPPER.readTree(resp.body());
+
+                // Defensive: for sign-in, Firebase includes "registered": true.
+                // If we ever get a token without this flag, treat it as a failed/invalid login.
+                if ("signInWithPassword".equals(method)) {
+                    Boolean registered = bool(json, "registered");
+                    if (registered == null || !registered) {
+                        throw new IllegalStateException("Invalid email or password.");
+                    }
+                }
+
                 String uid = text(json, "localId");
                 String idToken = text(json, "idToken");
                 if (uid == null || idToken == null) {
@@ -91,6 +101,11 @@ public final class FirebaseAuthRestService {
     private static String text(JsonNode node, String field) {
         JsonNode value = node.get(field);
         return value != null && value.isTextual() ? value.asText() : null;
+    }
+
+    private static Boolean bool(JsonNode node, String field) {
+        JsonNode value = node.get(field);
+        return value != null && value.isBoolean() ? value.asBoolean() : null;
     }
 
     private static String jsonString(String value) {

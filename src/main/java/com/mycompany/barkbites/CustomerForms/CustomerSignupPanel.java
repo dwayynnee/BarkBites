@@ -21,13 +21,10 @@ public class CustomerSignupPanel extends javax.swing.JFrame {
         initComponents();
 
         // Keep the background image behind the click targets.
+        // In Swing, index 0 is the front/top.
+        // Move the background label to the back so it can't intercept clicks.
         getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
-        getContentPane().setComponentZOrder(jButton1, 0);
-        getContentPane().setComponentZOrder(jButton2, 0);
-        getContentPane().setComponentZOrder(jTextField1, 0);
-        getContentPane().setComponentZOrder(jTextField2, 0);
-        getContentPane().setComponentZOrder(jTextField3, 0);
-        getContentPane().setComponentZOrder(jTextField4, 0);
+        jLabel1.setFocusable(false);
 
         // Wire button navigation.
         jButton1.addActionListener(e -> {
@@ -57,21 +54,6 @@ public class CustomerSignupPanel extends javax.swing.JFrame {
         if (button == null) {
             return;
         }
-
-        java.awt.Dimension size = button.getSize();
-        if (size == null || size.width <= 0 || size.height <= 0) {
-            size = button.getPreferredSize();
-        }
-        if (size != null && size.width > 0 && size.height > 0) {
-            button.setPreferredSize(size);
-            button.setMinimumSize(size);
-            button.setMaximumSize(size);
-            button.setSize(size);
-            button.setBounds(button.getX(), button.getY(), size.width, size.height);
-        }
-
-        button.setEnabled(true);
-        button.setVisible(true);
         button.setText("");
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);

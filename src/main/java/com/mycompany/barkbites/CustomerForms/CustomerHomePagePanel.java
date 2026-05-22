@@ -1,10 +1,17 @@
 package com.mycompany.barkbites.CustomerForms;
 
 import com.mycompany.barkbites.FormNavigator;
+import com.mycompany.barkbites.data.auth.AuthState;
+import javax.swing.JOptionPane;
 
 public class CustomerHomePagePanel extends javax.swing.JFrame {
 
     public CustomerHomePagePanel() {
+        if (!AuthState.isSignedIn()) {
+            JOptionPane.showMessageDialog(this, "Please log in first.", "Not signed in", JOptionPane.WARNING_MESSAGE);
+            FormNavigator.redirect(this, new CustomerLoginPanel());
+            return;
+        }
         initComponents();
 
         this.setResizable(false);

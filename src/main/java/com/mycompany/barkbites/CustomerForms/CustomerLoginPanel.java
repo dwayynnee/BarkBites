@@ -19,13 +19,18 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
         initComponents();
 
         // Keep the background image behind the click targets.
+        // In Swing, index 0 is the front/top.
+        // Move the background label to the back so it can't intercept clicks.
         getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
-        getContentPane().setComponentZOrder(jButton1, 0);
-        getContentPane().setComponentZOrder(jButton2, 0);
-        getContentPane().setComponentZOrder(jButton3, 0);
-        getContentPane().setComponentZOrder(jButton4, 0);
-        getContentPane().setComponentZOrder(jTextField1, 0);
-        getContentPane().setComponentZOrder(jTextField2, 0);
+        jLabel1.setFocusable(false);
+
+        // Ensure interactive controls are above the background.
+        bringToFront(jTextField1);
+        bringToFront(jTextField2);
+        bringToFront(jButton1);
+        bringToFront(jButton2);
+        bringToFront(jButton3);
+        bringToFront(jButton4);
 
         // Email + Password inputs.
         jTextField1.setText("");
@@ -40,33 +45,30 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
         makeButtonInvisible(jButton3); // Back
         makeButtonInvisible(jButton4); // Toggle password visibility (eye)
 
+        // Wire click actions (do not rely on GUI builder wiring).
+        jButton1.addActionListener(e -> attemptLogin());
+        jButton2.addActionListener(e -> FormNavigator.redirect(this, new CustomerSignupPanel()));
+        jButton3.addActionListener(e -> FormNavigator.redirect(this, new CustomerLoginOptions()));
+        jButton4.addActionListener(e -> togglePasswordVisibility());
+
         // Capture default echo char for show/hide.
         passwordEchoChar = jTextField2.getEchoChar();
 
-        // Login is confirmed via jButton1.
-
         this.setResizable(false);
+    }
+
+    private void bringToFront(java.awt.Component component) {
+        if (component == null) {
+            return;
+        }
+        // index 0 is front/top
+        getContentPane().setComponentZOrder(component, 0);
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {
         if (button == null) {
             return;
         }
-
-        java.awt.Dimension size = button.getSize();
-        if (size == null || size.width <= 0 || size.height <= 0) {
-            size = button.getPreferredSize();
-        }
-        if (size != null && size.width > 0 && size.height > 0) {
-            button.setPreferredSize(size);
-            button.setMinimumSize(size);
-            button.setMaximumSize(size);
-            button.setSize(size);
-            button.setBounds(button.getX(), button.getY(), size.width, size.height);
-        }
-
-        button.setEnabled(true);
-        button.setVisible(true);
         button.setText("");
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -198,7 +200,7 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jTextField1 = new javax.swing.JTextField();
-        jTextField2 = new javax.swing.JTextField();
+        jTextField2 = new javax.swing.JPasswordField();
         jButton4 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
@@ -209,7 +211,7 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
         getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 420, 230, 40));
 
         jButton2.setText("jButton2");
-        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 500, -1, -1));
+        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 490, 110, 40));
 
         jButton3.setText("jButton3");
         getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 20, 60, 50));
@@ -226,7 +228,7 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
         getContentPane().add(jTextField2, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 340, 200, 40));
 
         jButton4.setText("jButton4");
-        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 380, 90, -1));
+        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 380, 90, 30));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/CustomerDesign/CustomerLoginPanel.png"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
@@ -269,6 +271,6 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
     private javax.swing.JButton jButton4;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
+    private javax.swing.JPasswordField jTextField2;
     // End of variables declaration//GEN-END:variables
 }
