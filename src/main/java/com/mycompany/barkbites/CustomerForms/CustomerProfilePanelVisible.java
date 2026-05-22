@@ -69,7 +69,7 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 570, -1, 60));
 
         jButton4.setText("jButton4");
-        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 290, 150, 55));
+        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 320, 150, 55));
 
         jButton5.setText("jButton5");
         getContentPane().add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 400, 120, 130));
