@@ -9,7 +9,6 @@ import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import com.mycompany.barkbites.data.staff.StaffStatisticsService;
 import com.mycompany.barkbites.data.staff.StaffStatisticsSummary;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.util.concurrent.ExecutionException;
 import javax.swing.JLabel;
@@ -22,13 +21,17 @@ import javax.swing.JOptionPane;
 public class StaffStatistics extends javax.swing.JFrame {
 
     private final StaffStatisticsService statisticsService = new StaffStatisticsService();
-    private final JLabel titleLabel = new JLabel("Sales Statistics");
-    private final JLabel totalOrdersValue = new JLabel("0");
-    private final JLabel totalSalesValue = new JLabel("₱0.00");
-    private final JLabel monthOrdersValue = new JLabel("0");
-    private final JLabel monthSalesValue = new JLabel("₱0.00");
-    private final JLabel statusLabel = new JLabel("Ready");
-    private final javax.swing.JButton refreshButton = new javax.swing.JButton("Refresh");
+    private JLabel titleLabel;
+    private JLabel totalOrdersLabel;
+    private JLabel totalOrdersValue;
+    private JLabel totalSalesLabel;
+    private JLabel totalSalesValue;
+    private JLabel monthOrdersLabel;
+    private JLabel monthOrdersValue;
+    private JLabel monthSalesLabel;
+    private JLabel monthSalesValue;
+    private JLabel statusLabel;
+    private javax.swing.JButton refreshButton;
 
     /**
      * Creates new form StaffStatistics
@@ -58,41 +61,9 @@ public class StaffStatistics extends javax.swing.JFrame {
     private void configureUi() {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
         titleLabel.setForeground(Color.WHITE);
-        titleLabel.setBounds(185, 120, 250, 28);
-
-        addMetricLabel("Total Orders", totalOrdersValue, 185, 180);
-        addMetricLabel("Total Sales", totalSalesValue, 185, 280);
-        addMetricLabel("This Month Orders", monthOrdersValue, 430, 180);
-        addMetricLabel("This Month Sales", monthSalesValue, 430, 280);
-
-        refreshButton.setBounds(185, 400, 120, 34);
-        statusLabel.setBounds(185, 445, 400, 22);
         statusLabel.setForeground(Color.WHITE);
 
         refreshButton.addActionListener(evt -> loadSummaryAsync());
-
-        addOverlay(titleLabel, totalOrdersValue, totalSalesValue, monthOrdersValue, monthSalesValue, refreshButton, statusLabel);
-    }
-
-    private void addMetricLabel(String caption, JLabel valueLabel, int x, int y) {
-        JLabel captionLabel = new JLabel(caption);
-        captionLabel.setFont(new Font("Arial", Font.PLAIN, 15));
-        captionLabel.setForeground(Color.WHITE);
-        captionLabel.setBounds(x, y, 200, 20);
-
-        valueLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        valueLabel.setForeground(Color.WHITE);
-        valueLabel.setBounds(x, y + 26, 220, 30);
-
-        addOverlay(captionLabel, valueLabel);
-    }
-
-    private void addOverlay(Component... components) {
-        for (Component component : components) {
-            java.awt.Rectangle bounds = component.getBounds();
-            getContentPane().add(component, new org.netbeans.lib.awtextra.AbsoluteConstraints(bounds.x, bounds.y, bounds.width, bounds.height));
-            getContentPane().setComponentZOrder(component, 0);
-        }
     }
 
     private void loadSummaryAsync() {
@@ -167,6 +138,17 @@ public class StaffStatistics extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        titleLabel = new javax.swing.JLabel();
+        totalOrdersLabel = new javax.swing.JLabel();
+        totalOrdersValue = new javax.swing.JLabel();
+        totalSalesLabel = new javax.swing.JLabel();
+        totalSalesValue = new javax.swing.JLabel();
+        monthOrdersLabel = new javax.swing.JLabel();
+        monthOrdersValue = new javax.swing.JLabel();
+        monthSalesLabel = new javax.swing.JLabel();
+        monthSalesValue = new javax.swing.JLabel();
+        refreshButton = new javax.swing.JButton();
+        statusLabel = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
@@ -175,6 +157,48 @@ public class StaffStatistics extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        titleLabel.setFont(new java.awt.Font("Arial", 1, 22)); // NOI18N
+        titleLabel.setText("Sales Statistics");
+        getContentPane().add(titleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 120, 250, 28));
+
+        totalOrdersLabel.setFont(new java.awt.Font("Arial", 0, 15)); // NOI18N
+        totalOrdersLabel.setText("Total Orders");
+        getContentPane().add(totalOrdersLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 180, 200, 20));
+
+        totalOrdersValue.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
+        totalOrdersValue.setText("0");
+        getContentPane().add(totalOrdersValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 206, 220, 30));
+
+        totalSalesLabel.setFont(new java.awt.Font("Arial", 0, 15)); // NOI18N
+        totalSalesLabel.setText("Total Sales");
+        getContentPane().add(totalSalesLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 280, 200, 20));
+
+        totalSalesValue.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
+        totalSalesValue.setText("₱0.00");
+        getContentPane().add(totalSalesValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 306, 220, 30));
+
+        monthOrdersLabel.setFont(new java.awt.Font("Arial", 0, 15)); // NOI18N
+        monthOrdersLabel.setText("This Month Orders");
+        getContentPane().add(monthOrdersLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 180, 200, 20));
+
+        monthOrdersValue.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
+        monthOrdersValue.setText("0");
+        getContentPane().add(monthOrdersValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 206, 220, 30));
+
+        monthSalesLabel.setFont(new java.awt.Font("Arial", 0, 15)); // NOI18N
+        monthSalesLabel.setText("This Month Sales");
+        getContentPane().add(monthSalesLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 280, 200, 20));
+
+        monthSalesValue.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
+        monthSalesValue.setText("₱0.00");
+        getContentPane().add(monthSalesValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 306, 220, 30));
+
+        refreshButton.setText("Refresh");
+        getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 400, 120, 34));
+
+        statusLabel.setText("Ready");
+        getContentPane().add(statusLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 445, 400, 22));
 
         jButton1.setText("jButton1");
         getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 130, 140, 70));

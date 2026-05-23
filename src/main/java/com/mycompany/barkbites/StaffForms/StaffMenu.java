@@ -5,11 +5,10 @@
 package com.mycompany.barkbites.StaffForms;
 
 import com.mycompany.barkbites.FormNavigator;
+import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import com.mycompany.barkbites.data.staff.StaffMenuItem;
 import com.mycompany.barkbites.data.staff.StaffMenuService;
-import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -24,7 +23,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 
 /**
  *
@@ -34,18 +32,26 @@ public class StaffMenu extends javax.swing.JFrame {
 
     private final StaffMenuService menuService = new StaffMenuService();
     private final DefaultListModel<StaffMenuItem> menuItemsModel = new DefaultListModel<>();
-    private final JList<StaffMenuItem> menuItemsList = new JList<>(menuItemsModel);
-    private final JTextField documentIdField = new JTextField();
-    private final JTextField titleField = new JTextField();
-    private final JTextField priceField = new JTextField();
-    private final JTextField imagePathField = new JTextField();
-    private final JTextArea descriptionArea = new JTextArea();
-    private final JCheckBox activeCheckBox = new JCheckBox("Active", true);
-    private final JLabel statusLabel = new JLabel("Ready");
-    private final javax.swing.JButton refreshButton = new javax.swing.JButton("Refresh");
-    private final javax.swing.JButton newButton = new javax.swing.JButton("New");
-    private final javax.swing.JButton saveButton = new javax.swing.JButton("Save");
-    private final javax.swing.JButton deleteButton = new javax.swing.JButton("Delete");
+    private JList<StaffMenuItem> menuItemsList;
+    private JScrollPane menuItemsScroll;
+    private JTextField documentIdField;
+    private JTextField titleField;
+    private JTextField priceField;
+    private JTextField imagePathField;
+    private JTextArea descriptionArea;
+    private JScrollPane descriptionScroll;
+    private JCheckBox activeCheckBox;
+    private JLabel formTitle;
+    private JLabel idLabel;
+    private JLabel titleLabel;
+    private JLabel priceLabel;
+    private JLabel imageLabel;
+    private JLabel descriptionLabel;
+    private JLabel statusLabel;
+    private javax.swing.JButton refreshButton;
+    private javax.swing.JButton newButton;
+    private javax.swing.JButton saveButton;
+    private javax.swing.JButton deleteButton;
 
     /**
      * Creates new form StaffMenu
@@ -89,65 +95,14 @@ public class StaffMenu extends javax.swing.JFrame {
             }
         });
 
-        JScrollPane listScroll = new JScrollPane(menuItemsList);
-        listScroll.setOpaque(true);
-        listScroll.getViewport().setBackground(Color.WHITE);
-        listScroll.setBounds(180, 120, 250, 420);
-
-        JLabel formTitle = new JLabel("Menu Item Editor");
-        formTitle.setFont(new Font("Arial", Font.BOLD, 18));
-        formTitle.setForeground(Color.WHITE);
-        formTitle.setBounds(455, 120, 220, 24);
-
-        JLabel idLabel = new JLabel("Document ID");
-        JLabel titleLabel = new JLabel("Title");
-        JLabel priceLabel = new JLabel("Price (pesos)");
-        JLabel imageLabel = new JLabel("Image Path");
-        JLabel descriptionLabel = new JLabel("Description");
-
-        Color labelColor = Color.WHITE;
-        idLabel.setForeground(labelColor);
-        titleLabel.setForeground(labelColor);
-        priceLabel.setForeground(labelColor);
-        imageLabel.setForeground(labelColor);
-        descriptionLabel.setForeground(labelColor);
-
-        idLabel.setBounds(455, 155, 120, 20);
-        documentIdField.setBounds(455, 176, 220, 28);
-        titleLabel.setBounds(455, 215, 80, 20);
-        titleField.setBounds(455, 236, 220, 28);
-        priceLabel.setBounds(455, 275, 120, 20);
-        priceField.setBounds(455, 296, 220, 28);
-        imageLabel.setBounds(455, 335, 100, 20);
-        imagePathField.setBounds(455, 356, 220, 28);
-        descriptionLabel.setBounds(455, 395, 100, 20);
         descriptionArea.setLineWrap(true);
         descriptionArea.setWrapStyleWord(true);
-        JScrollPane descriptionScroll = new JScrollPane(descriptionArea);
-        descriptionScroll.setBounds(455, 416, 220, 92);
-        activeCheckBox.setBounds(455, 515, 90, 24);
-
-        refreshButton.setBounds(695, 176, 110, 32);
-        newButton.setBounds(695, 220, 110, 32);
-        saveButton.setBounds(695, 264, 110, 32);
-        deleteButton.setBounds(695, 308, 110, 32);
-        statusLabel.setBounds(455, 545, 360, 22);
         statusLabel.setForeground(Color.WHITE);
 
         refreshButton.addActionListener(evt -> loadMenuItemsAsync());
         newButton.addActionListener(evt -> clearMenuForm());
         saveButton.addActionListener(evt -> saveMenuItem());
         deleteButton.addActionListener(evt -> deleteMenuItem());
-
-        addOverlay(listScroll, formTitle, idLabel, documentIdField, titleLabel, titleField, priceLabel, priceField, imageLabel, imagePathField, descriptionLabel, descriptionScroll, activeCheckBox, refreshButton, newButton, saveButton, deleteButton, statusLabel);
-    }
-
-    private void addOverlay(Component... components) {
-        for (Component component : components) {
-            java.awt.Rectangle bounds = component.getBounds();
-            getContentPane().add(component, new org.netbeans.lib.awtextra.AbsoluteConstraints(bounds.x, bounds.y, bounds.width, bounds.height));
-            getContentPane().setComponentZOrder(component, 0);
-        }
     }
 
     private void loadMenuItemsAsync() {
@@ -229,11 +184,18 @@ public class StaffMenu extends javax.swing.JFrame {
             return;
         }
 
+        final String finalId = id;
+        final String finalTitle = title;
+        final String finalDescription = description;
+        final long finalPriceCents = priceCents;
+        final String finalImagePath = imagePath;
+        final boolean finalActive = activeCheckBox.isSelected();
+
         setBusy(true);
         javax.swing.SwingWorker<Void, Void> worker = new javax.swing.SwingWorker<>() {
             @Override
             protected Void doInBackground() {
-                menuService.upsertMenuItem(new StaffMenuItem(id, title, description, priceCents, imagePath, activeCheckBox.isSelected()));
+                menuService.upsertMenuItem(new StaffMenuItem(finalId, finalTitle, finalDescription, finalPriceCents, finalImagePath, finalActive));
                 return null;
             }
 
@@ -241,7 +203,7 @@ public class StaffMenu extends javax.swing.JFrame {
             protected void done() {
                 try {
                     get();
-                    statusLabel.setText("Saved menu item '" + title + "'.");
+                    statusLabel.setText("Saved menu item '" + finalTitle + "'.");
                     loadMenuItemsAsync();
                 } catch (Exception ex) {
                     String message = ex.getMessage() != null ? ex.getMessage() : "Failed to save menu item.";
@@ -352,6 +314,26 @@ public class StaffMenu extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        menuItemsList = new javax.swing.JList<>();
+        formTitle = new javax.swing.JLabel();
+        idLabel = new javax.swing.JLabel();
+        documentIdField = new javax.swing.JTextField();
+        titleLabel = new javax.swing.JLabel();
+        titleField = new javax.swing.JTextField();
+        priceLabel = new javax.swing.JLabel();
+        priceField = new javax.swing.JTextField();
+        imageLabel = new javax.swing.JLabel();
+        imagePathField = new javax.swing.JTextField();
+        descriptionLabel = new javax.swing.JLabel();
+        descriptionArea = new javax.swing.JTextArea();
+        descriptionScroll = new javax.swing.JScrollPane();
+        activeCheckBox = new javax.swing.JCheckBox();
+        refreshButton = new javax.swing.JButton();
+        newButton = new javax.swing.JButton();
+        saveButton = new javax.swing.JButton();
+        deleteButton = new javax.swing.JButton();
+        menuItemsScroll = new javax.swing.JScrollPane();
+        statusLabel = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
@@ -360,6 +342,54 @@ public class StaffMenu extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+    menuItemsList.setModel(menuItemsModel);
+    menuItemsScroll.setViewportView(menuItemsList);
+    descriptionScroll.setViewportView(descriptionArea);
+
+        formTitle.setFont(new java.awt.Font("Arial", 1, 18)); // NOI18N
+        formTitle.setText("Menu Item Editor");
+        getContentPane().add(formTitle, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 120, 220, 24));
+
+        idLabel.setText("Document ID");
+        getContentPane().add(idLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 155, 120, 20));
+        getContentPane().add(documentIdField, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 176, 220, 28));
+
+        titleLabel.setText("Title");
+        getContentPane().add(titleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 215, 80, 20));
+        getContentPane().add(titleField, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 236, 220, 28));
+
+        priceLabel.setText("Price (pesos)");
+        getContentPane().add(priceLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 275, 120, 20));
+        getContentPane().add(priceField, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 296, 220, 28));
+
+        imageLabel.setText("Image Path");
+        getContentPane().add(imageLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 335, 100, 20));
+        getContentPane().add(imagePathField, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 356, 220, 28));
+
+        descriptionLabel.setText("Description");
+        getContentPane().add(descriptionLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 395, 100, 20));
+        getContentPane().add(descriptionScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 416, 220, 92));
+
+        activeCheckBox.setSelected(true);
+        activeCheckBox.setText("Active");
+        getContentPane().add(activeCheckBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 515, 90, 24));
+
+        refreshButton.setText("Refresh");
+        getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(695, 176, 110, 32));
+
+        newButton.setText("New");
+        getContentPane().add(newButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(695, 220, 110, 32));
+
+        saveButton.setText("Save");
+        getContentPane().add(saveButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(695, 264, 110, 32));
+
+        deleteButton.setText("Delete");
+        getContentPane().add(deleteButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(695, 308, 110, 32));
+        getContentPane().add(menuItemsScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 120, 250, 420));
+
+        statusLabel.setText("Ready");
+        getContentPane().add(statusLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 545, 360, 22));
 
         jButton1.setText("jButton1");
         getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 130, 140, 60));

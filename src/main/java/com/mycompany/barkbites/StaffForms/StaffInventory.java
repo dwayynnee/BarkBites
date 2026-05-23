@@ -9,7 +9,6 @@ import com.mycompany.barkbites.data.staff.StaffInventoryItem;
 import com.mycompany.barkbites.data.staff.StaffInventoryService;
 import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,18 +30,25 @@ public class StaffInventory extends javax.swing.JFrame {
 
     private final StaffInventoryService inventoryService = new StaffInventoryService();
     private final DefaultListModel<StaffInventoryItem> inventoryModel = new DefaultListModel<>();
-    private final JList<StaffInventoryItem> inventoryList = new JList<>(inventoryModel);
-    private final JTextField documentIdField = new JTextField();
-    private final JTextField nameField = new JTextField();
-    private final JTextField quantityField = new JTextField();
-    private final JTextField unitField = new JTextField();
-    private final JTextField imagePathField = new JTextField();
-    private final JCheckBox lowStockCheckBox = new JCheckBox("Low stock", false);
-    private final JLabel statusLabel = new JLabel("Ready");
-    private final javax.swing.JButton refreshButton = new javax.swing.JButton("Refresh");
-    private final javax.swing.JButton newButton = new javax.swing.JButton("New");
-    private final javax.swing.JButton saveButton = new javax.swing.JButton("Save");
-    private final javax.swing.JButton deleteButton = new javax.swing.JButton("Delete");
+    private JList<StaffInventoryItem> inventoryList;
+    private JScrollPane listScroll;
+    private JTextField documentIdField;
+    private JTextField nameField;
+    private JTextField quantityField;
+    private JTextField unitField;
+    private JTextField imagePathField;
+    private JCheckBox lowStockCheckBox;
+    private JLabel titleLabel;
+    private JLabel idLabel;
+    private JLabel nameLabel;
+    private JLabel quantityLabel;
+    private JLabel unitLabel;
+    private JLabel imageLabel;
+    private JLabel statusLabel;
+    private javax.swing.JButton refreshButton;
+    private javax.swing.JButton newButton;
+    private javax.swing.JButton saveButton;
+    private javax.swing.JButton deleteButton;
 
     /**
      * Creates new form StaffInventory
@@ -61,6 +67,9 @@ public class StaffInventory extends javax.swing.JFrame {
         jButton2.addActionListener(evt -> openStaffMenu());
         jButton3.addActionListener(evt -> openStaffStatistics());
         jButton4.addActionListener(evt -> logout());
+
+        inventoryList.setModel(inventoryModel);
+        listScroll.setViewportView(inventoryList);
 
         StaffFirebaseBootstrap.ensureInitialized(this);
         configureUi();
@@ -84,58 +93,10 @@ public class StaffInventory extends javax.swing.JFrame {
             }
         });
 
-        JScrollPane listScroll = new JScrollPane(inventoryList);
-        listScroll.setBounds(185, 140, 320, 380);
-
-        JLabel titleLabel = new JLabel("Inventory Editor");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setBounds(185, 105, 220, 28);
-
-        JLabel idLabel = new JLabel("Document ID");
-        JLabel nameLabel = new JLabel("Item Name");
-        JLabel quantityLabel = new JLabel("Quantity");
-        JLabel unitLabel = new JLabel("Unit");
-        JLabel imageLabel = new JLabel("Image Path");
-
-        for (JLabel label : new JLabel[]{idLabel, nameLabel, quantityLabel, unitLabel, imageLabel}) {
-            label.setForeground(Color.WHITE);
-        }
-
-        idLabel.setBounds(535, 140, 120, 20);
-        documentIdField.setBounds(535, 160, 220, 28);
-        nameLabel.setBounds(535, 202, 100, 20);
-        nameField.setBounds(535, 222, 220, 28);
-        quantityLabel.setBounds(535, 264, 100, 20);
-        quantityField.setBounds(535, 284, 220, 28);
-        unitLabel.setBounds(535, 326, 100, 20);
-        unitField.setBounds(535, 346, 220, 28);
-        imageLabel.setBounds(535, 388, 100, 20);
-        imagePathField.setBounds(535, 408, 220, 28);
-        lowStockCheckBox.setBounds(535, 450, 120, 24);
-        lowStockCheckBox.setForeground(Color.WHITE);
-
-        refreshButton.setBounds(785, 160, 100, 32);
-        newButton.setBounds(785, 205, 100, 32);
-        saveButton.setBounds(785, 250, 100, 32);
-        deleteButton.setBounds(785, 295, 100, 32);
-        statusLabel.setBounds(535, 490, 320, 22);
-        statusLabel.setForeground(Color.WHITE);
-
         refreshButton.addActionListener(evt -> loadInventoryAsync());
         newButton.addActionListener(evt -> clearForm());
         saveButton.addActionListener(evt -> saveInventoryItem());
         deleteButton.addActionListener(evt -> deleteInventoryItem());
-
-        addOverlay(titleLabel, listScroll, idLabel, documentIdField, nameLabel, nameField, quantityLabel, quantityField, unitLabel, unitField, imageLabel, imagePathField, lowStockCheckBox, refreshButton, newButton, saveButton, deleteButton, statusLabel);
-    }
-
-    private void addOverlay(Component... components) {
-        for (Component component : components) {
-            java.awt.Rectangle bounds = component.getBounds();
-            getContentPane().add(component, new org.netbeans.lib.awtextra.AbsoluteConstraints(bounds.x, bounds.y, bounds.width, bounds.height));
-            getContentPane().setComponentZOrder(component, 0);
-        }
     }
 
     private void loadInventoryAsync() {
@@ -330,6 +291,25 @@ public class StaffInventory extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        inventoryList = new javax.swing.JList<>();
+        titleLabel = new javax.swing.JLabel();
+        listScroll = new javax.swing.JScrollPane();
+        idLabel = new javax.swing.JLabel();
+        documentIdField = new javax.swing.JTextField();
+        nameLabel = new javax.swing.JLabel();
+        nameField = new javax.swing.JTextField();
+        quantityLabel = new javax.swing.JLabel();
+        quantityField = new javax.swing.JTextField();
+        unitLabel = new javax.swing.JLabel();
+        unitField = new javax.swing.JTextField();
+        imageLabel = new javax.swing.JLabel();
+        imagePathField = new javax.swing.JTextField();
+        lowStockCheckBox = new javax.swing.JCheckBox();
+        refreshButton = new javax.swing.JButton();
+        newButton = new javax.swing.JButton();
+        saveButton = new javax.swing.JButton();
+        deleteButton = new javax.swing.JButton();
+        statusLabel = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
@@ -338,6 +318,49 @@ public class StaffInventory extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        titleLabel.setFont(new java.awt.Font("Arial", 1, 22)); // NOI18N
+        titleLabel.setText("Inventory Editor");
+        getContentPane().add(titleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 105, 220, 28));
+        getContentPane().add(listScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 140, 320, 380));
+
+        idLabel.setText("Document ID");
+        getContentPane().add(idLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(535, 140, 120, 20));
+        getContentPane().add(documentIdField, new org.netbeans.lib.awtextra.AbsoluteConstraints(535, 160, 220, 28));
+
+        nameLabel.setText("Item Name");
+        getContentPane().add(nameLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(535, 202, 100, 20));
+        getContentPane().add(nameField, new org.netbeans.lib.awtextra.AbsoluteConstraints(535, 222, 220, 28));
+
+        quantityLabel.setText("Quantity");
+        getContentPane().add(quantityLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(535, 264, 100, 20));
+        getContentPane().add(quantityField, new org.netbeans.lib.awtextra.AbsoluteConstraints(535, 284, 220, 28));
+
+        unitLabel.setText("Unit");
+        getContentPane().add(unitLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(535, 326, 100, 20));
+        getContentPane().add(unitField, new org.netbeans.lib.awtextra.AbsoluteConstraints(535, 346, 220, 28));
+
+        imageLabel.setText("Image Path");
+        getContentPane().add(imageLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(535, 388, 100, 20));
+        getContentPane().add(imagePathField, new org.netbeans.lib.awtextra.AbsoluteConstraints(535, 408, 220, 28));
+
+        lowStockCheckBox.setText("Low stock");
+        getContentPane().add(lowStockCheckBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(535, 450, 120, 24));
+
+        refreshButton.setText("Refresh");
+        getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(785, 160, 100, 32));
+
+        newButton.setText("New");
+        getContentPane().add(newButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(785, 205, 100, 32));
+
+        saveButton.setText("Save");
+        getContentPane().add(saveButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(785, 250, 100, 32));
+
+        deleteButton.setText("Delete");
+        getContentPane().add(deleteButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(785, 295, 100, 32));
+
+        statusLabel.setText("Ready");
+        getContentPane().add(statusLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(535, 490, 320, 22));
 
         jButton1.setText("jButton1");
         getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 130, 140, 70));

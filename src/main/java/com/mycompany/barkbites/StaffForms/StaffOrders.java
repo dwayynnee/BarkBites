@@ -9,7 +9,6 @@ import com.mycompany.barkbites.data.staff.StaffOrderRecord;
 import com.mycompany.barkbites.data.staff.StaffOrderService;
 import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.util.concurrent.ExecutionException;
 import javax.swing.DefaultListCellRenderer;
@@ -28,12 +27,14 @@ public class StaffOrders extends javax.swing.JFrame {
 
     private final StaffOrderService orderService = new StaffOrderService();
     private final DefaultListModel<StaffOrderRecord> orderModel = new DefaultListModel<>();
-    private final JList<StaffOrderRecord> orderList = new JList<>(orderModel);
-    private final JLabel titleLabel = new JLabel("Orders");
-    private final JLabel selectedOrderLabel = new JLabel("Select an order to edit its status.");
-    private final JComboBox<String> statusComboBox = new JComboBox<>(new String[]{"new", "processing", "ready", "completed", "cancelled"});
-    private final javax.swing.JButton refreshButton = new javax.swing.JButton("Refresh");
-    private final javax.swing.JButton updateButton = new javax.swing.JButton("Update Status");
+    private JList<StaffOrderRecord> orderList;
+    private JScrollPane orderScroll;
+    private JLabel titleLabel;
+    private JLabel selectedOrderLabel;
+    private JLabel statusLabel;
+    private JComboBox<String> statusComboBox;
+    private javax.swing.JButton refreshButton;
+    private javax.swing.JButton updateButton;
 
     /**
      * Creates new form StaffOrders
@@ -63,7 +64,6 @@ public class StaffOrders extends javax.swing.JFrame {
     private void configureUi() {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
         titleLabel.setForeground(Color.WHITE);
-        titleLabel.setBounds(185, 120, 200, 28);
 
         orderList.setCellRenderer((JList<? extends StaffOrderRecord> list, StaffOrderRecord value, int index, boolean isSelected, boolean cellHasFocus) -> {
             JLabel label = new JLabel(formatOrder(value));
@@ -83,31 +83,8 @@ public class StaffOrders extends javax.swing.JFrame {
             }
         });
 
-        JScrollPane listScroll = new JScrollPane(orderList);
-        listScroll.setBounds(185, 160, 340, 360);
-
-        JLabel statusLabel = new JLabel("Status");
-        statusLabel.setForeground(Color.WHITE);
-        statusLabel.setBounds(560, 200, 80, 20);
-        statusComboBox.setBounds(560, 222, 160, 30);
-
-        selectedOrderLabel.setForeground(Color.WHITE);
-        selectedOrderLabel.setBounds(560, 160, 250, 20);
-        refreshButton.setBounds(560, 270, 120, 32);
-        updateButton.setBounds(560, 315, 120, 32);
-
         refreshButton.addActionListener(evt -> loadOrdersAsync());
         updateButton.addActionListener(evt -> updateStatusForSelection());
-
-        addOverlay(titleLabel, listScroll, statusLabel, statusComboBox, selectedOrderLabel, refreshButton, updateButton);
-    }
-
-    private void addOverlay(Component... components) {
-        for (Component component : components) {
-            java.awt.Rectangle bounds = component.getBounds();
-            getContentPane().add(component, new org.netbeans.lib.awtextra.AbsoluteConstraints(bounds.x, bounds.y, bounds.width, bounds.height));
-            getContentPane().setComponentZOrder(component, 0);
-        }
     }
 
     private void loadOrdersAsync() {
@@ -221,6 +198,14 @@ public class StaffOrders extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        orderList = new javax.swing.JList<>();
+        titleLabel = new javax.swing.JLabel();
+        orderScroll = new javax.swing.JScrollPane();
+        selectedOrderLabel = new javax.swing.JLabel();
+        statusLabel = new javax.swing.JLabel();
+        statusComboBox = new javax.swing.JComboBox();
+        refreshButton = new javax.swing.JButton();
+        updateButton = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
@@ -229,6 +214,29 @@ public class StaffOrders extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        orderList.setModel(orderModel);
+        orderScroll.setViewportView(orderList);
+
+        titleLabel.setFont(new java.awt.Font("Arial", 1, 22)); // NOI18N
+        titleLabel.setText("Orders");
+        getContentPane().add(titleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 120, 200, 28));
+        getContentPane().add(orderScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 160, 340, 360));
+
+        selectedOrderLabel.setText("Select an order to edit its status.");
+        getContentPane().add(selectedOrderLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 160, 250, 20));
+
+        statusLabel.setText("Status");
+        getContentPane().add(statusLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 200, 80, 20));
+
+        statusComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "new", "processing", "ready", "completed", "cancelled" }));
+        getContentPane().add(statusComboBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 222, 160, 30));
+
+        refreshButton.setText("Refresh");
+        getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 270, 120, 32));
+
+        updateButton.setText("Update Status");
+        getContentPane().add(updateButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 315, 120, 32));
 
         jButton1.setText("jButton1");
         getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 230, 140, 70));
