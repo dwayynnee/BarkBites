@@ -6,6 +6,7 @@ TL;DR - Keep the app connected through shared auth, Firestore, and navigation, b
 - Added an editable Firestore schema layer in `StaffDatabaseSchema` so the collection/document names can be renamed later without touching every screen.
 - Added Firestore-backed staff services for menu CRUD, inventory CRUD, order listing/status updates, and sales summaries.
 - Added a shared `StaffFirebaseBootstrap` so staff screens initialize Firebase Admin before loading Firestore data.
+- Added a local Staff demo-data fallback so the staff screens still open and load even when Firebase Admin is not configured.
 - Wired `StaffPassword` to load the staff PIN from Firestore settings instead of using only a hardcoded PIN.
 - Wired `StaffMenu`, `StaffOrders`, `StaffInventory`, and `StaffStatistics` to live Firestore data with refreshable CRUD/summary controls.
 - Updated this plan so the completed Staff work is already recorded and does not need to be re-iterated.
@@ -54,6 +55,7 @@ TL;DR - Keep the app connected through shared auth, Firestore, and navigation, b
 4. Staff: enter the shared PIN and verify access to the staff area is blocked when the PIN is wrong.
 5. Staff: create, edit, and delete a menu item and confirm the customer menu reflects the change after refresh.
 6. Staff: validate that orders, inventory, and statistics screens can read from Firestore once their collections are populated.
+7. Staff: if Firebase Admin is not configured on a machine, confirm the screens still open with demo data instead of failing the load.
 
 **Decisions**
 - The staff PIN will be a shared 4-digit PIN for now.

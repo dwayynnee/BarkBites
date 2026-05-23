@@ -1,6 +1,5 @@
 package com.mycompany.barkbites.data.staff;
 
-import com.mycompany.barkbites.data.FirebasePublicConfig;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;

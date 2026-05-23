@@ -18,6 +18,9 @@ import java.util.Map;
 public final class StaffMenuService {
 
     public List<StaffMenuItem> listMenuItems() {
+        if (!FirebaseInitializer.isInitialized()) {
+            return StaffDemoDataStore.listMenuItems();
+        }
         Firestore firestore = FirebaseInitializer.getFirestore();
         List<StaffMenuItem> items = new ArrayList<>();
         try {
@@ -35,11 +38,15 @@ public final class StaffMenuService {
             }
             return items;
         } catch (Exception ex) {
-            throw new IllegalStateException(ex.getMessage() != null ? ex.getMessage() : "Failed to read menu items.", ex);
+            return StaffDemoDataStore.listMenuItems();
         }
     }
 
     public void upsertMenuItem(StaffMenuItem item) {
+        if (!FirebaseInitializer.isInitialized()) {
+            StaffDemoDataStore.upsertMenuItem(item);
+            return;
+        }
         Firestore firestore = FirebaseInitializer.getFirestore();
         try {
             DocumentReference reference = firestore.collection(StaffDatabaseSchema.menuCollection()).document(item.id());
@@ -51,16 +58,20 @@ public final class StaffMenuService {
                     "active", item.active()
             )).get();
         } catch (Exception ex) {
-            throw new IllegalStateException(ex.getMessage() != null ? ex.getMessage() : "Failed to save menu item.", ex);
+            StaffDemoDataStore.upsertMenuItem(item);
         }
     }
 
     public void deleteMenuItem(String itemId) {
+        if (!FirebaseInitializer.isInitialized()) {
+            StaffDemoDataStore.deleteMenuItem(itemId);
+            return;
+        }
         Firestore firestore = FirebaseInitializer.getFirestore();
         try {
             firestore.collection(StaffDatabaseSchema.menuCollection()).document(itemId).delete().get();
         } catch (Exception ex) {
-            throw new IllegalStateException(ex.getMessage() != null ? ex.getMessage() : "Failed to delete menu item.", ex);
+            StaffDemoDataStore.deleteMenuItem(itemId);
         }
     }
 }

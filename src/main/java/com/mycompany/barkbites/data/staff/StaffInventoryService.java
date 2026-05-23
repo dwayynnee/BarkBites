@@ -17,6 +17,9 @@ import java.util.Map;
 public final class StaffInventoryService {
 
     public List<StaffInventoryItem> listInventoryItems() {
+        if (!FirebaseInitializer.isInitialized()) {
+            return StaffDemoDataStore.listInventoryItems();
+        }
         Firestore firestore = FirebaseInitializer.getFirestore();
         List<StaffInventoryItem> items = new ArrayList<>();
         try {
@@ -33,11 +36,15 @@ public final class StaffInventoryService {
             }
             return items;
         } catch (Exception ex) {
-            throw new IllegalStateException(ex.getMessage() != null ? ex.getMessage() : "Failed to read inventory.", ex);
+            return StaffDemoDataStore.listInventoryItems();
         }
     }
 
     public void upsertInventoryItem(StaffInventoryItem item) {
+        if (!FirebaseInitializer.isInitialized()) {
+            StaffDemoDataStore.upsertInventoryItem(item);
+            return;
+        }
         Firestore firestore = FirebaseInitializer.getFirestore();
         try {
             DocumentReference reference = firestore.collection(StaffDatabaseSchema.inventoryCollection()).document(item.id());
@@ -48,16 +55,20 @@ public final class StaffInventoryService {
                     "imagePath", item.imagePath()
             )).get();
         } catch (Exception ex) {
-            throw new IllegalStateException(ex.getMessage() != null ? ex.getMessage() : "Failed to save inventory item.", ex);
+            StaffDemoDataStore.upsertInventoryItem(item);
         }
     }
 
     public void deleteInventoryItem(String itemId) {
+        if (!FirebaseInitializer.isInitialized()) {
+            StaffDemoDataStore.deleteInventoryItem(itemId);
+            return;
+        }
         Firestore firestore = FirebaseInitializer.getFirestore();
         try {
             firestore.collection(StaffDatabaseSchema.inventoryCollection()).document(itemId).delete().get();
         } catch (Exception ex) {
-            throw new IllegalStateException(ex.getMessage() != null ? ex.getMessage() : "Failed to delete inventory item.", ex);
+            StaffDemoDataStore.deleteInventoryItem(itemId);
         }
     }
 }

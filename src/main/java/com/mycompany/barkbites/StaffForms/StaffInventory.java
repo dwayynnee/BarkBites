@@ -62,9 +62,7 @@ public class StaffInventory extends javax.swing.JFrame {
         jButton3.addActionListener(evt -> openStaffStatistics());
         jButton4.addActionListener(evt -> logout());
 
-        if (!StaffFirebaseBootstrap.ensureInitialized(this)) {
-            return;
-        }
+        StaffFirebaseBootstrap.ensureInitialized(this);
         configureUi();
         loadInventoryAsync();
 

@@ -3,6 +3,7 @@ package com.mycompany.barkbites.data.firestore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.cloud.firestore.DocumentSnapshot;
 
 /**
  * Helpers to build Firestore REST document bodies.
@@ -60,6 +61,14 @@ public final class FirestoreDocuments {
         return null;
     }
 
+    public static Long readWalletBalanceCents(DocumentSnapshot firestoreDoc) {
+        if (firestoreDoc == null || !firestoreDoc.exists()) {
+            return null;
+        }
+        Long value = readLongField(firestoreDoc, "walletBalanceCents", null);
+        return value;
+    }
+
     public static String readString(JsonNode firestoreDoc, String fieldName, String fallback) {
         JsonNode value = readField(firestoreDoc, fieldName);
         if (value == null) {
@@ -71,6 +80,10 @@ public final class FirestoreDocuments {
             return text.isEmpty() ? fallback : text;
         }
         return fallback;
+    }
+
+    public static String readString(DocumentSnapshot firestoreDoc, String fieldName, String fallback) {
+        return readStringField(firestoreDoc, fieldName, fallback);
     }
 
     public static Long readLong(JsonNode firestoreDoc, String fieldName, Long fallback) {
@@ -95,8 +108,17 @@ public final class FirestoreDocuments {
         return fallback;
     }
 
+    public static Long readLong(DocumentSnapshot firestoreDoc, String fieldName, Long fallback) {
+        return readLongField(firestoreDoc, fieldName, fallback);
+    }
+
     public static Integer readInteger(JsonNode firestoreDoc, String fieldName, Integer fallback) {
         Long value = readLong(firestoreDoc, fieldName, fallback == null ? null : fallback.longValue());
+        return value == null ? fallback : value.intValue();
+    }
+
+    public static Integer readInteger(DocumentSnapshot firestoreDoc, String fieldName, Integer fallback) {
+        Long value = readLongField(firestoreDoc, fieldName, fallback == null ? null : fallback.longValue());
         return value == null ? fallback : value.intValue();
     }
 
@@ -113,6 +135,10 @@ public final class FirestoreDocuments {
             return Boolean.parseBoolean(booleanValue.asText());
         }
         return fallback;
+    }
+
+    public static Boolean readBoolean(DocumentSnapshot firestoreDoc, String fieldName, Boolean fallback) {
+        return readBooleanField(firestoreDoc, fieldName, fallback);
     }
 
     public static ObjectNode stringValue(String value) {
@@ -142,6 +168,49 @@ public final class FirestoreDocuments {
             return null;
         }
         return fields.get(fieldName);
+    }
+
+    private static String readStringField(DocumentSnapshot firestoreDoc, String fieldName, String fallback) {
+        if (firestoreDoc == null || !firestoreDoc.exists() || fieldName == null || fieldName.isBlank()) {
+            return fallback;
+        }
+        Object value = firestoreDoc.get(fieldName);
+        if (value instanceof String text) {
+            String trimmed = text.trim();
+            return trimmed.isEmpty() ? fallback : trimmed;
+        }
+        return fallback;
+    }
+
+    private static Long readLongField(DocumentSnapshot firestoreDoc, String fieldName, Long fallback) {
+        if (firestoreDoc == null || !firestoreDoc.exists() || fieldName == null || fieldName.isBlank()) {
+            return fallback;
+        }
+        Object value = firestoreDoc.get(fieldName);
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        if (value instanceof String text) {
+            try {
+                return Long.parseLong(text.trim());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return fallback;
+    }
+
+    private static Boolean readBooleanField(DocumentSnapshot firestoreDoc, String fieldName, Boolean fallback) {
+        if (firestoreDoc == null || !firestoreDoc.exists() || fieldName == null || fieldName.isBlank()) {
+            return fallback;
+        }
+        Object value = firestoreDoc.get(fieldName);
+        if (value instanceof Boolean bool) {
+            return bool;
+        }
+        if (value instanceof String text) {
+            return Boolean.parseBoolean(text.trim());
+        }
+        return fallback;
     }
 
 }

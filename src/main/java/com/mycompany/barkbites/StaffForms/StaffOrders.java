@@ -53,9 +53,7 @@ public class StaffOrders extends javax.swing.JFrame {
         jButton3.addActionListener(evt -> openStaffStatistics());
         jButton4.addActionListener(evt -> openStaffLandingPage());
 
-        if (!StaffFirebaseBootstrap.ensureInitialized(this)) {
-            return;
-        }
+        StaffFirebaseBootstrap.ensureInitialized(this);
         configureUi();
         loadOrdersAsync();
 

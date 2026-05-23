@@ -48,9 +48,7 @@ public class StaffStatistics extends javax.swing.JFrame {
         jButton3.addActionListener(evt -> openStaffMenu());
         jButton4.addActionListener(evt -> openStaffLandingPage());
 
-        if (!StaffFirebaseBootstrap.ensureInitialized(this)) {
-            return;
-        }
+        StaffFirebaseBootstrap.ensureInitialized(this);
         configureUi();
         loadSummaryAsync();
 
