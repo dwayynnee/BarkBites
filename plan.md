@@ -1,6 +1,6 @@
 ## Plan: Split Customer and Staff Roadmaps
 
-TL;DR - Keep the app connected through shared auth, Firestore, and navigation, but organize the work into two separate implementation tracks: one for Customer flows and one for Staff flows. Customer work centers on profile, menu, cart, and order-status screens; Staff work centers on the landing page, PIN-protected entry, menu CRUD, orders, inventory, and statistics.
+TL;DR - Keep the app connected through shared auth, Firestore, and navigation, but organize the work into two separate implementation tracks: one for Customer flows and one for Staff flows. Customer work centers on profile, menu, cart, and order-status screens; Staff work is now limited to design revisions and visual polish on the existing screens.
 
 **Implemented on Staff side (May 23, 2026)**
 - Added an editable Firestore schema layer in `StaffDatabaseSchema` so the collection/document names can be renamed later without touching every screen.
@@ -25,7 +25,7 @@ TL;DR - Keep the app connected through shared auth, Firestore, and navigation, b
 5. Customer design scaffolding: preserve the generated PNG-backed panels already created and use them as the visual shell for the customer journey screens.
 
 **Staff plan**
-1. Staff landing page: keep `StaffLandingPage` as the entry shell only, with clear navigation into the protected staff area. [pending UI refinement]
+1. Staff landing page: keep `StaffLandingPage` as the entry shell only, with design-only refinements and visual polish. No heavy functional revision is expected.
 2. Staff PIN screen: done. `StaffPassword` now reads the 4-digit PIN from the Firestore settings doc and falls back to the default only when Firebase Admin is unavailable.
 3. Staff menu management: done. `StaffMenu` now supports Firestore CRUD for menu items through an editable document id, refresh, save, and delete flow.
 4. Staff orders page: done. `StaffOrders` now lists customer orders from Firestore and updates order status.
