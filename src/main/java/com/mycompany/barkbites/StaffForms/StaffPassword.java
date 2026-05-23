@@ -1,13 +1,16 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package com.mycompany.barkbites.StaffForms;
 
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.Firestore;
 import com.mycompany.barkbites.FormNavigator;
+import com.mycompany.barkbites.data.FirebaseInitializer;
+import com.mycompany.barkbites.data.staff.StaffDatabaseSchema;
+import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import java.awt.Color;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -17,26 +20,25 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.PlainDocument;
 
-/**
- *
- * @author markd
- */
 public class StaffPassword extends javax.swing.JFrame {
 
-    private static final String STAFF_PIN = "1234";
+    private static final String STAFF_PIN_FIELD = "pin";
+    private static final String DEFAULT_STAFF_PIN = "1234";
 
-    /**
-     * Creates new form StaffPassword
-     */
+    private volatile String configuredStaffPin;
+    private volatile boolean pinLoaded;
+
     public StaffPassword() {
         initComponents();
 
         setupPinFields();
+        loadStaffPinAsync();
 
         this.setResizable(false);
     }
 
     private void setupPinFields() {
+        setPinInputsEnabled(false);
         jTextField1.setText("");
         jTextField2.setText("");
         jTextField3.setText("");
@@ -58,6 +60,63 @@ public class StaffPassword extends javax.swing.JFrame {
         configurePinField(jTextField1, null, jTextField4);
 
         SwingUtilities.invokeLater(() -> jTextField2.requestFocusInWindow());
+    }
+
+    private void setPinInputsEnabled(boolean enabled) {
+        jTextField1.setEnabled(enabled);
+        jTextField2.setEnabled(enabled);
+        jTextField3.setEnabled(enabled);
+        jTextField4.setEnabled(enabled);
+    }
+
+    private void loadStaffPinAsync() {
+        javax.swing.SwingWorker<String, Void> worker = new javax.swing.SwingWorker<>() {
+            @Override
+            protected String doInBackground() throws Exception {
+                if (!StaffFirebaseBootstrap.ensureInitialized(StaffPassword.this)) {
+                    return DEFAULT_STAFF_PIN;
+                }
+
+                if (!FirebaseInitializer.isInitialized()) {
+                    return DEFAULT_STAFF_PIN;
+                }
+
+                Firestore firestore = FirebaseInitializer.getFirestore();
+                DocumentReference docRef = firestore.collection(StaffDatabaseSchema.settingsCollection())
+                        .document(StaffDatabaseSchema.staffPasswordDocument());
+                DocumentSnapshot snapshot = docRef.get().get();
+
+                if (!snapshot.exists()) {
+                    docRef.set(Map.of(STAFF_PIN_FIELD, DEFAULT_STAFF_PIN)).get();
+                    return DEFAULT_STAFF_PIN;
+                }
+
+                String storedPin = snapshot.getString(STAFF_PIN_FIELD);
+                if (storedPin == null || storedPin.isBlank()) {
+                    docRef.set(Map.of(STAFF_PIN_FIELD, DEFAULT_STAFF_PIN)).get();
+                    return DEFAULT_STAFF_PIN;
+                }
+
+                return storedPin.trim();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    configuredStaffPin = get();
+                } catch (Exception ex) {
+                    configuredStaffPin = DEFAULT_STAFF_PIN;
+                    String message = ex.getMessage() != null ? ex.getMessage() : "Unable to load staff PIN from Firestore.";
+                    JOptionPane.showMessageDialog(StaffPassword.this, message + "\nUsing the default PIN for now.", "Staff PIN", JOptionPane.WARNING_MESSAGE);
+                } finally {
+                    pinLoaded = true;
+                    setPinInputsEnabled(true);
+                    SwingUtilities.invokeLater(() -> jTextField2.requestFocusInWindow());
+                }
+            }
+        };
+
+        worker.execute();
     }
 
     private void makePinFieldTransparent(javax.swing.JTextField field) {
@@ -113,12 +172,16 @@ public class StaffPassword extends javax.swing.JFrame {
     }
 
     private void checkPinAndMaybeLogin() {
+        if (!pinLoaded || configuredStaffPin == null) {
+            return;
+        }
+
         String pin = jTextField2.getText() + jTextField3.getText() + jTextField4.getText() + jTextField1.getText();
         if (pin.length() < 4) {
             return;
         }
 
-        if (STAFF_PIN.equals(pin)) {
+        if (configuredStaffPin.equals(pin)) {
             JOptionPane.showMessageDialog(this, "PIN correct. Logging in...", "Success", JOptionPane.INFORMATION_MESSAGE);
             openStaffOrders();
             return;
@@ -178,11 +241,6 @@ public class StaffPassword extends javax.swing.JFrame {
         }
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -217,34 +275,7 @@ public class StaffPassword extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(StaffPassword.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(StaffPassword.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(StaffPassword.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(StaffPassword.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new StaffPassword().setVisible(true);

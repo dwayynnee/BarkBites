@@ -1,80 +1,62 @@
-## Plan: Implement UI panels, sync menu, Firebase profile, and cart
+## Plan: Split Customer and Staff Roadmaps
 
-TL;DR - Implement dynamic menu sync (Firestore), show/hide password toggle, load customer profile from Firestore, build a dynamic cart UI using item panels, and create Java panels for missing CustomerDesign PNGs. Use existing patterns in CustomerSignupPanel/CustomerLoginPanel/CustomerCartPanel and FirestoreRestClient/Auth services.
+TL;DR - Keep the app connected through shared auth, Firestore, and navigation, but organize the work into two separate implementation tracks: one for Customer flows and one for Staff flows. Customer work centers on profile, menu, cart, and order-status screens; Staff work centers on the landing page, PIN-protected entry, menu CRUD, orders, inventory, and statistics.
 
+**Implemented on Staff side (May 23, 2026)**
+- Added an editable Firestore schema layer in `StaffDatabaseSchema` so the collection/document names can be renamed later without touching every screen.
+- Added Firestore-backed staff services for menu CRUD, inventory CRUD, order listing/status updates, and sales summaries.
+- Added a shared `StaffFirebaseBootstrap` so staff screens initialize Firebase Admin before loading Firestore data.
+- Wired `StaffPassword` to load the staff PIN from Firestore settings instead of using only a hardcoded PIN.
+- Wired `StaffMenu`, `StaffOrders`, `StaffInventory`, and `StaffStatistics` to live Firestore data with refreshable CRUD/summary controls.
+- Updated this plan so the completed Staff work is already recorded and does not need to be re-iterated.
 
-**Progress (May 23, 2026)**
-- Scaffolded panels added: CustomerCheckPhone, CustomerLoginPasswordRecovery, CustomerOrderConfirmed, CustomerOrderProcessing, CustomerReadyPickup, CustomerResetPass, CustomerVoucher, CustomerShowFoodPanel1, CustomerShowFoodPanel2, CustomerShowFoodPanel3, CustomerShowFoodPanel4.
-- Files created under `src/main/java/com/mycompany/barkbites/CustomerForms/`.
+**Shared foundation**
+- Reuse `FormNavigator` for screen transitions across both tracks.
+- Reuse `AuthState`, `FirestoreRestClient`, and `FirestoreDocuments` for all server-backed reads and writes.
+- Keep menu data in Firestore so Staff edits are immediately reflected in Customer menu screens.
+- Keep customer session data and staff session data logically separate, even though they share the same Firebase project.
 
+**Customer plan**
+1. Customer entry and profile flow: keep the existing customer landing/login/signup/navigation flow, then load profile data from Firestore in `CustomerProfilePanelVisible` using the signed-in user id token and customer document lookup.
+2. Customer menu flow: make `CustomerMenuPanel` and `CustomerShowFoodPanel` render menu items dynamically from Firestore instead of relying on static UI content.
+3. Customer cart flow: turn `CustomerCartPanel` into a real item list with add, update quantity, and remove actions using a small cart state/service layer.
+4. Customer order-status flow: keep the existing order confirmation, processing, ready-pickup, voucher, reset-password, and recovery screens as the customer-facing post-order journey.
+5. Customer design scaffolding: preserve the generated PNG-backed panels already created and use them as the visual shell for the customer journey screens.
 
-**Steps**
-1. Profile: Add Firestore read in `CustomerProfilePanelVisible` to load `customers/{uid}` using `AuthState.current().idToken()` and `FirestoreRestClient.getDocument(...)`. Populate visible fields (name, studentId). *depends on auth state being set at login/signup*
-2. Password toggle: Reuse `CustomerLoginPanel.togglePasswordVisibility()` pattern for other screens (Staff login/password). Capture `passwordEchoChar` at init and toggle `JPasswordField.setEchoChar((char)0)` when visible.
-3. Cart panel: Replace static background-only UI with a scrollable list:
-   - Create `CartItem` model (id, productId, name, priceCents, qty, imagePath).
-   - Add a `JScrollPane` with a vertical `JPanel` (BoxLayout.Y_AXIS) as the cart container.
-   - Create a reusable `CartItemPanel` (image label, name, qty controls, price, remove button) and add one per `CartItem`.
-   - Add cart state store (in-memory singleton or simple class) to manage items and provide add/remove/update methods. Persist only in-memory for now.
-4. Menu sync (Staff <-> Customer): Introduce `MenuItem` model and a `MenuService` using `FirestoreRestClient` with collection `menu`:
-   - Staff UI (StaffInventory or StaffMenu editor) should call `MenuService.upsertMenuItem(...)` to create/update items (image path, title, price, description).
-   - Customer UI (CustomerMenuPanel/CustomerShowFoodPanel) should fetch menu items at init and dynamically render item tiles (similar to CartItemPanel UI pattern).
-   - Use item document id as productId. Store images as packaged resources (for prototype) or as URL fields.
-5. Create Java panels for missing CustomerDesign PNGs (screens to scaffold): CustomerCheckPhone, CustomerLoginPasswordRecovery, CustomerOrderConfirmed, CustomerOrderProcessing, CustomerReadyPickup, CustomerResetPass, CustomerVoucher, and optional variants of CustomerShowFoodPanel (1..4). For each: create a JFrame class that follows existing pattern (background label, invisible clickable buttons, bringToFront for input controls). *parallelizable*
-6. Assets & images: Add new product thumbnail images into `src/main/resources/com/mycompany/barkbites/CustomerDesign/` or reuse existing PNGs. Update resource paths in new panels.
-7. Tests & verification: Manual UI smoke tests (launch screens). Add small unit tests for Firestore JSON parsing helpers (FirestoreDocuments.readWalletBalanceCents) if test harness exists.
+**Staff plan**
+1. Staff landing page: keep `StaffLandingPage` as the entry shell only, with clear navigation into the protected staff area. [pending UI refinement]
+2. Staff PIN screen: done. `StaffPassword` now reads the 4-digit PIN from the Firestore settings doc and falls back to the default only when Firebase Admin is unavailable.
+3. Staff menu management: done. `StaffMenu` now supports Firestore CRUD for menu items through an editable document id, refresh, save, and delete flow.
+4. Staff orders page: done. `StaffOrders` now lists customer orders from Firestore and updates order status.
+5. Staff inventory page: done. `StaffInventory` now lists inventory items from Firestore and supports save/delete editing.
+6. Staff statistics page: done. `StaffStatistics` now summarizes sales totals and monthly totals from Firestore orders.
 
 **Relevant files**
-- `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerProfilePanelVisible.java` — modify to fetch and display profile
-- `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerLoginPanel.java` — example toggle implementation
-- `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerSignupPanel.java` — shows Firestore upsert pattern
-- `src/main/java/com/mycompany/barkbites/data/firestore/FirestoreRestClient.java` — REST client to reuse
-- `src/main/java/com/mycompany/barkbites/data/firestore/FirestoreDocuments.java` — helpers for reading/writing
-- `src/main/java/com/mycompany/barkbites/data/auth/AuthState.java` — current session provider
-- `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java` — current scaffold to extend
-- `src/main/java/com/mycompany/barkbites/CustomerDesign` — PNG assets directory (designs)
-
-**Missing design screens (PNG-only) to scaffold**
-- CustomerCheckPhone.png
-- CustomerLoginPasswordRecovery.png
-- CustomerOrderConfirmed.png
-- CustomerOrderProcessing.png
-- CustomerReadyPickup.png
-- CustomerResetPass.png
-- CustomerVoucher.png
-- CustomerShowFoodPanel1.png
-- CustomerShowFoodPanel2.png
-- CustomerShowFoodPanel3.png
-- CustomerShowFoodPanel4.png
+- `src/main/java/com/mycompany/barkbites/FormNavigator.java` — shared screen navigation.
+- `src/main/java/com/mycompany/barkbites/data/auth/AuthState.java` — shared signed-in session state.
+- `src/main/java/com/mycompany/barkbites/data/firestore/FirestoreRestClient.java` — shared Firestore REST access.
+- `src/main/java/com/mycompany/barkbites/data/firestore/FirestoreDocuments.java` — shared document mapping helpers.
+- `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerLoginPanel.java` — customer auth and session pattern.
+- `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerProfilePanelVisible.java` — customer profile fetch target.
+- `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerMenuPanel.java` — customer menu rendering target.
+- `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java` — customer cart rendering target.
+- `src/main/java/com/mycompany/barkbites/StaffForms/StaffLandingPage.java` — staff entry screen.
+- `src/main/java/com/mycompany/barkbites/StaffForms/StaffPassword.java` — staff PIN gate.
+- `src/main/java/com/mycompany/barkbites/StaffForms/StaffMenu.java` — staff menu CRUD hub.
+- `src/main/java/com/mycompany/barkbites/StaffForms/StaffOrders.java` — staff order queue.
+- `src/main/java/com/mycompany/barkbites/StaffForms/StaffInventory.java` — staff inventory management.
+- `src/main/java/com/mycompany/barkbites/StaffForms/StaffStatistics.java` — staff sales reporting.
 
 **Verification**
-1. Manual: Launch `CustomerLoginPanel` → sign in → open `CustomerProfilePanelVisible` and confirm name+studentId populate.
-2. Manual: Toggle password visibility on login and staff password screens.
-3. Manual: Add sample items to cart state and open `CustomerCartPanel` to verify `CartItemPanel` rendering, quantity changes, and removal.
-4. Manual: Edit/create menu item in Staff editor and confirm CustomerMenu updates after refresh.
+1. Customer: sign in, open profile, and confirm Firestore-backed fields load correctly.
+2. Customer: refresh the menu screen and verify staff menu changes appear on the customer side.
+3. Customer: add and remove items from the cart and confirm the UI updates correctly.
+4. Staff: enter the shared PIN and verify access to the staff area is blocked when the PIN is wrong.
+5. Staff: create, edit, and delete a menu item and confirm the customer menu reflects the change after refresh.
+6. Staff: validate that orders, inventory, and statistics screens can read from Firestore once their collections are populated.
 
-**Decisions & Assumptions**
-- Use Firestore REST client + idToken (existing pattern) rather than Admin SDK for cross-device simplicity.
-- Store images as packaged resources or remote URLs; production should use Cloud Storage but out of scope now.
-- Cart will be in-memory for now; if persistence needed later, persist under a `carts/{uid}` collection.
-
-**Next actions (I can implement or hand off)**
-1. Scaffold Java classes for the listed missing designs. (completed — 11 panels created)
-2. Implement profile fetch in `CustomerProfilePanelVisible`.
-3. Implement `CartItemPanel` + cart state and wire into `CustomerCartPanel`.
-4. Add `MenuService` + simple Staff editor UI to update Firestore.
-
-**Code Quality, Readability & OOP**
-- **Simplify code:** prefer small focused methods, remove duplicated logic (use helpers), and extract UI wiring into clear `initUI()`/`wireListeners()` helper methods.
-- **Readability:** add short Javadoc on public classes and methods, and inline // comments for non-obvious logic. Use consistent naming (verbs for methods, nouns for models).
-- **Commenting:** add `// TODO` and explanatory comments where complex flows exist (Firebase calls, threading, error handling) and add Javadocs for APIs used across screens.
-- **Highlight OOP usage:** mark existing files to review and annotate which OOP core principle they follow:
-  - `FirebaseInitializer.java` — Encapsulation (initialization hidden), Factory-like init pattern.
-  - `FirestoreRestClient.java` & `FirestoreDocuments.java` — Abstraction of REST + Data mapping.
-  - `AuthState.java` & `AuthSession.java` — Encapsulation / Singleton-like state holder.
-  - UI frames (e.g., `CustomerSignupPanel.java`, `CustomerLoginPanel.java`, `CustomerProfilePanelVisible.java`) — Separation of concerns: UI vs services; can be refactored to use small controller/helper classes.
-  - `FormNavigator.java` — Single Responsibility for navigation between screens.
-- **Refactor notes:** create small service classes (`CartService`, `MenuService`) to encapsulate data operations, and small UI component classes (`CartItemPanel`) to reuse rendering logic (promotes composition over inheritance).
-- **Verification for readability:** include a brief code-review checklist in the repo (naming, method length, comments, clear error messages) and run a pass to add Javadoc to public classes.
-
-These additions are saved in the plan. Let me know which implementation task to begin: scaffold panels, implement profile fetch, or build the cart UI.
+**Decisions**
+- The staff PIN will be a shared 4-digit PIN for now.
+- The staff PIN will be stored in Firestore as plain text for the prototype.
+- Customer and staff flows stay separate in the UI, but they remain connected through shared Firestore data and navigation helpers.
+- The previously scaffolded customer design panels remain in scope and belong to the customer track.

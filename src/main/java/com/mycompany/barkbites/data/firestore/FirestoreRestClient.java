@@ -41,6 +41,16 @@ public final class FirestoreRestClient {
         return send(idToken, req);
     }
 
+    public JsonNode listDocuments(String idToken, String collection) {
+        String url = collectionUrl(collection);
+        return send(idToken, HttpRequest.newBuilder().uri(URI.create(url)).GET().build());
+    }
+
+    public JsonNode deleteDocument(String idToken, String collection, String documentId) {
+        String url = documentUrl(collection, documentId);
+        return send(idToken, HttpRequest.newBuilder().uri(URI.create(url)).DELETE().build());
+    }
+
     private JsonNode send(String idToken, HttpRequest request) {
         try {
             HttpRequest.Builder builder = HttpRequest.newBuilder(request.uri())
@@ -72,6 +82,11 @@ public final class FirestoreRestClient {
         String c = encodePath(collection);
         String d = encodePath(documentId);
         return "https://firestore.googleapis.com/v1/projects/" + config.projectId() + "/databases/(default)/documents/" + c + "/" + d;
+    }
+
+    private String collectionUrl(String collection) {
+        String c = encodePath(collection);
+        return "https://firestore.googleapis.com/v1/projects/" + config.projectId() + "/databases/(default)/documents/" + c;
     }
 
     private static String encodePath(String segment) {

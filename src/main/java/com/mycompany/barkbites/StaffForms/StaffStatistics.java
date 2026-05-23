@@ -5,6 +5,15 @@
 package com.mycompany.barkbites.StaffForms;
 
 import com.mycompany.barkbites.FormNavigator;
+import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
+import com.mycompany.barkbites.data.staff.StaffStatisticsService;
+import com.mycompany.barkbites.data.staff.StaffStatisticsSummary;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.util.concurrent.ExecutionException;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -12,11 +21,22 @@ import com.mycompany.barkbites.FormNavigator;
  */
 public class StaffStatistics extends javax.swing.JFrame {
 
+    private final StaffStatisticsService statisticsService = new StaffStatisticsService();
+    private final JLabel titleLabel = new JLabel("Sales Statistics");
+    private final JLabel totalOrdersValue = new JLabel("0");
+    private final JLabel totalSalesValue = new JLabel("₱0.00");
+    private final JLabel monthOrdersValue = new JLabel("0");
+    private final JLabel monthSalesValue = new JLabel("₱0.00");
+    private final JLabel statusLabel = new JLabel("Ready");
+    private final javax.swing.JButton refreshButton = new javax.swing.JButton("Refresh");
+
     /**
      * Creates new form StaffStatistics
      */
     public StaffStatistics() {
         initComponents();
+
+        getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
 
         makeButtonInvisible(jButton1);
         makeButtonInvisible(jButton2);
@@ -28,7 +48,93 @@ public class StaffStatistics extends javax.swing.JFrame {
         jButton3.addActionListener(evt -> openStaffMenu());
         jButton4.addActionListener(evt -> openStaffLandingPage());
 
+        if (!StaffFirebaseBootstrap.ensureInitialized(this)) {
+            return;
+        }
+        configureUi();
+        loadSummaryAsync();
+
         this.setResizable(false);
+    }
+
+    private void configureUi() {
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setBounds(185, 120, 250, 28);
+
+        addMetricLabel("Total Orders", totalOrdersValue, 185, 180);
+        addMetricLabel("Total Sales", totalSalesValue, 185, 280);
+        addMetricLabel("This Month Orders", monthOrdersValue, 430, 180);
+        addMetricLabel("This Month Sales", monthSalesValue, 430, 280);
+
+        refreshButton.setBounds(185, 400, 120, 34);
+        statusLabel.setBounds(185, 445, 400, 22);
+        statusLabel.setForeground(Color.WHITE);
+
+        refreshButton.addActionListener(evt -> loadSummaryAsync());
+
+        addOverlay(titleLabel, totalOrdersValue, totalSalesValue, monthOrdersValue, monthSalesValue, refreshButton, statusLabel);
+    }
+
+    private void addMetricLabel(String caption, JLabel valueLabel, int x, int y) {
+        JLabel captionLabel = new JLabel(caption);
+        captionLabel.setFont(new Font("Arial", Font.PLAIN, 15));
+        captionLabel.setForeground(Color.WHITE);
+        captionLabel.setBounds(x, y, 200, 20);
+
+        valueLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        valueLabel.setForeground(Color.WHITE);
+        valueLabel.setBounds(x, y + 26, 220, 30);
+
+        addOverlay(captionLabel, valueLabel);
+    }
+
+    private void addOverlay(Component... components) {
+        for (Component component : components) {
+            java.awt.Rectangle bounds = component.getBounds();
+            getContentPane().add(component, new org.netbeans.lib.awtextra.AbsoluteConstraints(bounds.x, bounds.y, bounds.width, bounds.height));
+            getContentPane().setComponentZOrder(component, 0);
+        }
+    }
+
+    private void loadSummaryAsync() {
+        setBusy(true);
+        javax.swing.SwingWorker<StaffStatisticsSummary, Void> worker = new javax.swing.SwingWorker<>() {
+            @Override
+            protected StaffStatisticsSummary doInBackground() {
+                return statisticsService.loadSummary();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    StaffStatisticsSummary summary = get();
+                    totalOrdersValue.setText(Integer.toString(summary.totalOrders()));
+                    totalSalesValue.setText(formatPesos(summary.totalSalesCents()));
+                    monthOrdersValue.setText(Integer.toString(summary.monthOrders()));
+                    monthSalesValue.setText(formatPesos(summary.monthSalesCents()));
+                    statusLabel.setText("Loaded current sales summary.");
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    statusLabel.setText("Statistics load interrupted.");
+                } catch (ExecutionException ee) {
+                    String message = ee.getCause() != null ? ee.getCause().getMessage() : ee.getMessage();
+                    statusLabel.setText("Statistics load failed.");
+                    JOptionPane.showMessageDialog(StaffStatistics.this, message, "Statistics load failed", JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    setBusy(false);
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    private void setBusy(boolean busy) {
+        refreshButton.setEnabled(!busy);
+    }
+
+    private static String formatPesos(long cents) {
+        return String.format(java.util.Locale.US, "₱%,.2f", cents / 100.0);
     }
 
     private void openStaffOrders() {
