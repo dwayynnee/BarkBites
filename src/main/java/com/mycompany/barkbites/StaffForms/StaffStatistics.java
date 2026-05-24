@@ -15,6 +15,11 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 /**
+ * OOP used here:
+ * Encapsulation keeps summary state private to the screen.
+ * Abstraction exposes only a small set of helpers for loading and formatting.
+ * Inheritance comes from extending JFrame.
+ * Polymorphism appears in the event listeners and SwingWorker overrides.
  *
  * @author markd
  */
@@ -41,6 +46,7 @@ public class StaffStatistics extends javax.swing.JFrame {
 
         getContentPane().setComponentZOrder(BG, getContentPane().getComponentCount() - 1);
 
+        // Action: hide the navigation and refresh buttons while keeping them interactive.
         makeButtonInvisible(OrdersButton);
         makeButtonInvisible(InventoryButton);
         makeButtonInvisible(MenuButton);
@@ -48,6 +54,7 @@ public class StaffStatistics extends javax.swing.JFrame {
         makeButtonInvisible(refreshButton);
         makeButtonInvisible(HistoryButton);
 
+        // Action: route each button to the matching staff screen.
         OrdersButton.addActionListener(evt -> openStaffOrders());
         InventoryButton.addActionListener(evt -> openStaffInventory());
         MenuButton.addActionListener(evt -> openStaffMenu());
@@ -62,10 +69,12 @@ public class StaffStatistics extends javax.swing.JFrame {
     }
 
     private void configureUi() {
+        // Action: style the screen title and status labels.
         titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
         titleLabel.setForeground(Color.WHITE);
         statusLabel.setForeground(Color.WHITE);
 
+        // Action: refresh the summary data when the button is pressed.
         refreshButton.addActionListener(evt -> loadSummaryAsync());
     }
 
@@ -109,26 +118,32 @@ public class StaffStatistics extends javax.swing.JFrame {
     }
 
     private void openStaffOrders() {
+        // Action: open the Orders screen.
         FormNavigator.redirect(this, new StaffOrders());
     }
 
     private void openStaffInventory() {
+        // Action: open the Inventory screen.
         FormNavigator.redirect(this, new StaffInventory());
     }
 
     private void openStaffMenu() {
+        // Action: open the Menu screen.
         FormNavigator.redirect(this, new StaffMenu());
     }
 
     private void openStaffLandingPage() {
+        // Action: return to the landing page.
         FormNavigator.redirect(this, new StaffLandingPage());
     }
 
     private void openStaffHistory() {
+        // Action: open the History screen.
         FormNavigator.redirect(this, new StaffHistory());
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {
+        // Keeps the button clickable while removing the visible chrome.
         button.setText("");
         button.setOpaque(false);
         button.setContentAreaFilled(false);
@@ -223,13 +238,9 @@ public class StaffStatistics extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(StaffStatistics.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(StaffStatistics.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(StaffStatistics.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(StaffStatistics.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 

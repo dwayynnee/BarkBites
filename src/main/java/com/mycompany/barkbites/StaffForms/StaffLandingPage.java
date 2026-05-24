@@ -7,6 +7,11 @@ package com.mycompany.barkbites.StaffForms;
 import com.mycompany.barkbites.FormNavigator;
 
 /**
+ * OOP used here:
+ * Encapsulation keeps the login entry action private to the landing page.
+ * Abstraction hides the password screen navigation behind a single click.
+ * Inheritance comes from extending JFrame.
+ * Polymorphism appears in the button listener callback.
  *
  * @author markd
  */
@@ -18,17 +23,21 @@ public class StaffLandingPage extends javax.swing.JFrame {
     public StaffLandingPage() {
         initComponents();
 
+        // Action: make the landing-page button invisible while keeping it clickable.
         makeButtonInvisible(jButton1);
+        // Action: open the staff password screen when the button is pressed.
         jButton1.addActionListener(evt -> openStaffPassword());
 
         this.setResizable(false);
     }
 
     private void openStaffPassword() {
+        // Action: move from the landing page to the staff password screen.
         FormNavigator.redirect(this, new StaffPassword());
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {
+        // Keeps the button interactive while removing the visible chrome.
         button.setText("");
         button.setOpaque(false);
         button.setContentAreaFilled(false);
@@ -76,13 +85,9 @@ public class StaffLandingPage extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(StaffLandingPage.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(StaffLandingPage.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(StaffLandingPage.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(StaffLandingPage.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 

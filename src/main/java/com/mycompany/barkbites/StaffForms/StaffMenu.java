@@ -28,6 +28,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
 /**
+ * OOP used here:
+ * Encapsulation keeps the menu state and CRUD helpers private.
+ * Abstraction keeps the UI wiring separate from the menu operations.
+ * Inheritance comes from extending JFrame.
+ * Polymorphism appears in the listener callbacks and SwingWorker overrides.
  *
  * @author markd
  */
@@ -47,11 +52,13 @@ public class StaffMenu extends javax.swing.JFrame {
 
         getContentPane().setComponentZOrder(BG, getContentPane().getComponentCount() - 1);
 
+        // Action: hide the navigation buttons while leaving their click targets active.
         makeButtonInvisible(OrdersButton);
         makeButtonInvisible(InventoryButton);
         makeButtonInvisible(StatisticsButton);
         makeButtonInvisible(LogoutButton);
 
+        // Action: route the navigation buttons to the matching screens.
         OrdersButton.addActionListener(evt -> openStaffOrders());
         InventoryButton.addActionListener(evt -> openStaffInventory());
         StatisticsButton.addActionListener(evt -> openStaffStatistics());
@@ -75,8 +82,10 @@ public class StaffMenu extends javax.swing.JFrame {
     }
 
     private void configureCrudUi() {
+        // Action: use the status label for lightweight feedback.
         statusLabel.setForeground(Color.WHITE);
 
+        // Action: hook up the menu refresh, save, and history controls.
         refreshButton.addActionListener(evt -> loadMenuItemsAsync());
         saveButton.addActionListener(evt -> saveMenuItem());
         HistoryButton.setText("History");
@@ -410,14 +419,17 @@ public class StaffMenu extends javax.swing.JFrame {
     }
 
     private void openStaffLandingPage() {
+        // Action: return to the staff landing page.
         FormNavigator.redirect(this, new StaffLandingPage());
     }
 
     private void openStaffHistory() {
+        // Action: open the History screen.
         FormNavigator.redirect(this, new StaffHistory());
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {
+        // Keeps the button clickable while removing the visible chrome.
         button.setText("");
         button.setOpaque(false);
         button.setContentAreaFilled(false);
@@ -426,6 +438,7 @@ public class StaffMenu extends javax.swing.JFrame {
     }
 
     private static void makeTextFieldInvisible(JTextField textField) {
+        // Keeps the field editable while removing the visible container styling.
         textField.setOpaque(false);
         textField.setBorder(BorderFactory.createEmptyBorder());
         textField.setBackground(new Color(0, 0, 0, 0));
@@ -595,13 +608,9 @@ public class StaffMenu extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(StaffMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(StaffMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(StaffMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(StaffMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 

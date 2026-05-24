@@ -23,6 +23,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 /**
+ * OOP used here:
+ * Encapsulation keeps inventory state and helpers inside the form.
+ * Abstraction wraps CRUD behavior behind simple action methods.
+ * Inheritance comes from extending JFrame.
+ * Polymorphism appears in the event listeners and list renderer callbacks.
  *
  * @author markd
  */
@@ -43,7 +48,7 @@ public class StaffInventory extends javax.swing.JFrame {
     public StaffInventory() {
         initComponents();
 
-        // Initialize any GUI components that are referenced by logic but missing from the generated block.
+        // Action: create hidden helper fields used by the inventory logic.
         if (documentIdField == null) {
             documentIdField = new javax.swing.JTextField();
             documentIdField.setVisible(false);
@@ -80,6 +85,7 @@ public class StaffInventory extends javax.swing.JFrame {
         makeFieldBackgroundInvisible(quantityField);
         makeFieldBackgroundInvisible(imagePathField);
 
+        // Action: connect the navigation buttons to their target screens.
         OrdersButton.addActionListener(evt -> openStaffOrders());
         MenuButton.addActionListener(evt -> openStaffMenu());
         InventoryButton.addActionListener(evt -> openStaffStatistics());
@@ -97,6 +103,7 @@ public class StaffInventory extends javax.swing.JFrame {
     }
 
     private void configureUi() {
+        // Action: render inventory rows with a clean, readable layout.
         inventoryList.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
             JLabel label = new JLabel(formatInventoryItem(value));
             label.setOpaque(true);
@@ -281,23 +288,29 @@ public class StaffInventory extends javax.swing.JFrame {
     }
 
     private void openStaffOrders() {
+        // Action: open the Orders screen.
         FormNavigator.redirect(this, new StaffOrders());
     }
     private void openStaffMenu() {
+        // Action: open the Menu screen.
         FormNavigator.redirect(this, new StaffMenu());
     }
     private void openStaffStatistics() {
+        // Action: open the Statistics screen.
         FormNavigator.redirect(this, new StaffStatistics());
     }
 
     private void openStaffHistory() {
+        // Action: open the History screen.
         FormNavigator.redirect(this, new StaffHistory());
     }
     private void logout() {
+        // Action: return to the landing page.
         FormNavigator.redirect(this, new StaffLandingPage());
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {
+        // Keeps the button clickable while removing the visible chrome.
         button.setText("");
         button.setOpaque(false);
         button.setContentAreaFilled(false);
@@ -306,6 +319,7 @@ public class StaffInventory extends javax.swing.JFrame {
     }
 
     private static void makeFieldBackgroundInvisible(javax.swing.JTextField field) {
+        // Keeps the field editable while blending it into the background.
         field.setOpaque(false);
         field.setBackground(new Color(0, 0, 0, 0));
         field.setBorder(javax.swing.BorderFactory.createEmptyBorder());
@@ -413,13 +427,9 @@ public class StaffInventory extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(StaffInventory.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(StaffInventory.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(StaffInventory.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(StaffInventory.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 

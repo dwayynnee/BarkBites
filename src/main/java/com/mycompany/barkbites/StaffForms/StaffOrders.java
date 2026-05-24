@@ -25,6 +25,11 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 
 /**
+ * OOP used here:
+ * Encapsulation keeps order state and card rendering private to the form.
+ * Abstraction hides card creation and navigation details behind helpers.
+ * Inheritance comes from extending JFrame.
+ * Polymorphism shows up in the event listeners and renderer callbacks.
  *
  * @author markd
  */
@@ -52,6 +57,7 @@ public class StaffOrders extends javax.swing.JFrame {
 
         getContentPane().setComponentZOrder(BG, getContentPane().getComponentCount() - 1);
 
+        // Action: hide the navigation and utility buttons while keeping them clickable.
         makeButtonInvisible(InventoryButton);
         makeButtonInvisible(MenuButton);
         makeButtonInvisible(StatisticsButton);
@@ -59,6 +65,7 @@ public class StaffOrders extends javax.swing.JFrame {
         makeButtonInvisible(updateButton);
         makeButtonInvisible(refreshButton);
 
+        // Action: route each button to its matching form or action.
         InventoryButton.addActionListener(evt -> openStaffInventory());
         MenuButton.addActionListener(evt -> openStaffMenu());
         StatisticsButton.addActionListener(evt -> openStaffStatistics());
@@ -80,6 +87,7 @@ public class StaffOrders extends javax.swing.JFrame {
     }
 
     private void openStaffInventory() {
+        // Action: open the Inventory screen.
         try {
             FormNavigator.redirect(this, new StaffInventory());
         } catch (Exception ex) {
@@ -88,6 +96,7 @@ public class StaffOrders extends javax.swing.JFrame {
     }
 
     private void openStaffMenu() {
+        // Action: open the Menu screen.
         try {
             FormNavigator.redirect(this, new StaffMenu());
         } catch (Exception ex) {
@@ -96,6 +105,7 @@ public class StaffOrders extends javax.swing.JFrame {
     }
 
     private void openStaffStatistics() {
+        // Action: open the Statistics screen.
         try {
             FormNavigator.redirect(this, new StaffStatistics());
         } catch (Exception ex) {
@@ -104,14 +114,17 @@ public class StaffOrders extends javax.swing.JFrame {
     }
 
     private void openStaffLandingPage() {
+        // Action: return to the landing page.
         FormNavigator.redirect(this, new StaffLandingPage());
     }
 
     private void openStaffHistory() {
+        // Action: open the History screen.
         FormNavigator.redirect(this, new StaffHistory());
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {
+        // Keeps the button clickable while removing the visible chrome.
         button.setText("");
         button.setOpaque(false);
         button.setContentAreaFilled(false);
@@ -120,6 +133,7 @@ public class StaffOrders extends javax.swing.JFrame {
     }
 
     private void configureOrderCards() {
+        // Action: prepare the container for dynamic card rendering.
         cardsContainerPanel.setOpaque(false);
         cardsContainerPanel.setBorder(null);
 
@@ -476,13 +490,9 @@ public class StaffOrders extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(StaffOrders.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(StaffOrders.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(StaffOrders.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(StaffOrders.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
