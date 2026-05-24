@@ -30,25 +30,7 @@ public class StaffInventory extends javax.swing.JFrame {
 
     private final StaffInventoryService inventoryService = new StaffInventoryService();
     private final DefaultListModel<StaffInventoryItem> inventoryModel = new DefaultListModel<>();
-    private JList<StaffInventoryItem> inventoryList;
-    private JScrollPane listScroll;
-    private JTextField documentIdField;
-    private JTextField nameField;
-    private JTextField quantityField;
-    private JTextField unitField;
-    private JTextField imagePathField;
-    private JCheckBox lowStockCheckBox;
-    private JLabel titleLabel;
-    private JLabel idLabel;
-    private JLabel nameLabel;
-    private JLabel quantityLabel;
-    private JLabel unitLabel;
-    private JLabel imageLabel;
-    private JLabel statusLabel;
-    private javax.swing.JButton refreshButton;
-    private javax.swing.JButton newButton;
-    private javax.swing.JButton saveButton;
-    private javax.swing.JButton deleteButton;
+    private JList<StaffInventoryItem> inventoryList = new JList<>();
 
     /**
      * Creates new form StaffInventory
