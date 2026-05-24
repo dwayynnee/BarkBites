@@ -71,6 +71,14 @@ public class StaffInventory extends javax.swing.JFrame {
         makeButtonInvisible(MenuButton);
         makeButtonInvisible(InventoryButton);
         makeButtonInvisible(LogoutButton);
+        makeButtonInvisible(newButton);
+        makeButtonInvisible(saveButton);
+        makeButtonInvisible(deleteButton);
+        makeButtonInvisible(refreshButton);
+
+        makeFieldBackgroundInvisible(nameField);
+        makeFieldBackgroundInvisible(quantityField);
+        makeFieldBackgroundInvisible(imagePathField);
 
         OrdersButton.addActionListener(evt -> openStaffOrders());
         MenuButton.addActionListener(evt -> openStaffMenu());
@@ -292,6 +300,15 @@ public class StaffInventory extends javax.swing.JFrame {
         button.setFocusPainted(false);
     }
 
+    private static void makeFieldBackgroundInvisible(javax.swing.JTextField field) {
+        field.setOpaque(false);
+        field.setBackground(new Color(0, 0, 0, 0));
+        field.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        field.setEditable(true);
+        field.setFocusable(true);
+        field.setCaretColor(field.getForeground());
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -329,16 +346,21 @@ public class StaffInventory extends javax.swing.JFrame {
         getContentPane().add(imagePathField, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 400, 190, 30));
 
         refreshButton.setText("Refresh");
-        getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(760, 490, 100, 32));
+        getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(760, 480, 100, 50));
 
         newButton.setText("New");
-        getContentPane().add(newButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 490, 100, 32));
+        getContentPane().add(newButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 482, 100, 50));
 
         saveButton.setText("Save");
-        getContentPane().add(saveButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 540, 100, 32));
+        getContentPane().add(saveButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 532, 100, 40));
 
         deleteButton.setText("Delete");
-        getContentPane().add(deleteButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(770, 540, 100, 32));
+        deleteButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteButtonActionPerformed(evt);
+            }
+        });
+        getContentPane().add(deleteButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(760, 532, 100, 40));
 
         OrdersButton.setText("jButton1");
         getContentPane().add(OrdersButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 120, 140, 70));
@@ -364,6 +386,10 @@ public class StaffInventory extends javax.swing.JFrame {
     private void nameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_nameFieldActionPerformed
+
+    private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_deleteButtonActionPerformed
 
     /**
      * @param args the command line arguments

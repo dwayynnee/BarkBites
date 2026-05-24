@@ -34,6 +34,11 @@ public class StaffStatistics extends javax.swing.JFrame {
     public StaffStatistics() {
         initComponents();
 
+        titleLabel = new JLabel();
+        statusLabel = new JLabel("Ready");
+        getContentPane().add(titleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 110, 220, 28));
+        getContentPane().add(statusLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 545, 360, 22));
+
         getContentPane().setComponentZOrder(BG, getContentPane().getComponentCount() - 1);
 
         makeButtonInvisible(OrdersButton);
@@ -77,7 +82,6 @@ public class StaffStatistics extends javax.swing.JFrame {
                     totalSalesValue.setText(formatPesos(summary.totalSalesCents()));
                     monthOrdersValue.setText(Integer.toString(summary.monthOrders()));
                     monthSalesValue.setText(formatPesos(summary.monthSalesCents()));
-                    statusLabel.setText("Loaded current sales summary.");
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     statusLabel.setText("Statistics load interrupted.");

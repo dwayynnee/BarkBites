@@ -5,33 +5,15 @@
 package com.mycompany.barkbites.StaffForms;
 
 import com.mycompany.barkbites.FormNavigator;
-import com.mycompany.barkbites.data.staff.StaffOrderRecord;
-import com.mycompany.barkbites.data.staff.StaffOrderService;
 import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import java.awt.Color;
-import java.awt.Font;
-import java.util.concurrent.ExecutionException;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.DefaultListModel;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
 
 /**
  *
  * @author markd
  */
 public class StaffOrders extends javax.swing.JFrame {
-
-    private final StaffOrderService orderService = new StaffOrderService();
-    private final DefaultListModel<StaffOrderRecord> orderModel = new DefaultListModel<>();
-    private JList<StaffOrderRecord> orderList;
-    private JScrollPane orderScroll;
-    private JLabel titleLabel;
-    private JLabel selectedOrderLabel;
-    private JLabel statusLabel;
 
     /**
      * Creates new form StaffOrders
@@ -52,115 +34,8 @@ public class StaffOrders extends javax.swing.JFrame {
         LogoutButton.addActionListener(evt -> openStaffLandingPage());
 
         StaffFirebaseBootstrap.ensureInitialized(this);
-        configureUi();
-        loadOrdersAsync();
 
         this.setResizable(false);
-    }
-
-    private void configureUi() {
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
-        titleLabel.setForeground(Color.WHITE);
-
-        orderList.setCellRenderer((JList<? extends StaffOrderRecord> list, StaffOrderRecord value, int index, boolean isSelected, boolean cellHasFocus) -> {
-            JLabel label = new JLabel(formatOrder(value));
-            label.setOpaque(true);
-            label.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 10, 8, 10));
-            label.setBackground(isSelected ? new Color(23, 57, 122) : Color.WHITE);
-            label.setForeground(isSelected ? Color.WHITE : Color.BLACK);
-            return label;
-        });
-        orderList.addListSelectionListener(evt -> {
-            if (!evt.getValueIsAdjusting()) {
-                StaffOrderRecord selected = orderList.getSelectedValue();
-                if (selected != null) {
-                    selectedOrderLabel.setText(selected.customerName() + " | ₱" + String.format(java.util.Locale.US, "%,.2f", selected.totalCents() / 100.0));
-                    statusComboBox.setSelectedItem(selected.status());
-                }
-            }
-        });
-
-        refreshButton.addActionListener(evt -> loadOrdersAsync());
-        updateButton.addActionListener(evt -> updateStatusForSelection());
-    }
-
-    private void loadOrdersAsync() {
-        setBusy(true);
-        javax.swing.SwingWorker<java.util.List<StaffOrderRecord>, Void> worker = new javax.swing.SwingWorker<>() {
-            @Override
-            protected java.util.List<StaffOrderRecord> doInBackground() {
-                return orderService.listOrders();
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    orderModel.clear();
-                    for (StaffOrderRecord order : get()) {
-                        orderModel.addElement(order);
-                    }
-                    if (!orderModel.isEmpty()) {
-                        orderList.setSelectedIndex(0);
-                    }
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                } catch (ExecutionException ee) {
-                    String message = ee.getCause() != null ? ee.getCause().getMessage() : ee.getMessage();
-                    JOptionPane.showMessageDialog(StaffOrders.this, message, "Orders load failed", JOptionPane.ERROR_MESSAGE);
-                } finally {
-                    setBusy(false);
-                }
-            }
-        };
-        worker.execute();
-    }
-
-    private void updateStatusForSelection() {
-        StaffOrderRecord selected = orderList.getSelectedValue();
-        if (selected == null) {
-            JOptionPane.showMessageDialog(this, "Select an order first.", "No order selected", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        String status = (String) statusComboBox.getSelectedItem();
-        if (status == null || status.isBlank()) {
-            JOptionPane.showMessageDialog(this, "Choose a status.", "Missing status", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        setBusy(true);
-        javax.swing.SwingWorker<Void, Void> worker = new javax.swing.SwingWorker<>() {
-            @Override
-            protected Void doInBackground() {
-                orderService.updateOrderStatus(selected.id(), status);
-                return null;
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    get();
-                    loadOrdersAsync();
-                } catch (Exception ex) {
-                    String message = ex.getMessage() != null ? ex.getMessage() : "Failed to update the order status.";
-                    JOptionPane.showMessageDialog(StaffOrders.this, message, "Update failed", JOptionPane.ERROR_MESSAGE);
-                    setBusy(false);
-                }
-            }
-        };
-        worker.execute();
-    }
-
-    private void setBusy(boolean busy) {
-        refreshButton.setEnabled(!busy);
-        updateButton.setEnabled(!busy);
-    }
-
-    private static String formatOrder(StaffOrderRecord order) {
-        if (order == null) {
-            return "";
-        }
-        return order.customerName() + "  •  " + order.status() + "  •  ₱" + String.format(java.util.Locale.US, "%,.2f", order.totalCents() / 100.0);
     }
 
     private void openStaffInventory() {
