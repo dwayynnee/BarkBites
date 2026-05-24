@@ -27,10 +27,6 @@ public class StaffStatistics extends javax.swing.JFrame {
 
     private final StaffStatisticsService statisticsService = new StaffStatisticsService();
     private JLabel titleLabel;
-    private JLabel totalOrdersLabel;
-    private JLabel totalSalesLabel;
-    private JLabel monthOrdersLabel;
-    private JLabel monthSalesLabel;
     private JLabel statusLabel;
 
     /**

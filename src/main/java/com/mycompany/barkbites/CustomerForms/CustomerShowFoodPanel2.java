@@ -1,7 +1,5 @@
 package com.mycompany.barkbites.CustomerForms;
 
-import com.mycompany.barkbites.FormNavigator;
-
 public class CustomerShowFoodPanel2 extends javax.swing.JFrame {
 
     public CustomerShowFoodPanel2() {

@@ -69,6 +69,7 @@ public class StaffPassword extends javax.swing.JFrame {
         jTextField4.setEnabled(enabled);
     }
 
+    @SuppressWarnings("null")
     private void loadStaffPinAsync() {
         javax.swing.SwingWorker<String, Void> worker = new javax.swing.SwingWorker<>() {
             @Override

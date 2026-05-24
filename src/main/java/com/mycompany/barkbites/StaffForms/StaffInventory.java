@@ -9,18 +9,12 @@ import com.mycompany.barkbites.data.staff.StaffInventoryItem;
 import com.mycompany.barkbites.data.staff.StaffInventoryService;
 import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import java.awt.Color;
-import java.awt.Font;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import javax.swing.DefaultListModel;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 
 /**
  * OOP used here:
@@ -76,6 +70,7 @@ public class StaffInventory extends javax.swing.JFrame {
         makeButtonInvisible(MenuButton);
         makeButtonInvisible(InventoryButton);
         makeButtonInvisible(LogoutButton);
+        makeButtonInvisible(HistoryButton);
         makeButtonInvisible(newButton);
         makeButtonInvisible(saveButton);
         makeButtonInvisible(deleteButton);
@@ -403,11 +398,11 @@ public class StaffInventory extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void nameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameFieldActionPerformed
-        // TODO add your handling code here:
+        // Action handled through the form controls.
     }//GEN-LAST:event_nameFieldActionPerformed
 
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
-        // TODO add your handling code here:
+        // Action handled through the form controls.
     }//GEN-LAST:event_deleteButtonActionPerformed
 
     /**

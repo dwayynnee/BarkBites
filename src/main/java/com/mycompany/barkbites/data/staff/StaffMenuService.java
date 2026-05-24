@@ -2,7 +2,6 @@ package com.mycompany.barkbites.data.staff;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
@@ -15,6 +14,7 @@ import java.util.Map;
 /**
  * Firestore CRUD for staff-managed menu items.
  */
+@SuppressWarnings("null")
 public final class StaffMenuService {
 
     public void seedDefaultMenuItemsIfMissing() {

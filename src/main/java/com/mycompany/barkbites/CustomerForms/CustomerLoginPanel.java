@@ -275,7 +275,7 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
-        // TODO add your handling code here:
+        // Action handled through the form's login flow.
     }//GEN-LAST:event_jTextField1ActionPerformed
 
     public static void main(String args[]) {

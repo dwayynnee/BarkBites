@@ -9,7 +9,6 @@ import com.mycompany.barkbites.data.firestore.FirestoreRestClient;
 import java.util.concurrent.ExecutionException;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 
 public class CustomerProfilePanelVisible extends javax.swing.JFrame {
 

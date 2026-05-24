@@ -1,7 +1,5 @@
 package com.mycompany.barkbites.CustomerForms;
 
-import com.mycompany.barkbites.FormNavigator;
-
 public class CustomerResetPass extends javax.swing.JFrame {
 
     public CustomerResetPass() {

@@ -11,7 +11,6 @@ import com.mycompany.barkbites.data.staff.StaffMenuService;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Image;
-import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -57,6 +56,7 @@ public class StaffMenu extends javax.swing.JFrame {
         makeButtonInvisible(InventoryButton);
         makeButtonInvisible(StatisticsButton);
         makeButtonInvisible(LogoutButton);
+        makeButtonInvisible(HistoryButton);
 
         // Action: route the navigation buttons to the matching screens.
         OrdersButton.addActionListener(evt -> openStaffOrders());
@@ -148,6 +148,7 @@ public class StaffMenu extends javax.swing.JFrame {
         worker.execute();
     }
 
+    @SuppressWarnings("unused")
     private void populateFormFromSelection() {
         StaffMenuItem item = findSelectedMenuItem();
         if (item == null) {
@@ -229,6 +230,7 @@ public class StaffMenu extends javax.swing.JFrame {
         worker.execute();
     }
 
+    @SuppressWarnings("unused")
     private void deleteSelectedMenuItem() {
         StaffMenuItem selectedItem = findSelectedMenuItem();
         if (selectedItem == null) {
@@ -510,8 +512,6 @@ public class StaffMenu extends javax.swing.JFrame {
 
         LogoutButton.setText("jButton4");
         getContentPane().add(LogoutButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 550, 100, 30));
-
-        HistoryButton.setText("jButton1");
         getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 460, 140, 70));
 
         QuantityField.setText("jTextField1");

@@ -14,6 +14,7 @@ import java.util.Map;
 /**
  * Firestore reader for customer orders visible to staff.
  */
+@SuppressWarnings("null")
 public final class StaffOrderService {
 
     public List<StaffOrderRecord> listOrders() {

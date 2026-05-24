@@ -5,6 +5,28 @@
 package com.mycompany.barkbites.StaffForms;
 
 import com.mycompany.barkbites.FormNavigator;
+import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
+import com.mycompany.barkbites.data.staff.StaffOrderRecord;
+import com.mycompany.barkbites.data.staff.StaffOrderService;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JOptionPane;
+import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
+import javax.swing.table.DefaultTableModel;
 
 /**
  * OOP used here:
@@ -17,11 +39,29 @@ import com.mycompany.barkbites.FormNavigator;
  */
 public class StaffHistory extends javax.swing.JFrame {
 
+    private static final DateTimeFormatter HISTORY_TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a").withZone(ZoneId.systemDefault());
+
+    private final StaffOrderService orderService = new StaffOrderService();
+    private final DefaultTableModel historyTableModel = new DefaultTableModel(
+            new Object[] { "Order ID", "Customer", "Status", "Payment", "Total", "Order", "Created" },
+            0
+    ) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false;
+        }
+    };
+    private JTable historyTable;
+    private JPanel historyPanel;
+
     /**
      * Creates new form StaffHistory
      */
     public StaffHistory() {
         initComponents();
+        StaffFirebaseBootstrap.ensureInitialized(this);
+        configureHistoryPanel();
         // Action: keep the generated buttons clickable while hiding their chrome.
         makeButtonInvisible(StaffOrders);
         makeButtonInvisible(StaffInventory);
@@ -36,7 +76,90 @@ public class StaffHistory extends javax.swing.JFrame {
         StaffMenu.addActionListener(evt -> openStaffMenu());
         StaffStatistics.addActionListener(evt -> openStaffStatistics());
         Logout.addActionListener(evt -> openStaffLandingPage());
-        Refresh.addActionListener(evt -> refreshPage());
+        Refresh.addActionListener(evt -> loadHistoryAsync());
+
+        loadHistoryAsync();
+    }
+
+    private void configureHistoryPanel() {
+        historyPanel = new JPanel(new BorderLayout());
+        historyPanel.setOpaque(true);
+        historyPanel.setBackground(new Color(255, 255, 255, 230));
+        historyPanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+
+        JLabel titleLabel = new JLabel("Order History");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        titleLabel.setForeground(new Color(25, 25, 25));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 12, 8, 12));
+
+        historyTable = new JTable(historyTableModel);
+        historyTable.setRowHeight(24);
+        historyTable.setShowGrid(false);
+        historyTable.setFillsViewportHeight(true);
+        historyTable.setBackground(Color.WHITE);
+        historyTable.setForeground(Color.BLACK);
+        historyTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        historyTable.getTableHeader().setReorderingAllowed(false);
+        historyTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        historyTable.getTableHeader().setBackground(new Color(23, 57, 122));
+        historyTable.getTableHeader().setForeground(Color.WHITE);
+
+        JScrollPane scrollPane = new JScrollPane(historyTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(Color.WHITE);
+
+        historyPanel.add(titleLabel, BorderLayout.NORTH);
+        historyPanel.add(scrollPane, BorderLayout.CENTER);
+
+        getContentPane().add(historyPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 120, 700, 390));
+        getContentPane().setComponentZOrder(historyPanel, 0);
+        getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
+        getContentPane().revalidate();
+        getContentPane().repaint();
+    }
+
+    private void loadHistoryAsync() {
+        Refresh.setEnabled(false);
+        SwingWorker<List<StaffOrderRecord>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<StaffOrderRecord> doInBackground() {
+                List<StaffOrderRecord> orders = new ArrayList<>(orderService.listOrders());
+                orders.sort(
+                        Comparator
+                                .comparingLong(StaffOrderRecord::createdAtMillis)
+                                .reversed()
+                                .thenComparing(StaffOrderRecord::id)
+                );
+                return orders;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<StaffOrderRecord> orders = get();
+                    historyTableModel.setRowCount(0);
+                    for (StaffOrderRecord order : orders) {
+                        historyTableModel.addRow(new Object[] {
+                            safeText(order.id()),
+                            safeText(order.customerName()),
+                            safeText(order.status()),
+                            safeText(order.payment()),
+                            formatTotal(order.totalCents()),
+                            safeText(order.order()),
+                            formatCreatedAt(order.createdAtMillis())
+                        });
+                    }
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException ex) {
+                    String message = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                    JOptionPane.showMessageDialog(StaffHistory.this, message, "Load history failed", JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    Refresh.setEnabled(true);
+                }
+            }
+        };
+        worker.execute();
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {
@@ -75,7 +198,25 @@ public class StaffHistory extends javax.swing.JFrame {
 
     private void refreshPage() {
         // Action: reload the current history screen.
-        FormNavigator.redirect(this, new StaffHistory());
+        loadHistoryAsync();
+    }
+
+    private static String formatTotal(long totalCents) {
+        return "₱" + String.format("%,.2f", totalCents / 100.0d);
+    }
+
+    private static String formatCreatedAt(long createdAtMillis) {
+        if (createdAtMillis <= 0L) {
+            return "-";
+        }
+        return HISTORY_TIME_FORMATTER.format(Instant.ofEpochMilli(createdAtMillis));
+    }
+
+    private static String safeText(String value) {
+        if (value == null || value.isBlank()) {
+            return "-";
+        }
+        return value;
     }
 
     /**
@@ -83,7 +224,6 @@ public class StaffHistory extends javax.swing.JFrame {
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 

@@ -1,7 +1,5 @@
 package com.mycompany.barkbites.CustomerForms;
 
-import com.mycompany.barkbites.FormNavigator;
-
 public class CustomerOrderProcessing extends javax.swing.JFrame {
 
     public CustomerOrderProcessing() {

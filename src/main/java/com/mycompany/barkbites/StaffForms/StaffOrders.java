@@ -19,6 +19,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
@@ -62,6 +64,7 @@ public class StaffOrders extends javax.swing.JFrame {
         makeButtonInvisible(MenuButton);
         makeButtonInvisible(StatisticsButton);
         makeButtonInvisible(LogoutButton);
+        makeButtonInvisible(HistoryButton);
         makeButtonInvisible(updateButton);
         makeButtonInvisible(refreshButton);
 
@@ -358,7 +361,7 @@ public class StaffOrders extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        statusComboBox = new javax.swing.JComboBox();
+        statusComboBox = new javax.swing.JComboBox<>();
         refreshButton = new javax.swing.JButton();
         updateButton = new javax.swing.JButton();
         cardsContainerPanel = new javax.swing.JPanel();
@@ -388,7 +391,7 @@ public class StaffOrders extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        statusComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "new", "processing", "ready", "completed", "cancelled" }));
+        statusComboBox.setModel(new DefaultComboBoxModel<>(new String[] { "new", "processing", "ready", "completed", "cancelled" }));
         getContentPane().add(statusComboBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 130, 160, 30));
 
         refreshButton.setText("Refresh");
@@ -470,7 +473,7 @@ public class StaffOrders extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void InventoryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_InventoryButtonActionPerformed
-        // TODO add your handling code here:
+        // Action handled through the button listener.
     }//GEN-LAST:event_InventoryButtonActionPerformed
 
     /**
@@ -529,7 +532,7 @@ public class StaffOrders extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JButton refreshButton;
-    private javax.swing.JComboBox statusComboBox;
+    private JComboBox<String> statusComboBox;
     private javax.swing.JButton updateButton;
     // End of variables declaration//GEN-END:variables
 }
