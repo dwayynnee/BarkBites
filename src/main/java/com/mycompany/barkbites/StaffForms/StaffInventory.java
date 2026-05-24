@@ -31,12 +31,39 @@ public class StaffInventory extends javax.swing.JFrame {
     private final StaffInventoryService inventoryService = new StaffInventoryService();
     private final DefaultListModel<StaffInventoryItem> inventoryModel = new DefaultListModel<>();
     private JList<StaffInventoryItem> inventoryList = new JList<>();
+    // additional fields expected by the logic but not present in the GUI builder block
+    private javax.swing.JTextField documentIdField;
+    private javax.swing.JTextField unitField;
+    private javax.swing.JCheckBox lowStockCheckBox;
+    private javax.swing.JLabel statusLabel;
 
     /**
      * Creates new form StaffInventory
      */
     public StaffInventory() {
         initComponents();
+
+        // Initialize any GUI components that are referenced by logic but missing from the generated block.
+        if (documentIdField == null) {
+            documentIdField = new javax.swing.JTextField();
+            documentIdField.setVisible(false);
+            getContentPane().add(documentIdField, new org.netbeans.lib.awtextra.AbsoluteConstraints(0,0,0,0));
+        }
+        if (unitField == null) {
+            unitField = new javax.swing.JTextField();
+            unitField.setVisible(false);
+            getContentPane().add(unitField, new org.netbeans.lib.awtextra.AbsoluteConstraints(0,0,0,0));
+        }
+        if (lowStockCheckBox == null) {
+            lowStockCheckBox = new javax.swing.JCheckBox();
+            lowStockCheckBox.setVisible(false);
+            getContentPane().add(lowStockCheckBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(0,0,0,0));
+        }
+        if (statusLabel == null) {
+            statusLabel = new javax.swing.JLabel();
+            statusLabel.setVisible(false);
+            getContentPane().add(statusLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0,0,0,0));
+        }
 
         getContentPane().setComponentZOrder(BG, getContentPane().getComponentCount() - 1);
 

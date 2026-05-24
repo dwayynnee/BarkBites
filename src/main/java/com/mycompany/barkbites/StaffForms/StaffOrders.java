@@ -32,9 +32,6 @@ public class StaffOrders extends javax.swing.JFrame {
     private JLabel titleLabel;
     private JLabel selectedOrderLabel;
     private JLabel statusLabel;
-    private JComboBox<String> statusComboBox;
-    private javax.swing.JButton refreshButton;
-    private javax.swing.JButton updateButton;
 
     /**
      * Creates new form StaffOrders

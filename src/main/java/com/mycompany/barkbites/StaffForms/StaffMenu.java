@@ -35,22 +35,14 @@ public class StaffMenu extends javax.swing.JFrame {
     private JList<StaffMenuItem> menuItemsList;
     private JScrollPane menuItemsScroll;
     private JTextField documentIdField;
-    private JTextField titleField;
-    private JTextField priceField;
-    private JTextField imagePathField;
     private JTextArea descriptionArea;
     private JScrollPane descriptionScroll;
-    private JCheckBox activeCheckBox;
     private JLabel formTitle;
     private JLabel idLabel;
     private JLabel titleLabel;
     private JLabel priceLabel;
-    private JLabel imageLabel;
     private JLabel descriptionLabel;
-    private JLabel statusLabel;
-    private javax.swing.JButton refreshButton;
     private javax.swing.JButton newButton;
-    private javax.swing.JButton saveButton;
     private javax.swing.JButton deleteButton;
 
     /**

@@ -1,0 +1,11 @@
+﻿javac.exe : Note: 
+src\main\java\com\mycompany\barkbites\StaffForms\StaffOrders.java uses 
+unchecked or unsafe operations.
+At line:1 char:1
++ & 'C:\Program Files\Java\jdk-24\bin\javac.exe' -cp 'target/classes;C: ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Note: src\main\...afe operations. 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Note: Recompile with -Xlint:unchecked for details.

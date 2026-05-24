@@ -23,15 +23,10 @@ public class StaffStatistics extends javax.swing.JFrame {
     private final StaffStatisticsService statisticsService = new StaffStatisticsService();
     private JLabel titleLabel;
     private JLabel totalOrdersLabel;
-    private JLabel totalOrdersValue;
     private JLabel totalSalesLabel;
-    private JLabel totalSalesValue;
     private JLabel monthOrdersLabel;
-    private JLabel monthOrdersValue;
     private JLabel monthSalesLabel;
-    private JLabel monthSalesValue;
     private JLabel statusLabel;
-    private javax.swing.JButton refreshButton;
 
     /**
      * Creates new form StaffStatistics
