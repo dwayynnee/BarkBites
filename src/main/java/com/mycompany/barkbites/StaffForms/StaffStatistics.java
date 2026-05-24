@@ -52,6 +52,7 @@ public class StaffStatistics extends javax.swing.JFrame {
         InventoryButton.addActionListener(evt -> openStaffInventory());
         MenuButton.addActionListener(evt -> openStaffMenu());
         LogoutButton.addActionListener(evt -> openStaffLandingPage());
+        HistoryButton.addActionListener(evt -> openStaffHistory());
 
         StaffFirebaseBootstrap.ensureInitialized(this);
         configureUi();
@@ -121,6 +122,10 @@ public class StaffStatistics extends javax.swing.JFrame {
 
     private void openStaffLandingPage() {
         FormNavigator.redirect(this, new StaffLandingPage());
+    }
+
+    private void openStaffHistory() {
+        FormNavigator.redirect(this, new StaffHistory());
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {

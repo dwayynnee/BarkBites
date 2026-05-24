@@ -84,6 +84,7 @@ public class StaffInventory extends javax.swing.JFrame {
         MenuButton.addActionListener(evt -> openStaffMenu());
         InventoryButton.addActionListener(evt -> openStaffStatistics());
         LogoutButton.addActionListener(evt -> logout());
+        HistoryButton.addActionListener(evt -> openStaffHistory());
 
         inventoryList.setModel(inventoryModel);
         listScroll.setViewportView(inventoryList);
@@ -287,6 +288,10 @@ public class StaffInventory extends javax.swing.JFrame {
     }
     private void openStaffStatistics() {
         FormNavigator.redirect(this, new StaffStatistics());
+    }
+
+    private void openStaffHistory() {
+        FormNavigator.redirect(this, new StaffHistory());
     }
     private void logout() {
         FormNavigator.redirect(this, new StaffLandingPage());

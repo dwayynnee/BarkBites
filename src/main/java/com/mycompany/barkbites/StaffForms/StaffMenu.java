@@ -76,15 +76,11 @@ public class StaffMenu extends javax.swing.JFrame {
 
     private void configureCrudUi() {
         statusLabel.setForeground(Color.WHITE);
-        hideCardImage(jLabel4);
-        hideCardImage(jLabel8);
-        hideCardImage(jLabel10);
-        hideCardImage(jLabel13);
 
         refreshButton.addActionListener(evt -> loadMenuItemsAsync());
         saveButton.addActionListener(evt -> saveMenuItem());
-        HistoryButton.setText("Delete");
-        HistoryButton.addActionListener(evt -> deleteSelectedMenuItem());
+        HistoryButton.setText("History");
+        HistoryButton.addActionListener(evt -> openStaffHistory());
 
         installCardClickTarget(jPanel1, 0);
         installCardClickTarget(jPanel2, 1);
@@ -290,7 +286,8 @@ public class StaffMenu extends javax.swing.JFrame {
             priceLabel.setText("Price");
             quantityLabel.setText("Quantity");
             imageLabel.setIcon(null);
-            imageLabel.setText("");
+            imageLabel.setVisible(true);
+            imageLabel.setText("Image");
             panel.setBorder(null);
             return;
         }
@@ -301,10 +298,13 @@ public class StaffMenu extends javax.swing.JFrame {
 
         ImageIcon icon = loadMenuImage(item.imagePath(), imageLabel.getWidth(), imageLabel.getHeight());
         if (icon != null) {
+            imageLabel.setVisible(true);
+            imageLabel.setText("");
             imageLabel.setIcon(icon);
         } else {
             imageLabel.setIcon(null);
-            imageLabel.setText("");
+            imageLabel.setVisible(true);
+            imageLabel.setText(item.imagePath() == null || item.imagePath().isBlank() ? "Image" : item.imagePath());
         }
 
         if (item.id().equals(selectedMenuItemId)) {
@@ -312,12 +312,6 @@ public class StaffMenu extends javax.swing.JFrame {
         } else {
             panel.setBorder(null);
         }
-    }
-
-    private static void hideCardImage(JLabel label) {
-        label.setVisible(false);
-        label.setText("");
-        label.setIcon(null);
     }
 
     private void installCardClickTarget(Component component, int itemIndex) {
@@ -365,7 +359,7 @@ public class StaffMenu extends javax.swing.JFrame {
             return null;
         }
 
-        URL resource = getClass().getResource(imagePath.startsWith("/") ? imagePath : "/" + imagePath);
+        URL resource = resolveImageResource(imagePath);
         Image sourceImage = null;
         if (resource != null) {
             sourceImage = new ImageIcon(resource).getImage();
@@ -386,6 +380,23 @@ public class StaffMenu extends javax.swing.JFrame {
         return new ImageIcon(scaled);
     }
 
+    private URL resolveImageResource(String imagePath) {
+        String normalizedPath = imagePath.startsWith("/") ? imagePath.substring(1) : imagePath;
+        String uploadsPath = "/com/mycompany/barkbites/Uploads/" + normalizedPath;
+        URL resource = getClass().getResource(uploadsPath);
+        if (resource != null) {
+            return resource;
+        }
+
+        String rawClasspathPath = imagePath.startsWith("/") ? imagePath : "/" + imagePath;
+        resource = getClass().getResource(rawClasspathPath);
+        if (resource != null) {
+            return resource;
+        }
+
+        return getClass().getResource("/com/mycompany/barkbites/StaffDesign/" + normalizedPath);
+    }
+
     private void openStaffOrders() {
         FormNavigator.redirect(this, new StaffOrders());
     }
@@ -400,6 +411,10 @@ public class StaffMenu extends javax.swing.JFrame {
 
     private void openStaffLandingPage() {
         FormNavigator.redirect(this, new StaffLandingPage());
+    }
+
+    private void openStaffHistory() {
+        FormNavigator.redirect(this, new StaffHistory());
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {

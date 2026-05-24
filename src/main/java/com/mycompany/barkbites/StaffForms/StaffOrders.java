@@ -63,6 +63,7 @@ public class StaffOrders extends javax.swing.JFrame {
         MenuButton.addActionListener(evt -> openStaffMenu());
         StatisticsButton.addActionListener(evt -> openStaffStatistics());
         LogoutButton.addActionListener(evt -> openStaffLandingPage());
+        HistoryButton.addActionListener(evt -> openStaffHistory());
         refreshButton.addActionListener(evt -> loadOrdersAsync());
         updateButton.addActionListener(evt -> updateSelectedOrderStatusAsync());
 
@@ -104,6 +105,10 @@ public class StaffOrders extends javax.swing.JFrame {
 
     private void openStaffLandingPage() {
         FormNavigator.redirect(this, new StaffLandingPage());
+    }
+
+    private void openStaffHistory() {
+        FormNavigator.redirect(this, new StaffHistory());
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {
@@ -363,6 +368,7 @@ public class StaffOrders extends javax.swing.JFrame {
         MenuButton = new javax.swing.JButton();
         StatisticsButton = new javax.swing.JButton();
         LogoutButton = new javax.swing.JButton();
+        HistoryButton = new javax.swing.JButton();
         BG = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -440,6 +446,9 @@ public class StaffOrders extends javax.swing.JFrame {
         LogoutButton.setText("jButton4");
         getContentPane().add(LogoutButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 550, 90, 30));
 
+        HistoryButton.setText("jButton1");
+        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 460, 140, 70));
+
         BG.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffOrders.png"))); // NOI18N
         getContentPane().add(BG, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
@@ -487,6 +496,7 @@ public class StaffOrders extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel BG;
+    private javax.swing.JButton HistoryButton;
     private javax.swing.JButton InventoryButton;
     private javax.swing.JButton LogoutButton;
     private javax.swing.JButton MenuButton;
