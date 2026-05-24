@@ -157,7 +157,7 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         if (walletBalanceCents == null) {
             return "Wallet unavailable";
         }
-        return "₱" + String.format(java.util.Locale.US, "%,.2f", walletBalanceCents / 100.0);
+        return String.format(java.util.Locale.US, "%,.2f", walletBalanceCents / 100.0);
     }
 
     private static String maskWalletBalance(Long walletBalanceCents) {
@@ -212,18 +212,22 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         jButton6.setText("jButton6");
         getContentPane().add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 400, 130, 130));
 
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("jLabel2");
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 90, 100, 30));
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 90, 170, 30));
 
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setText("jLabel3");
         getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 120, 220, 20));
 
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel4.setText("jLabel4");
-        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 250, 60, 30));
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 250, 70, 30));
 
-        jButton7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/CustomerDesign/eye-open.png")));
-        jButton7.setText("");
-        getContentPane().add(jButton7, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 250, -1, 30));
+        jButton7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/CustomerDesign/eye-open.png"))); // NOI18N
+        getContentPane().add(jButton7, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 250, -1, 30));
 
         jButton8.setText("jButton8");
         getContentPane().add(jButton8, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 180, 130, 50));
