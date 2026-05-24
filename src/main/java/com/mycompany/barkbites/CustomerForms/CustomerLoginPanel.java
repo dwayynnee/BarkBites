@@ -7,16 +7,24 @@ import com.mycompany.barkbites.data.auth.AuthState;
 import com.mycompany.barkbites.data.auth.FirebaseAuthRestService;
 import java.awt.Color;
 import java.util.concurrent.ExecutionException;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 public class CustomerLoginPanel extends javax.swing.JFrame {
 
+    private static final String PASSWORD_HIDDEN_ICON = "/com/mycompany/barkbites/CustomerDesign/eye-open.png";
+    private static final String PASSWORD_VISIBLE_ICON = "/com/mycompany/barkbites/CustomerDesign/eye-close.png";
+
     private char passwordEchoChar;
     private boolean passwordVisible;
+    private final javax.swing.Icon passwordHiddenIcon;
+    private final javax.swing.Icon passwordVisibleIcon;
 
     public CustomerLoginPanel() {
         initComponents();
+        passwordHiddenIcon = loadIcon(PASSWORD_HIDDEN_ICON);
+        passwordVisibleIcon = loadIcon(PASSWORD_VISIBLE_ICON);
 
         // Keep the background image behind the click targets.
         // In Swing, index 0 is the front/top.
@@ -53,6 +61,7 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
 
         // Capture default echo char for show/hide.
         passwordEchoChar = jTextField2.getEchoChar();
+        updatePasswordToggleButton();
 
         this.setResizable(false);
     }
@@ -69,7 +78,6 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
         if (button == null) {
             return;
         }
-        button.setText("");
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
         button.setFocusPainted(false);
@@ -190,7 +198,23 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
     private void togglePasswordVisibility() {
         passwordVisible = !passwordVisible;
         jTextField2.setEchoChar(passwordVisible ? (char) 0 : passwordEchoChar);
+        updatePasswordToggleButton();
         jTextField2.requestFocusInWindow();
+    }
+
+    private void updatePasswordToggleButton() {
+        jButton4.setIcon(passwordVisible ? passwordVisibleIcon : passwordHiddenIcon);
+        jButton4.setText("");
+        jButton4.setToolTipText(passwordVisible ? "Hide password" : "Show password");
+        jButton4.getAccessibleContext().setAccessibleDescription(passwordVisible ? "Hide password" : "Show password");
+    }
+
+    private ImageIcon loadIcon(String resourcePath) {
+        java.net.URL resource = getClass().getResource(resourcePath);
+        if (resource == null) {
+            throw new IllegalStateException("Missing icon resource: " + resourcePath);
+        }
+        return new ImageIcon(resource);
     }
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -206,12 +230,8 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        jButton1.setText("jButton1");
         getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 410, 260, 50));
-
-        jButton2.setText("jButton2");
-        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 500, 80, 50));
+        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 480, 80, 50));
 
         jButton3.setText("jButton3");
         getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 20, 60, 50));
@@ -223,14 +243,14 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
                 jTextField1ActionPerformed(evt);
             }
         });
-        getContentPane().add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 260, 200, 50));
+        getContentPane().add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 270, 190, 30));
 
         jTextField2.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
         jTextField2.setText("jTextField2");
-        getContentPane().add(jTextField2, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 340, 200, 40));
+        getContentPane().add(jTextField2, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 350, 120, 30));
 
-        jButton4.setText("jButton4");
-        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 380, 80, -1));
+        jButton4.setText("Show");
+        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 340, 60, -1));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/CustomerDesign/CustomerLoginPanel.png"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));

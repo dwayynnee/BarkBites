@@ -34,14 +34,14 @@
       </Properties>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-          <AbsoluteConstraints x="185" y="105" width="220" height="28"/>
+          <AbsoluteConstraints x="190" y="110" width="220" height="28"/>
         </Constraint>
       </Constraints>
     </Component>
     <Component class="javax.swing.JScrollPane" name="listScroll">
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-          <AbsoluteConstraints x="185" y="140" width="320" height="380"/>
+          <AbsoluteConstraints x="185" y="150" width="320" height="370"/>
         </Constraint>
       </Constraints>
     </Component>

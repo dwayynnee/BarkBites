@@ -9,16 +9,27 @@ import com.mycompany.barkbites.data.firestore.FirestoreDocuments;
 import com.mycompany.barkbites.data.firestore.FirestoreRestClient;
 import java.awt.Color;
 import java.util.concurrent.ExecutionException;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 public class CustomerSignupPanel extends javax.swing.JFrame {
 
+    private static final String PASSWORD_HIDDEN_ICON = "/com/mycompany/barkbites/CustomerDesign/eye-open.png";
+    private static final String PASSWORD_VISIBLE_ICON = "/com/mycompany/barkbites/CustomerDesign/eye-close.png";
+
     private record RegisterResult(AuthSession session, String warning) {
     }
 
+    private char passwordEchoChar;
+    private boolean passwordVisible;
+    private final javax.swing.Icon passwordHiddenIcon;
+    private final javax.swing.Icon passwordVisibleIcon;
+
     public CustomerSignupPanel() {
         initComponents();
+        passwordHiddenIcon = loadIcon(PASSWORD_HIDDEN_ICON);
+        passwordVisibleIcon = loadIcon(PASSWORD_VISIBLE_ICON);
 
         // Keep the background image behind the click targets.
         // In Swing, index 0 is the front/top.
@@ -32,6 +43,7 @@ public class CustomerSignupPanel extends javax.swing.JFrame {
         });
         jButton2.addActionListener(e -> attemptRegister());
         jButton3.addActionListener(e -> FormNavigator.redirect(this, new CustomerLoginOptions()));
+        jButton4.addActionListener(e -> togglePasswordVisibility());
 
         // Inputs.
         jTextField1.setText(""); // Student ID
@@ -42,12 +54,16 @@ public class CustomerSignupPanel extends javax.swing.JFrame {
         makeTextFieldTransparent(jTextField1);
         makeTextFieldTransparent(jTextField2);
         makeTextFieldTransparent(jTextField3);
-        makeTextFieldTransparent(jTextField4);
+        makePasswordFieldTransparent(jTextField4);
+
+        passwordEchoChar = jTextField4.getEchoChar();
+        updatePasswordToggleButton();
 
         // Make buttons invisible but still clickable.
         makeButtonInvisible(jButton1);
         makeButtonInvisible(jButton2);
         makeButtonInvisible(jButton3);
+        makeButtonInvisible(jButton4);
 
         this.setResizable(false);
     }
@@ -73,9 +89,42 @@ public class CustomerSignupPanel extends javax.swing.JFrame {
         field.setCaretColor(field.getForeground());
     }
 
+    private static void makePasswordFieldTransparent(javax.swing.JPasswordField field) {
+        if (field == null) {
+            return;
+        }
+        field.setOpaque(false);
+        field.setBackground(new Color(0, 0, 0, 0));
+        field.setBorder(null);
+        field.setCaretColor(field.getForeground());
+    }
+
+    private ImageIcon loadIcon(String resourcePath) {
+        java.net.URL resource = getClass().getResource(resourcePath);
+        if (resource == null) {
+            throw new IllegalStateException("Missing icon resource: " + resourcePath);
+        }
+        return new ImageIcon(resource);
+    }
+
+    private void togglePasswordVisibility() {
+        passwordVisible = !passwordVisible;
+        jTextField4.setEchoChar(passwordVisible ? (char) 0 : passwordEchoChar);
+        updatePasswordToggleButton();
+        jTextField4.requestFocusInWindow();
+    }
+
+    private void updatePasswordToggleButton() {
+        jButton4.setIcon(passwordVisible ? passwordVisibleIcon : passwordHiddenIcon);
+        jButton4.setText("");
+        jButton4.setToolTipText(passwordVisible ? "Hide password" : "Show password");
+        jButton4.getAccessibleContext().setAccessibleDescription(passwordVisible ? "Hide password" : "Show password");
+    }
+
     private void setBusy(boolean busy) {
         jButton1.setEnabled(!busy);
         jButton2.setEnabled(!busy);
+        jButton4.setEnabled(!busy);
         jTextField1.setEnabled(!busy);
         jTextField2.setEnabled(!busy);
         jTextField3.setEnabled(!busy);
@@ -87,7 +136,6 @@ public class CustomerSignupPanel extends javax.swing.JFrame {
         String studentId = jTextField1.getText() != null ? jTextField1.getText().trim() : "";
         String name = jTextField2.getText() != null ? jTextField2.getText().trim() : "";
         String email = jTextField3.getText() != null ? jTextField3.getText().trim() : "";
-        String password = jTextField4.getText() != null ? jTextField4.getText() : "";
 
         if (studentId.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter your Student ID.", "Missing Student ID", JOptionPane.WARNING_MESSAGE);
@@ -109,6 +157,12 @@ public class CustomerSignupPanel extends javax.swing.JFrame {
             jTextField3.requestFocusInWindow();
             return;
         }
+        char[] passwordChars = jTextField4.getPassword();
+        String password = passwordChars != null ? new String(passwordChars) : "";
+        if (passwordChars != null) {
+            java.util.Arrays.fill(passwordChars, '\0');
+        }
+
         if (password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter a password.", "Missing password", JOptionPane.WARNING_MESSAGE);
             jTextField4.requestFocusInWindow();
@@ -216,8 +270,9 @@ public class CustomerSignupPanel extends javax.swing.JFrame {
         jTextField1 = new javax.swing.JTextField();
         jTextField2 = new javax.swing.JTextField();
         jTextField3 = new javax.swing.JTextField();
-        jTextField4 = new javax.swing.JTextField();
+        jTextField4 = new javax.swing.JPasswordField();
         jButton3 = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -239,16 +294,28 @@ public class CustomerSignupPanel extends javax.swing.JFrame {
         getContentPane().add(jTextField3, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 360, 190, 40));
 
         jTextField4.setText("jTextField4");
-        getContentPane().add(jTextField4, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 430, 190, 40));
+        getContentPane().add(jTextField4, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 430, 130, 40));
 
         jButton3.setText("jButton3");
         getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 60));
+
+        jButton4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/CustomerDesign/eye-open.png"))); // NOI18N
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 430, 40, -1));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/CustomerDesign/CustomerSignupPanel.png"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton4ActionPerformed
 
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -262,10 +329,11 @@ public class CustomerSignupPanel extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
+    private javax.swing.JPasswordField jTextField4;
     // End of variables declaration//GEN-END:variables
 }

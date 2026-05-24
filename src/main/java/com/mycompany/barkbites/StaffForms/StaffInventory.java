@@ -291,7 +291,6 @@ public class StaffInventory extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        inventoryList = new javax.swing.JList<>();
         titleLabel = new javax.swing.JLabel();
         listScroll = new javax.swing.JScrollPane();
         idLabel = new javax.swing.JLabel();
@@ -321,8 +320,8 @@ public class StaffInventory extends javax.swing.JFrame {
 
         titleLabel.setFont(new java.awt.Font("Arial", 1, 22)); // NOI18N
         titleLabel.setText("Inventory Editor");
-        getContentPane().add(titleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 105, 220, 28));
-        getContentPane().add(listScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 140, 320, 380));
+        getContentPane().add(titleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 110, 220, 28));
+        getContentPane().add(listScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 150, 320, 370));
 
         idLabel.setText("Document ID");
         getContentPane().add(idLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(535, 140, 120, 20));
@@ -416,10 +415,28 @@ public class StaffInventory extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton deleteButton;
+    private javax.swing.JTextField documentIdField;
+    private javax.swing.JLabel idLabel;
+    private javax.swing.JLabel imageLabel;
+    private javax.swing.JTextField imagePathField;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JScrollPane listScroll;
+    private javax.swing.JCheckBox lowStockCheckBox;
+    private javax.swing.JTextField nameField;
+    private javax.swing.JLabel nameLabel;
+    private javax.swing.JButton newButton;
+    private javax.swing.JTextField quantityField;
+    private javax.swing.JLabel quantityLabel;
+    private javax.swing.JButton refreshButton;
+    private javax.swing.JButton saveButton;
+    private javax.swing.JLabel statusLabel;
+    private javax.swing.JLabel titleLabel;
+    private javax.swing.JTextField unitField;
+    private javax.swing.JLabel unitLabel;
     // End of variables declaration//GEN-END:variables
 }
