@@ -35,7 +35,7 @@ public class StaffStatistics extends javax.swing.JFrame {
         initComponents();
 
         titleLabel = new JLabel();
-        statusLabel = new JLabel("Ready");
+        statusLabel = new JLabel("");
         getContentPane().add(titleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 110, 220, 28));
         getContentPane().add(statusLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 545, 360, 22));
 
@@ -45,6 +45,8 @@ public class StaffStatistics extends javax.swing.JFrame {
         makeButtonInvisible(InventoryButton);
         makeButtonInvisible(MenuButton);
         makeButtonInvisible(LogoutButton);
+        makeButtonInvisible(refreshButton);
+        makeButtonInvisible(HistoryButton);
 
         OrdersButton.addActionListener(evt -> openStaffOrders());
         InventoryButton.addActionListener(evt -> openStaffInventory());
@@ -156,20 +158,24 @@ public class StaffStatistics extends javax.swing.JFrame {
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         totalOrdersValue.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
+        totalOrdersValue.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         totalOrdersValue.setText("0");
-        getContentPane().add(totalOrdersValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 260, 130, 30));
+        getContentPane().add(totalOrdersValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 260, 260, 30));
 
         totalSalesValue.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
+        totalSalesValue.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         totalSalesValue.setText("₱0.00");
-        getContentPane().add(totalSalesValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 450, 220, 30));
+        getContentPane().add(totalSalesValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 450, 260, 30));
 
         monthOrdersValue.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
+        monthOrdersValue.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         monthOrdersValue.setText("0");
-        getContentPane().add(monthOrdersValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(620, 260, 170, 30));
+        getContentPane().add(monthOrdersValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(540, 260, 260, 30));
 
         monthSalesValue.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
+        monthSalesValue.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         monthSalesValue.setText("₱0.00");
-        getContentPane().add(monthSalesValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 450, 150, 30));
+        getContentPane().add(monthSalesValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(540, 450, 260, 30));
 
         refreshButton.setText("Refresh");
         getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(770, 120, 120, 50));
