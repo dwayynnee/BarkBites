@@ -39,17 +39,17 @@ public class StaffStatistics extends javax.swing.JFrame {
     public StaffStatistics() {
         initComponents();
 
-        getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
+        getContentPane().setComponentZOrder(BG, getContentPane().getComponentCount() - 1);
 
-        makeButtonInvisible(jButton1);
-        makeButtonInvisible(jButton2);
-        makeButtonInvisible(jButton3);
-        makeButtonInvisible(jButton4);
+        makeButtonInvisible(OrdersButton);
+        makeButtonInvisible(InventoryButton);
+        makeButtonInvisible(MenuButton);
+        makeButtonInvisible(LogoutButton);
 
-        jButton1.addActionListener(evt -> openStaffOrders());
-        jButton2.addActionListener(evt -> openStaffInventory());
-        jButton3.addActionListener(evt -> openStaffMenu());
-        jButton4.addActionListener(evt -> openStaffLandingPage());
+        OrdersButton.addActionListener(evt -> openStaffOrders());
+        InventoryButton.addActionListener(evt -> openStaffInventory());
+        MenuButton.addActionListener(evt -> openStaffMenu());
+        LogoutButton.addActionListener(evt -> openStaffLandingPage());
 
         StaffFirebaseBootstrap.ensureInitialized(this);
         configureUi();
@@ -138,82 +138,60 @@ public class StaffStatistics extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        titleLabel = new javax.swing.JLabel();
-        totalOrdersLabel = new javax.swing.JLabel();
+        jButton5 = new javax.swing.JButton();
         totalOrdersValue = new javax.swing.JLabel();
-        totalSalesLabel = new javax.swing.JLabel();
         totalSalesValue = new javax.swing.JLabel();
-        monthOrdersLabel = new javax.swing.JLabel();
         monthOrdersValue = new javax.swing.JLabel();
-        monthSalesLabel = new javax.swing.JLabel();
         monthSalesValue = new javax.swing.JLabel();
         refreshButton = new javax.swing.JButton();
-        statusLabel = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
+        OrdersButton = new javax.swing.JButton();
+        InventoryButton = new javax.swing.JButton();
+        MenuButton = new javax.swing.JButton();
+        LogoutButton = new javax.swing.JButton();
+        HistoryButton = new javax.swing.JButton();
+        BG = new javax.swing.JLabel();
+
+        jButton5.setText("jButton5");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        titleLabel.setFont(new java.awt.Font("Arial", 1, 22)); // NOI18N
-        titleLabel.setText("Sales Statistics");
-        getContentPane().add(titleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 120, 250, 28));
-
-        totalOrdersLabel.setFont(new java.awt.Font("Arial", 0, 15)); // NOI18N
-        totalOrdersLabel.setText("Total Orders");
-        getContentPane().add(totalOrdersLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 180, 200, 20));
-
         totalOrdersValue.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
         totalOrdersValue.setText("0");
-        getContentPane().add(totalOrdersValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 206, 220, 30));
-
-        totalSalesLabel.setFont(new java.awt.Font("Arial", 0, 15)); // NOI18N
-        totalSalesLabel.setText("Total Sales");
-        getContentPane().add(totalSalesLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 280, 200, 20));
+        getContentPane().add(totalOrdersValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 260, 130, 30));
 
         totalSalesValue.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
         totalSalesValue.setText("₱0.00");
-        getContentPane().add(totalSalesValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 306, 220, 30));
-
-        monthOrdersLabel.setFont(new java.awt.Font("Arial", 0, 15)); // NOI18N
-        monthOrdersLabel.setText("This Month Orders");
-        getContentPane().add(monthOrdersLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 180, 200, 20));
+        getContentPane().add(totalSalesValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 450, 220, 30));
 
         monthOrdersValue.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
         monthOrdersValue.setText("0");
-        getContentPane().add(monthOrdersValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 206, 220, 30));
-
-        monthSalesLabel.setFont(new java.awt.Font("Arial", 0, 15)); // NOI18N
-        monthSalesLabel.setText("This Month Sales");
-        getContentPane().add(monthSalesLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 280, 200, 20));
+        getContentPane().add(monthOrdersValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(620, 260, 170, 30));
 
         monthSalesValue.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
         monthSalesValue.setText("₱0.00");
-        getContentPane().add(monthSalesValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 306, 220, 30));
+        getContentPane().add(monthSalesValue, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 450, 150, 30));
 
         refreshButton.setText("Refresh");
-        getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 400, 120, 34));
+        getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(770, 120, 120, 50));
 
-        statusLabel.setText("Ready");
-        getContentPane().add(statusLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 445, 400, 22));
+        OrdersButton.setText("jButton1");
+        getContentPane().add(OrdersButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 130, 140, 70));
 
-        jButton1.setText("jButton1");
-        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 130, 140, 70));
+        InventoryButton.setText("jButton2");
+        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 210, 140, 70));
 
-        jButton2.setText("jButton2");
-        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 230, 140, 70));
+        MenuButton.setText("jButton3");
+        getContentPane().add(MenuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 290, 140, 70));
 
-        jButton3.setText("jButton3");
-        getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 340, 140, 70));
+        LogoutButton.setText("jButton4");
+        getContentPane().add(LogoutButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 540, 90, 40));
 
-        jButton4.setText("jButton4");
-        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 540, 90, 40));
+        HistoryButton.setText("jButton6");
+        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 460, 140, 70));
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffStatistics.png"))); // NOI18N
-        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+        BG.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffStatistics.png"))); // NOI18N
+        getContentPane().add(BG, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -254,10 +232,17 @@ public class StaffStatistics extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel BG;
+    private javax.swing.JButton HistoryButton;
+    private javax.swing.JButton InventoryButton;
+    private javax.swing.JButton LogoutButton;
+    private javax.swing.JButton MenuButton;
+    private javax.swing.JButton OrdersButton;
+    private javax.swing.JButton jButton5;
+    private javax.swing.JLabel monthOrdersValue;
+    private javax.swing.JLabel monthSalesValue;
+    private javax.swing.JButton refreshButton;
+    private javax.swing.JLabel totalOrdersValue;
+    private javax.swing.JLabel totalSalesValue;
     // End of variables declaration//GEN-END:variables
 }

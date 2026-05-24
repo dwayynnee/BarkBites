@@ -59,17 +59,17 @@ public class StaffMenu extends javax.swing.JFrame {
     public StaffMenu() {
         initComponents();
 
-        getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
+        getContentPane().setComponentZOrder(BG, getContentPane().getComponentCount() - 1);
 
-        makeButtonInvisible(jButton1);
-        makeButtonInvisible(jButton2);
-        makeButtonInvisible(jButton3);
-        makeButtonInvisible(jButton4);
+        makeButtonInvisible(OrdersButton);
+        makeButtonInvisible(InventoryButton);
+        makeButtonInvisible(StatisticsButton);
+        makeButtonInvisible(LogoutButton);
 
-        jButton1.addActionListener(evt -> openStaffOrders());
-        jButton2.addActionListener(evt -> openStaffInventory());
-        jButton3.addActionListener(evt -> openStaffStatistics());
-        jButton4.addActionListener(evt -> openStaffLandingPage());
+        OrdersButton.addActionListener(evt -> openStaffOrders());
+        InventoryButton.addActionListener(evt -> openStaffInventory());
+        StatisticsButton.addActionListener(evt -> openStaffStatistics());
+        LogoutButton.addActionListener(evt -> openStaffLandingPage());
 
         StaffFirebaseBootstrap.ensureInitialized(this);
         configureCrudUi();
@@ -314,97 +314,64 @@ public class StaffMenu extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        menuItemsList = new javax.swing.JList<>();
-        formTitle = new javax.swing.JLabel();
-        idLabel = new javax.swing.JLabel();
-        documentIdField = new javax.swing.JTextField();
-        titleLabel = new javax.swing.JLabel();
         titleField = new javax.swing.JTextField();
-        priceLabel = new javax.swing.JLabel();
         priceField = new javax.swing.JTextField();
         imageLabel = new javax.swing.JLabel();
         imagePathField = new javax.swing.JTextField();
-        descriptionLabel = new javax.swing.JLabel();
-        descriptionArea = new javax.swing.JTextArea();
-        descriptionScroll = new javax.swing.JScrollPane();
         activeCheckBox = new javax.swing.JCheckBox();
         refreshButton = new javax.swing.JButton();
-        newButton = new javax.swing.JButton();
         saveButton = new javax.swing.JButton();
-        deleteButton = new javax.swing.JButton();
-        menuItemsScroll = new javax.swing.JScrollPane();
         statusLabel = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
+        OrdersButton = new javax.swing.JButton();
+        InventoryButton = new javax.swing.JButton();
+        StatisticsButton = new javax.swing.JButton();
+        LogoutButton = new javax.swing.JButton();
+        HistoryButton = new javax.swing.JButton();
+        BG = new javax.swing.JLabel();
+        QuantityField = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-    menuItemsList.setModel(menuItemsModel);
-    menuItemsScroll.setViewportView(menuItemsList);
-    descriptionScroll.setViewportView(descriptionArea);
-
-        formTitle.setFont(new java.awt.Font("Arial", 1, 18)); // NOI18N
-        formTitle.setText("Menu Item Editor");
-        getContentPane().add(formTitle, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 120, 220, 24));
-
-        idLabel.setText("Document ID");
-        getContentPane().add(idLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 155, 120, 20));
-        getContentPane().add(documentIdField, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 176, 220, 28));
-
-        titleLabel.setText("Title");
-        getContentPane().add(titleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 215, 80, 20));
-        getContentPane().add(titleField, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 236, 220, 28));
-
-        priceLabel.setText("Price (pesos)");
-        getContentPane().add(priceLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 275, 120, 20));
-        getContentPane().add(priceField, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 296, 220, 28));
+        getContentPane().add(titleField, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 230, 200, 28));
+        getContentPane().add(priceField, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 300, 200, 30));
 
         imageLabel.setText("Image Path");
         getContentPane().add(imageLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 335, 100, 20));
-        getContentPane().add(imagePathField, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 356, 220, 28));
-
-        descriptionLabel.setText("Description");
-        getContentPane().add(descriptionLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 395, 100, 20));
-        getContentPane().add(descriptionScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 416, 220, 92));
+        getContentPane().add(imagePathField, new org.netbeans.lib.awtextra.AbsoluteConstraints(640, 420, 210, 28));
 
         activeCheckBox.setSelected(true);
         activeCheckBox.setText("Active");
         getContentPane().add(activeCheckBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 515, 90, 24));
 
         refreshButton.setText("Refresh");
-        getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(695, 176, 110, 32));
+        getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(750, 512, 110, 50));
 
-        newButton.setText("New");
-        getContentPane().add(newButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(695, 220, 110, 32));
-
-        saveButton.setText("Save");
-        getContentPane().add(saveButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(695, 264, 110, 32));
-
-        deleteButton.setText("Delete");
-        getContentPane().add(deleteButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(695, 308, 110, 32));
-        getContentPane().add(menuItemsScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 120, 250, 420));
+        saveButton.setText("Update");
+        getContentPane().add(saveButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 510, 90, 50));
 
         statusLabel.setText("Ready");
         getContentPane().add(statusLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(455, 545, 360, 22));
 
-        jButton1.setText("jButton1");
-        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 130, 140, 60));
+        OrdersButton.setText("jButton1");
+        getContentPane().add(OrdersButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 130, 140, 60));
 
-        jButton2.setText("jButton2");
-        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 230, 140, 70));
+        InventoryButton.setText("jButton2");
+        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 210, 140, 70));
 
-        jButton3.setText("jButton3");
-        getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 440, 140, 80));
+        StatisticsButton.setText("jButton3");
+        getContentPane().add(StatisticsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 370, 140, 80));
 
-        jButton4.setText("jButton4");
-        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 550, 100, 30));
+        LogoutButton.setText("jButton4");
+        getContentPane().add(LogoutButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 550, 100, 30));
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffMenu.png"))); // NOI18N
-        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+        HistoryButton.setText("jButton1");
+        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 460, 140, 70));
+
+        BG.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffMenu.png"))); // NOI18N
+        getContentPane().add(BG, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+
+        QuantityField.setText("jTextField1");
+        getContentPane().add(QuantityField, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 360, 190, 30));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -445,10 +412,20 @@ public class StaffMenu extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel BG;
+    private javax.swing.JButton HistoryButton;
+    private javax.swing.JButton InventoryButton;
+    private javax.swing.JButton LogoutButton;
+    private javax.swing.JButton OrdersButton;
+    private javax.swing.JTextField QuantityField;
+    private javax.swing.JButton StatisticsButton;
+    private javax.swing.JCheckBox activeCheckBox;
+    private javax.swing.JLabel imageLabel;
+    private javax.swing.JTextField imagePathField;
+    private javax.swing.JTextField priceField;
+    private javax.swing.JButton refreshButton;
+    private javax.swing.JButton saveButton;
+    private javax.swing.JLabel statusLabel;
+    private javax.swing.JTextField titleField;
     // End of variables declaration//GEN-END:variables
 }

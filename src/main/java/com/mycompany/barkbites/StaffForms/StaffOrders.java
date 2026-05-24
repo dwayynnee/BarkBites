@@ -42,17 +42,17 @@ public class StaffOrders extends javax.swing.JFrame {
     public StaffOrders() {
         initComponents();
 
-        getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
+        getContentPane().setComponentZOrder(BG, getContentPane().getComponentCount() - 1);
 
-        makeButtonInvisible(jButton1);
-        makeButtonInvisible(jButton2);
-        makeButtonInvisible(jButton3);
-        makeButtonInvisible(jButton4);
+        makeButtonInvisible(InventoryButton);
+        makeButtonInvisible(MenuButton);
+        makeButtonInvisible(StatisticsButton);
+        makeButtonInvisible(LogoutButton);
 
-        jButton1.addActionListener(evt -> openStaffInventory());
-        jButton2.addActionListener(evt -> openStaffMenu());
-        jButton3.addActionListener(evt -> openStaffStatistics());
-        jButton4.addActionListener(evt -> openStaffLandingPage());
+        InventoryButton.addActionListener(evt -> openStaffInventory());
+        MenuButton.addActionListener(evt -> openStaffMenu());
+        StatisticsButton.addActionListener(evt -> openStaffStatistics());
+        LogoutButton.addActionListener(evt -> openStaffLandingPage());
 
         StaffFirebaseBootstrap.ensureInitialized(this);
         configureUi();
@@ -198,63 +198,53 @@ public class StaffOrders extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        orderList = new javax.swing.JList<>();
-        titleLabel = new javax.swing.JLabel();
-        orderScroll = new javax.swing.JScrollPane();
-        selectedOrderLabel = new javax.swing.JLabel();
-        statusLabel = new javax.swing.JLabel();
         statusComboBox = new javax.swing.JComboBox();
         refreshButton = new javax.swing.JButton();
         updateButton = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
+        InventoryButton = new javax.swing.JButton();
+        MenuButton = new javax.swing.JButton();
+        StatisticsButton = new javax.swing.JButton();
+        LogoutButton = new javax.swing.JButton();
+        BG = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        orderList.setModel(orderModel);
-        orderScroll.setViewportView(orderList);
-
-        titleLabel.setFont(new java.awt.Font("Arial", 1, 22)); // NOI18N
-        titleLabel.setText("Orders");
-        getContentPane().add(titleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 120, 200, 28));
-        getContentPane().add(orderScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 160, 340, 360));
-
-        selectedOrderLabel.setText("Select an order to edit its status.");
-        getContentPane().add(selectedOrderLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 160, 250, 20));
-
-        statusLabel.setText("Status");
-        getContentPane().add(statusLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 200, 80, 20));
-
         statusComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "new", "processing", "ready", "completed", "cancelled" }));
-        getContentPane().add(statusComboBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 222, 160, 30));
+        getContentPane().add(statusComboBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 130, 160, 30));
 
         refreshButton.setText("Refresh");
-        getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 270, 120, 32));
+        getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(790, 120, 110, 50));
 
         updateButton.setText("Update Status");
-        getContentPane().add(updateButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 315, 120, 32));
+        getContentPane().add(updateButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(680, 120, 110, 50));
 
-        jButton1.setText("jButton1");
-        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 230, 140, 70));
+        InventoryButton.setText("jButton1");
+        InventoryButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                InventoryButtonActionPerformed(evt);
+            }
+        });
+        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 210, 140, 70));
 
-        jButton2.setText("jButton2");
-        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 340, 140, 70));
+        MenuButton.setText("jButton2");
+        getContentPane().add(MenuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 290, 140, 70));
 
-        jButton3.setText("jButton3");
-        getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 450, 140, 60));
+        StatisticsButton.setText("jButton3");
+        getContentPane().add(StatisticsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 380, 140, 70));
 
-        jButton4.setText("jButton4");
-        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 550, 90, 30));
+        LogoutButton.setText("jButton4");
+        getContentPane().add(LogoutButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 550, 90, 30));
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffOrders.png"))); // NOI18N
-        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+        BG.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffOrders.png"))); // NOI18N
+        getContentPane().add(BG, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void InventoryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_InventoryButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_InventoryButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -292,10 +282,13 @@ public class StaffOrders extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel BG;
+    private javax.swing.JButton InventoryButton;
+    private javax.swing.JButton LogoutButton;
+    private javax.swing.JButton MenuButton;
+    private javax.swing.JButton StatisticsButton;
+    private javax.swing.JButton refreshButton;
+    private javax.swing.JComboBox statusComboBox;
+    private javax.swing.JButton updateButton;
     // End of variables declaration//GEN-END:variables
 }
