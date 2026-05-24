@@ -18,7 +18,7 @@ public final class StaffOrderService {
 
     public List<StaffOrderRecord> listOrders() {
         if (!FirebaseInitializer.isInitialized()) {
-            return StaffDemoDataStore.listOrders();
+            throw new IllegalStateException("Firebase is not initialized.");
         }
         Firestore firestore = FirebaseInitializer.getFirestore();
         List<StaffOrderRecord> orders = new ArrayList<>();
@@ -30,27 +30,32 @@ public final class StaffOrderService {
                         document.getId(),
                         FirestoreDocuments.readString(document, "customerName", "Guest"),
                         FirestoreDocuments.readString(document, "status", "new"),
+                        FirestoreDocuments.readString(document, "payment", "cash"),
+                        FirestoreDocuments.readString(
+                                document,
+                                "order",
+                                FirestoreDocuments.readString(document, "orderSummary", "No items")
+                        ),
                         FirestoreDocuments.readLong(document, "totalCents", 0L),
                         FirestoreDocuments.readLong(document, "createdAtMillis", 0L)
                 ));
             }
             return orders;
         } catch (Exception ex) {
-            return StaffDemoDataStore.listOrders();
+            throw new IllegalStateException("Failed to load orders from Firestore.", ex);
         }
     }
 
     public void updateOrderStatus(String orderId, String status) {
         if (!FirebaseInitializer.isInitialized()) {
-            StaffDemoDataStore.updateOrderStatus(orderId, status);
-            return;
+            throw new IllegalStateException("Firebase is not initialized.");
         }
         Firestore firestore = FirebaseInitializer.getFirestore();
         try {
             DocumentReference reference = firestore.collection(StaffDatabaseSchema.ordersCollection()).document(orderId);
             reference.set(Map.of("status", status), com.google.cloud.firestore.SetOptions.merge()).get();
         } catch (Exception ex) {
-            StaffDemoDataStore.updateOrderStatus(orderId, status);
+            throw new IllegalStateException("Failed to update order status in Firestore.", ex);
         }
     }
 }
