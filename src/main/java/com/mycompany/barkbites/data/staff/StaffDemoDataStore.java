@@ -15,8 +15,10 @@ public final class StaffDemoDataStore {
     private static final Map<String, StaffOrderRecord> ORDERS = new LinkedHashMap<>();
 
     static {
-        MENU.put("menu-001", new StaffMenuItem("menu-001", "Chicken Burger", "Grilled chicken burger", 12900L, "", true));
-        MENU.put("menu-002", new StaffMenuItem("menu-002", "Fries", "Crispy potato fries", 5900L, "", true));
+        MENU.put("menu-001", new StaffMenuItem("menu-001", "Pancake", 4999L, 20, "pancake.png"));
+        MENU.put("menu-002", new StaffMenuItem("menu-002", "Shanghai", 6999L, 10, "shanghai.png"));
+        MENU.put("menu-003", new StaffMenuItem("menu-003", "Nilaga", 10900L, 15, "nilaga.png"));
+        MENU.put("menu-004", new StaffMenuItem("menu-004", "Bicol Express", 8900L, 10, "bicolex.png"));
         INVENTORY.put("inv-001", new StaffInventoryItem("inv-001", "Chicken Patty", 24, "pcs", ""));
         INVENTORY.put("inv-002", new StaffInventoryItem("inv-002", "Potatoes", 48, "pcs", ""));
         long base = System.currentTimeMillis() - 300_000L;
