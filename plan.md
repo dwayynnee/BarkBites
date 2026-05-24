@@ -2,6 +2,12 @@
 
 TL;DR - Keep the app connected through shared auth, Firestore, and navigation, but organize the work into two separate implementation tracks: one for Customer flows and one for Staff flows. Customer work centers on profile, menu, cart, and order-status screens; Staff work is now limited to design revisions and visual polish on the existing screens.
 
+**Current progress (May 24, 2026)**
+- Completed customer auth polish: `CustomerLoginPanel` and `CustomerSignupPanel` now use eye-icon password toggles that show/hide asterisks and stay editable in NetBeans GUI Builder.
+- Completed customer profile and cash-in flow: `CustomerProfilePanelVisible` now loads name, student ID, and wallet balance from Firestore, and `CustomerCashInPanel` now loads the balance, masks/unmasks it, and supports preset/custom top-up actions.
+- Still in progress: customer menu rendering, cart state/actions, and the remaining order-status journey screens.
+- Staff-side implementation remains complete and unchanged from the May 23 update.
+
 **Implemented on Staff side (May 23, 2026)**
 - Added an editable Firestore schema layer in `StaffDatabaseSchema` so the collection/document names can be renamed later without touching every screen.
 - Added Firestore-backed staff services for menu CRUD, inventory CRUD, order listing/status updates, and sales summaries.
@@ -18,7 +24,7 @@ TL;DR - Keep the app connected through shared auth, Firestore, and navigation, b
 - Keep customer session data and staff session data logically separate, even though they share the same Firebase project.
 
 **Customer plan**
-1. Customer entry and profile flow: keep the existing customer landing/login/signup/navigation flow, then load profile data from Firestore in `CustomerProfilePanelVisible` using the signed-in user id token and customer document lookup.
+1. Customer entry and profile flow: done for the login/signup/password-visibility portion, and profile data now loads from Firestore in `CustomerProfilePanelVisible` using the signed-in user id token and customer document lookup.
 2. Customer menu flow: make `CustomerMenuPanel` and `CustomerShowFoodPanel` render menu items dynamically from Firestore instead of relying on static UI content.
 3. Customer cart flow: turn `CustomerCartPanel` into a real item list with add, update quantity, and remove actions using a small cart state/service layer.
 4. Customer order-status flow: keep the existing order confirmation, processing, ready-pickup, voucher, reset-password, and recovery screens as the customer-facing post-order journey.
@@ -38,7 +44,9 @@ TL;DR - Keep the app connected through shared auth, Firestore, and navigation, b
 - `src/main/java/com/mycompany/barkbites/data/firestore/FirestoreRestClient.java` — shared Firestore REST access.
 - `src/main/java/com/mycompany/barkbites/data/firestore/FirestoreDocuments.java` — shared document mapping helpers.
 - `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerLoginPanel.java` — customer auth and session pattern.
+- `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerSignupPanel.java` — customer signup password visibility flow.
 - `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerProfilePanelVisible.java` — customer profile fetch target.
+- `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCashInPanel.java` — customer wallet balance and cash-in flow.
 - `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerMenuPanel.java` — customer menu rendering target.
 - `src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java` — customer cart rendering target.
 - `src/main/java/com/mycompany/barkbites/StaffForms/StaffLandingPage.java` — staff entry screen.
