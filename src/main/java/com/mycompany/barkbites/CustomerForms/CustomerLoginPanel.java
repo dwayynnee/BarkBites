@@ -39,6 +39,7 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
         bringToFront(jButton2);
         bringToFront(jButton3);
         bringToFront(jButton4);
+        bringToFront(jButton5);
 
         // Email + Password inputs.
         jTextField1.setText("");
@@ -52,12 +53,14 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
         makeButtonInvisible(jButton2); // Sign up
         makeButtonInvisible(jButton3); // Back
         makeButtonInvisible(jButton4); // Toggle password visibility (eye)
+        makeButtonInvisible(jButton5); // Password recovery
 
         // Wire click actions (do not rely on GUI builder wiring).
         jButton1.addActionListener(e -> attemptLogin());
         jButton2.addActionListener(e -> FormNavigator.redirect(this, new CustomerSignupPanel()));
         jButton3.addActionListener(e -> FormNavigator.redirect(this, new CustomerLoginOptions()));
         jButton4.addActionListener(e -> togglePasswordVisibility());
+        jButton5.addActionListener(e -> FormNavigator.redirect(this, new CustomerLoginPasswordRecovery()));
 
         // Capture default echo char for show/hide.
         passwordEchoChar = jTextField2.getEchoChar();
@@ -226,6 +229,7 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
         jTextField1 = new javax.swing.JTextField();
         jTextField2 = new javax.swing.JPasswordField();
         jButton4 = new javax.swing.JButton();
+        jButton5 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -251,6 +255,7 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
 
         jButton4.setText("Show");
         getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 340, 60, -1));
+        getContentPane().add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 380, 110, 30));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/CustomerDesign/CustomerLoginPanel.png"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
@@ -291,6 +296,7 @@ public class CustomerLoginPanel extends javax.swing.JFrame {
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JPasswordField jTextField2;

@@ -42,6 +42,22 @@ public final class FirebaseAuthRestService {
         return callAuthEndpoint("signInWithPassword", email, password);
     }
 
+    public boolean isEmailRegistered(String email) {
+        try {
+            callAuthEndpoint("signInWithPassword", email, "__barkbites_email_check__");
+            return true;
+        } catch (Exception ex) {
+            String msg = ex.getMessage() != null ? ex.getMessage() : "Auth lookup failed.";
+            if (msg.contains("EMAIL_NOT_FOUND")) {
+                return false;
+            }
+            if (msg.contains("INVALID_PASSWORD") || msg.contains("INVALID_LOGIN_CREDENTIALS") || msg.contains("USER_DISABLED")) {
+                return true;
+            }
+            throw new IllegalStateException(msg);
+        }
+    }
+
     private AuthSession callAuthEndpoint(String method, String email, String password) {
         try {
             String url = "https://identitytoolkit.googleapis.com/v1/accounts:" + method + "?key=" + config.webApiKey();
