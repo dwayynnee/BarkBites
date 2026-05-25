@@ -52,9 +52,6 @@ public class StaffHistory extends javax.swing.JFrame {
             return false;
         }
     };
-    private JTable historyTable;
-    private JPanel historyPanel;
-
     /**
      * Creates new form StaffHistory
      */
@@ -82,17 +79,11 @@ public class StaffHistory extends javax.swing.JFrame {
     }
 
     private void configureHistoryPanel() {
-        historyPanel = new JPanel(new BorderLayout());
         historyPanel.setOpaque(true);
         historyPanel.setBackground(new Color(255, 255, 255, 230));
         historyPanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        historyPanel.setLayout(new BorderLayout());
 
-        JLabel titleLabel = new JLabel("Order History");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        titleLabel.setForeground(new Color(25, 25, 25));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 12, 8, 12));
-
-        historyTable = new JTable(historyTableModel);
         historyTable.setRowHeight(24);
         historyTable.setShowGrid(false);
         historyTable.setFillsViewportHeight(true);
@@ -104,18 +95,17 @@ public class StaffHistory extends javax.swing.JFrame {
         historyTable.getTableHeader().setBackground(new Color(23, 57, 122));
         historyTable.getTableHeader().setForeground(Color.WHITE);
 
-        JScrollPane scrollPane = new JScrollPane(historyTable);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getViewport().setBackground(Color.WHITE);
+        historyScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        historyScrollPane.getViewport().setBackground(Color.WHITE);
+        historyScrollPane.setViewportView(historyTable);
 
-        historyPanel.add(titleLabel, BorderLayout.NORTH);
-        historyPanel.add(scrollPane, BorderLayout.CENTER);
+        historyTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        historyTitleLabel.setForeground(new Color(25, 25, 25));
+        historyTitleLabel.setText("Order History");
 
-        getContentPane().add(historyPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 120, 700, 390));
-        getContentPane().setComponentZOrder(historyPanel, 0);
-        getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
-        getContentPane().revalidate();
-        getContentPane().repaint();
+        historyPanel.removeAll();
+        historyPanel.add(historyTitleLabel, BorderLayout.NORTH);
+        historyPanel.add(historyScrollPane, BorderLayout.CENTER);
     }
 
     private void loadHistoryAsync() {
@@ -227,6 +217,10 @@ public class StaffHistory extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        historyPanel = new javax.swing.JPanel();
+        historyTitleLabel = new javax.swing.JLabel();
+        historyScrollPane = new javax.swing.JScrollPane();
+        historyTable = new javax.swing.JTable();
         StaffOrders = new javax.swing.JButton();
         StaffInventory = new javax.swing.JButton();
         StaffMenu = new javax.swing.JButton();
@@ -237,6 +231,24 @@ public class StaffHistory extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        historyPanel.setBackground(new java.awt.Color(255, 255, 255));
+        historyPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 200, 200)));
+        historyPanel.setLayout(new java.awt.BorderLayout());
+
+        historyTitleLabel.setFont(new java.awt.Font("Segoe UI", 1, 18));
+        historyTitleLabel.setForeground(new java.awt.Color(25, 25, 25));
+        historyTitleLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 12, 8, 12));
+        historyTitleLabel.setText("Order History");
+        historyPanel.add(historyTitleLabel, java.awt.BorderLayout.NORTH);
+
+        historyTable.setModel(historyTableModel);
+        historyTable.setFillsViewportHeight(true);
+        historyTable.setRowHeight(24);
+        historyScrollPane.setViewportView(historyTable);
+        historyPanel.add(historyScrollPane, java.awt.BorderLayout.CENTER);
+
+        getContentPane().add(historyPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 200, 660, 360));
 
         StaffOrders.setText("jButton1");
         getContentPane().add(StaffOrders, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 120, 140, 70));
@@ -300,6 +312,10 @@ public class StaffHistory extends javax.swing.JFrame {
     private javax.swing.JButton StaffMenu;
     private javax.swing.JButton StaffOrders;
     private javax.swing.JButton StaffStatistics;
+    private javax.swing.JPanel historyPanel;
+    private javax.swing.JLabel historyTitleLabel;
+    private javax.swing.JScrollPane historyScrollPane;
+    private javax.swing.JTable historyTable;
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 }
