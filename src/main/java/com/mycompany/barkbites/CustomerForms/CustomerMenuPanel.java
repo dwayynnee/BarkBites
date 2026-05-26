@@ -250,16 +250,16 @@ public class CustomerMenuPanel extends javax.swing.JFrame {
         getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 570, -1, 60));
 
         jButton4.setText("jButton4");
-        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 180, 150, 150));
+        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 180, 150, 180));
 
         jButton5.setText("jButton5");
-        getContentPane().add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 180, 160, 150));
+        getContentPane().add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 180, 150, 180));
 
         jButton6.setText("jButton6");
-        getContentPane().add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 370, 150, 150));
+        getContentPane().add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 370, 150, 190));
 
         jButton7.setText("jButton7");
-        getContentPane().add(jButton7, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 370, 150, 150));
+        getContentPane().add(jButton7, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 370, 150, 190));
 
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -332,19 +332,19 @@ public class CustomerMenuPanel extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        FormNavigator.redirect(this, new CustomerShowFoodPanel());
+        FormNavigator.redirect(this, new CustomerShowFoodPanel1());
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-        FormNavigator.redirect(this, new CustomerShowFoodPanel());
+        FormNavigator.redirect(this, new CustomerShowFoodPanel2());
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        FormNavigator.redirect(this, new CustomerShowFoodPanel());
+        FormNavigator.redirect(this, new CustomerShowFoodPanel3());
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
-        FormNavigator.redirect(this, new CustomerShowFoodPanel());
+        FormNavigator.redirect(this, new CustomerShowFoodPanel4());
     }//GEN-LAST:event_jButton7ActionPerformed
 
     public static void main(String args[]) {
