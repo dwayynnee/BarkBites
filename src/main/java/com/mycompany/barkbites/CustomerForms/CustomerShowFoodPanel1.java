@@ -165,22 +165,37 @@ public class CustomerShowFoodPanel1 extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * Adds the current menu item to the customer's cart in Firestore.
+     * Uses REST API with the customer's idToken for authenticated writes.
+     * 
+     * Flow:
+     * 1. Validate menu item and user authentication
+     * 2. Get Firebase config and REST client
+     * 3. Build cart document JSON with item details (name, price, quantity, etc)
+     * 4. Write to Firestore path: customers/{userId}/cart/{menuItemId}
+     * 5. Show success/error message
+     */
     private void addToCart() {
+        // Validate menu item is available
         if (currentMenuName == null || currentMenuName.isBlank() || "Menu unavailable".equals(currentMenuName)) {
             JOptionPane.showMessageDialog(this, "Menu item is not available yet.", "Add to cart failed", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
+        // Verify user is signed in and get their authentication token
         com.mycompany.barkbites.data.auth.AuthSession session = AuthState.current();
         if (session == null) {
             JOptionPane.showMessageDialog(this, "Please sign in again.", "Add to cart failed", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
+        // Use menu item ID if available, otherwise create safe ID from name
         String safeMenuId = currentMenuId != null && !currentMenuId.isBlank()
                 ? currentMenuId
                 : currentMenuName.replaceAll("[^a-zA-Z0-9_-]", "-").toLowerCase(java.util.Locale.ROOT);
-        String documentId = session.uid() + "_" + safeMenuId;
+        
+        // Load Firebase config for REST API access
         FirebasePublicConfig config;
         try {
             config = FirebasePublicConfig.load();
@@ -189,6 +204,7 @@ public class CustomerShowFoodPanel1 extends javax.swing.JFrame {
             return;
         }
 
+        // Build cart item JSON document
         FirestoreRestClient firestore = new FirestoreRestClient(config);
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode cartDocument = mapper.createObjectNode();
@@ -202,10 +218,13 @@ public class CustomerShowFoodPanel1 extends javax.swing.JFrame {
         fields.set("imagePath", FirestoreDocuments.stringValue(currentMenuImagePath));
         fields.set("updatedAtMillis", FirestoreDocuments.integerValue(System.currentTimeMillis()));
 
+        // Perform REST write asynchronously to avoid blocking UI
         setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
         javax.swing.SwingWorker<Void, Void> worker = new javax.swing.SwingWorker<>() {
             @Override
             protected Void doInBackground() {
+                // Write to Firestore at: customers/{userId}/cart/{menuItemId}
+                // idToken is passed for REST API authentication
                 String documentPath = String.format("customers/%s/cart/%s", session.uid(), safeMenuId);
                 firestore.upsertDocumentAtPath(session.idToken(), documentPath, cartDocument);
                 return null;

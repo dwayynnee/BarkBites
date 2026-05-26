@@ -13,8 +13,38 @@ public class CustomerHomePagePanel extends javax.swing.JFrame {
             return;
         }
         initComponents();
+        configureUI();
 
         this.setResizable(false);
+    }
+
+    /**
+     * Makes navigation buttons invisible but keeps them clickable.
+     * Buttons are positioned over the background image for visual design.
+     */
+    private void configureUI() {
+        makeButtonInvisible(jButton1);
+        makeButtonInvisible(jButton2);
+        makeButtonInvisible(jButton3);
+        makeButtonInvisible(jButton4);
+        makeButtonInvisible(jButton5);
+        makeButtonInvisible(jButton6);
+        makeButtonInvisible(jButton7);
+    }
+
+    /**
+     * Makes a button invisible while keeping it clickable.
+     * Removes all visual elements (text, background, border, focus indicator).
+     */
+    private static void makeButtonInvisible(javax.swing.JButton button) {
+        if (button == null) {
+            return;
+        }
+        button.setText("");
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
     }
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents

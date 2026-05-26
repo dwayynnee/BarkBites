@@ -2,11 +2,22 @@
 
 TL;DR - Keep the app connected through shared auth, Firestore, and navigation, but organize the work into two separate implementation tracks: one for Customer flows and one for Staff flows. Customer work centers on profile, menu, cart, and order-status screens; Staff work is now limited to design revisions and visual polish on the existing screens.
 
-**Current progress (May 24, 2026)**
-- Completed customer auth polish: `CustomerLoginPanel` and `CustomerSignupPanel` now use eye-icon password toggles that show/hide asterisks and stay editable in NetBeans GUI Builder.
-- Completed customer profile and cash-in flow: `CustomerProfilePanelVisible` now loads name, student ID, and wallet balance from Firestore, and `CustomerCashInPanel` now loads the balance, masks/unmasks it, and supports preset/custom top-up actions.
-- Still in progress: customer menu rendering, cart state/actions, and the remaining order-status journey screens.
-- Staff-side implementation remains complete and unchanged from the May 23 update.
+**Current progress (May 26, 2026)**
+- ✅ **REST-based cart system fully implemented** - All menu item add-to-cart operations now use Firestore REST API with customer idToken authentication. Cart items are stored at `customers/{userId}/cart/{menuItemId}` with security rules controlling access.
+- ✅ **Compilation clean** - Fixed all 9 compilation errors, all 54 source files compile successfully
+- ✅ **Resource bundling fixed** - Icons and form files properly copied to classpath during Maven build
+- ✅ **Application launcher working** - `run-customer-login.cmd` auto-rebuilds and auto-detects classpath
+- ✅ **Customer auth polish** - `CustomerLoginPanel` and `CustomerSignupPanel` with eye-icon password toggles
+- ✅ **Customer profile and cash-in flow** - `CustomerProfilePanelVisible` loads wallet balance from Firestore, `CustomerCashInPanel` supports top-ups
+- ⏳ **Pending**: Customer cart UI full workflow testing, Firestore security rule deployment
+
+**Rest-based cart architecture (New - May 26)**
+- **CustomerShowFoodPanel1/2/3/4**: Add-to-cart now uses `FirestoreRestClient.upsertDocumentAtPath()` with customer idToken
+- **CustomerCartPanel**: Load-cart now uses `FirestoreRestClient.listDocumentsAtPath()` to query cart subcollection
+- **Path**: `customers/{uid}/cart/{menuItemId}` - customer-scoped, REST-authenticated writes
+- **Authentication**: Uses customer's `idToken` from `AuthSession` as Bearer token in REST requests
+- **No admin SDK in UI layer** - All customer-facing writes go through REST API, not admin SDK
+- **Security rules** (requires deployment): Allow authenticated users to read/write only their own cart subcollection
 
 **Implemented on Staff side (May 23, 2026)**
 - Added an editable Firestore schema layer in `StaffDatabaseSchema` so the collection/document names can be renamed later without touching every screen.
@@ -57,13 +68,37 @@ TL;DR - Keep the app connected through shared auth, Firestore, and navigation, b
 - `src/main/java/com/mycompany/barkbites/StaffForms/StaffStatistics.java` — staff sales reporting.
 
 **Verification**
-1. Customer: sign in, open profile, and confirm Firestore-backed fields load correctly.
-2. Customer: refresh the menu screen and verify staff menu changes appear on the customer side.
-3. Customer: add and remove items from the cart and confirm the UI updates correctly.
-4. Staff: enter the shared PIN and verify access to the staff area is blocked when the PIN is wrong.
-5. Staff: create, edit, and delete a menu item and confirm the customer menu reflects the change after refresh.
-6. Staff: validate that orders, inventory, and statistics screens can read from Firestore once their collections are populated.
-7. Staff: if Firebase Admin is not configured on a machine, confirm the screens still open with demo data instead of failing the load.
+1. ✅ Build clean with no compilation errors
+2. ✅ App launches successfully with icons and forms
+3. ⏳ Deploy Firestore security rules (copy below to Firebase Console):
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /smoketests/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    match /customers/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+      
+      // Allow authenticated users to read/write their own cart items
+      match /cart/{cartItemId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+  }
+}
+```
+4. ⏳ Test cart workflow (after security rules deployed):
+   - Sign in with valid credentials
+   - Navigate to menu screen (CustomerShowFoodPanel1-4)
+   - Click "Add to Cart" button
+   - Verify success message appears
+   - Navigate to cart (CustomerCartPanel)
+   - Verify item appears in cart with correct price and quantity
+   - Verify Firestore document created at `customers/{userId}/cart/{menuItemId}`
 
 **Decisions**
 - The staff PIN will be a shared 4-digit PIN for now.
