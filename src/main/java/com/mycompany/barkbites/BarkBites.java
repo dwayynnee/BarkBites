@@ -2,6 +2,7 @@ package com.mycompany.barkbites;
 
 import com.mycompany.barkbites.CustomerForms.CustomerLandingPage;
 import com.mycompany.barkbites.StaffForms.StaffLandingPage;
+import com.mycompany.barkbites.data.FirebaseInitializer;
 import com.mycompany.barkbites.data.FirebasePublicConfig;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -23,6 +24,10 @@ public class BarkBites {
                 FirebasePublicConfig.load();
             } catch (Exception ex) {
                 firebaseWarning = ex.getMessage();
+            }
+
+            if (!FirebaseInitializer.isInitialized()) {
+                FirebaseInitializer.initializeFromEnvironment();
             }
 
             if (firebaseWarning != null && !firebaseWarning.isBlank()) {

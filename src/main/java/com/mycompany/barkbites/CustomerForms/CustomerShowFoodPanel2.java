@@ -1,19 +1,20 @@
 package com.mycompany.barkbites.CustomerForms;
 
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.Firestore;
 import com.mycompany.barkbites.FormNavigator;
-import com.mycompany.barkbites.data.FirebaseInitializer;
+import com.mycompany.barkbites.data.FirebasePublicConfig;
 import com.mycompany.barkbites.data.auth.AuthSession;
 import com.mycompany.barkbites.data.auth.AuthState;
+import com.mycompany.barkbites.data.firestore.FirestoreDocuments;
+import com.mycompany.barkbites.data.firestore.FirestoreRestClient;
 import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import com.mycompany.barkbites.data.staff.StaffMenuItem;
 import com.mycompany.barkbites.data.staff.StaffMenuService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.awt.Image;
 import java.io.File;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -176,42 +177,40 @@ public class CustomerShowFoodPanel2 extends javax.swing.JFrame {
             return;
         }
 
-        if (!FirebaseInitializer.isInitialized()) {
-            JOptionPane.showMessageDialog(this, "Firebase is not initialized.", "Add to cart failed", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
         AuthSession session = AuthState.current();
         if (session == null) {
             JOptionPane.showMessageDialog(this, "Please sign in again.", "Add to cart failed", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String documentId = session.uid() + "_" + (currentMenuId != null && !currentMenuId.isBlank() ? currentMenuId : MENU_DOCUMENT_ID);
-        Firestore firestore = FirebaseInitializer.getFirestore();
-        Map<String, Object> cartDocument = new HashMap<>();
-        cartDocument.put("customerId", session.uid());
-        cartDocument.put("menuItemId", currentMenuId != null ? currentMenuId : MENU_DOCUMENT_ID);
-        cartDocument.put("name", currentMenuName);
-        cartDocument.put("priceCents", currentMenuPriceCents);
-        cartDocument.put("quantity", quantity);
-        cartDocument.put("totalCents", currentMenuPriceCents * quantity);
-        cartDocument.put("imagePath", currentMenuImagePath);
-        cartDocument.put("updatedAtMillis", System.currentTimeMillis());
+        FirebasePublicConfig config;
+        try {
+            config = FirebasePublicConfig.load();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Firebase config error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String safeMenuId = currentMenuId != null && !currentMenuId.isBlank() ? currentMenuId : MENU_DOCUMENT_ID;
+        FirestoreRestClient firestore = new FirestoreRestClient(config);
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode cartDocument = mapper.createObjectNode();
+        ObjectNode fields = cartDocument.putObject("fields");
+        fields.set("customerId", FirestoreDocuments.stringValue(session.uid()));
+        fields.set("menuItemId", FirestoreDocuments.stringValue(safeMenuId));
+        fields.set("name", FirestoreDocuments.stringValue(currentMenuName));
+        fields.set("priceCents", FirestoreDocuments.integerValue(currentMenuPriceCents));
+        fields.set("quantity", FirestoreDocuments.integerValue(quantity));
+        fields.set("totalCents", FirestoreDocuments.integerValue(currentMenuPriceCents * quantity));
+        fields.set("imagePath", FirestoreDocuments.stringValue(currentMenuImagePath));
+        fields.set("updatedAtMillis", FirestoreDocuments.integerValue(System.currentTimeMillis()));
 
         setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
         javax.swing.SwingWorker<Void, Void> worker = new javax.swing.SwingWorker<>() {
             @Override
             protected Void doInBackground() {
-                try {
-                    DocumentReference reference = firestore.collection(CART_COLLECTION).document(documentId);
-                    reference.set(cartDocument).get();
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    throw new IllegalStateException("Cart save interrupted.", ie);
-                } catch (Exception ex) {
-                    throw new IllegalStateException(ex.getMessage() != null ? ex.getMessage() : "Cart save failed.", ex);
-                }
+                String documentPath = String.format("customers/%s/cart/%s", session.uid(), safeMenuId);
+                firestore.upsertDocumentAtPath(session.idToken(), documentPath, cartDocument);
                 return null;
             }
 

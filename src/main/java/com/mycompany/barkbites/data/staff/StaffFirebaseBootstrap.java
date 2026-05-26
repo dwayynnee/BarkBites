@@ -25,13 +25,18 @@ public final class StaffFirebaseBootstrap {
             return false;
         }
 
-        try {
-            FirebaseInitializer.initialize(config);
-            return FirebaseInitializer.isInitialized();
-        } catch (Exception ex) {
-            String message = ex.getMessage() != null ? ex.getMessage() : "Firebase initialization failed.";
-            JOptionPane.showMessageDialog(parent, message, "Firebase setup", JOptionPane.ERROR_MESSAGE);
+        // Attempt initialization and show any returned error message to the user.
+        FirebaseInitializer.FirebaseInitResult result = FirebaseInitializer.initialize(config);
+        if (!result.success()) {
+            String err = result.errorMessage() != null ? result.errorMessage() : "Firebase initialization failed.";
+            JOptionPane.showMessageDialog(parent, err, "Firebase setup", JOptionPane.ERROR_MESSAGE);
             return false;
         }
+
+        if (result.warningMessage() != null) {
+            JOptionPane.showMessageDialog(parent, result.warningMessage(), "Firebase setup", JOptionPane.WARNING_MESSAGE);
+        }
+
+        return FirebaseInitializer.isInitialized();
     }
 }

@@ -31,6 +31,11 @@ public final class FirestoreRestClient {
         return send(idToken, HttpRequest.newBuilder().uri(URI.create(url)).GET().build());
     }
 
+    public JsonNode getDocumentAtPath(String idToken, String documentPath) {
+        String url = documentUrlFromPath(documentPath);
+        return send(idToken, HttpRequest.newBuilder().uri(URI.create(url)).GET().build());
+    }
+
     public JsonNode upsertDocument(String idToken, String collection, String documentId, JsonNode documentBody) {
         String url = documentUrl(collection, documentId);
         HttpRequest req = HttpRequest.newBuilder()
@@ -41,8 +46,23 @@ public final class FirestoreRestClient {
         return send(idToken, req);
     }
 
+    public JsonNode upsertDocumentAtPath(String idToken, String documentPath, JsonNode documentBody) {
+        String url = documentUrlFromPath(documentPath);
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(documentBody.toString(), StandardCharsets.UTF_8))
+                .build();
+        return send(idToken, req);
+    }
+
     public JsonNode listDocuments(String idToken, String collection) {
         String url = collectionUrl(collection);
+        return send(idToken, HttpRequest.newBuilder().uri(URI.create(url)).GET().build());
+    }
+
+    public JsonNode listDocumentsAtPath(String idToken, String collectionPath) {
+        String url = collectionUrlFromPath(collectionPath);
         return send(idToken, HttpRequest.newBuilder().uri(URI.create(url)).GET().build());
     }
 
@@ -84,13 +104,38 @@ public final class FirestoreRestClient {
         return "https://firestore.googleapis.com/v1/projects/" + config.projectId() + "/databases/(default)/documents/" + c + "/" + d;
     }
 
+    private String documentUrlFromPath(String documentPath) {
+        String[] parts = documentPath.split("/");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) sb.append("/");
+            sb.append(encodeSegment(parts[i]));
+        }
+        return "https://firestore.googleapis.com/v1/projects/" + config.projectId() + "/databases/(default)/documents/" + sb.toString();
+    }
+
     private String collectionUrl(String collection) {
         String c = encodePath(collection);
         return "https://firestore.googleapis.com/v1/projects/" + config.projectId() + "/databases/(default)/documents/" + c;
     }
 
+    private String collectionUrlFromPath(String collectionPath) {
+        String[] parts = collectionPath.split("/");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) sb.append("/");
+            sb.append(encodeSegment(parts[i]));
+        }
+        return "https://firestore.googleapis.com/v1/projects/" + config.projectId() + "/databases/(default)/documents/" + sb.toString();
+    }
+
     private static String encodePath(String segment) {
         return URLEncoder.encode(segment, StandardCharsets.UTF_8);
+    }
+
+    private static String encodeSegment(String segment) {
+        // Encode a single path segment so that slashes remain separators
+        return URLEncoder.encode(segment, StandardCharsets.UTF_8).replace("%2F", "/");
     }
 
     private static String extractError(String body) {

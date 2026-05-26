@@ -1,13 +1,328 @@
 package com.mycompany.barkbites.CustomerForms;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.mycompany.barkbites.data.FirebasePublicConfig;
+import com.mycompany.barkbites.data.firestore.FirestoreRestClient;
+import com.mycompany.barkbites.data.firestore.FirestoreDocuments;
 import com.mycompany.barkbites.FormNavigator;
+import com.mycompany.barkbites.data.FirebaseInitializer;
+import com.mycompany.barkbites.data.auth.AuthSession;
+import com.mycompany.barkbites.data.auth.AuthState;
+import com.mycompany.barkbites.data.firestore.FirestoreDocuments;
+import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
+import java.awt.Image;
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 
 public class CustomerCartPanel extends javax.swing.JFrame {
 
+    private static final String CART_COLLECTION = "cart";
+
+    private final List<CartItemData> cartItems = new ArrayList<>();
+    private long subtotalCents;
+    private Long discountCents;
+
     public CustomerCartPanel() {
         initComponents();
+        configureUi();
+        StaffFirebaseBootstrap.ensureInitialized(this);
+        loadCartItems();
 
         this.setResizable(false);
+    }
+
+    private void configureUi() {
+        getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
+
+        bringToFront(jLabel2);
+        bringToFront(jLabel3);
+        bringToFront(jLabel4);
+        bringToFront(jLabel5);
+        bringToFront(jPanel1);
+        bringToFront(jPanel2);
+        bringToFront(jPanel3);
+        bringToFront(jPanel4);
+
+        makeButtonInvisible(jButton1);
+        makeButtonInvisible(jButton2);
+        makeButtonInvisible(jButton3);
+        makeButtonInvisible(jButton4);
+        makeButtonInvisible(jButton5);
+        makeButtonInvisible(jButton6);
+        makeButtonInvisible(jButton7);
+        makeButtonInvisible(jButton8);
+        makeButtonInvisible(jButton9);
+
+        jButton8.addActionListener(this::jButton8ActionPerformed);
+
+        setEmptyState();
+    }
+
+    private void bringToFront(java.awt.Component component) {
+        if (component == null) {
+            return;
+        }
+        getContentPane().setComponentZOrder(component, 0);
+    }
+
+    private static void makeButtonInvisible(javax.swing.JButton button) {
+        if (button == null) {
+            return;
+        }
+        button.setText("");
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+    }
+
+    private void setEmptyState() {
+        jLabel5.setText("0");
+        jLabel2.setText(formatPrice(0L));
+        jLabel3.setText("");
+        jLabel3.setVisible(false);
+        jLabel4.setText(formatPrice(0L));
+
+        clearPanel(jPanel1, jLabel6, jLabel14, jLabel10, jLabel18);
+        clearPanel(jPanel2, jLabel7, jLabel15, jLabel11, jLabel19);
+        clearPanel(jPanel3, jLabel8, jLabel16, jLabel12, jLabel20);
+        clearPanel(jPanel4, jLabel9, jLabel17, jLabel13, jLabel21);
+    }
+
+    private void clearPanel(javax.swing.JPanel panel, javax.swing.JLabel imageLabel, javax.swing.JLabel nameLabel, javax.swing.JLabel quantityLabel, javax.swing.JLabel priceLabel) {
+        panel.setVisible(false);
+        imageLabel.setIcon(null);
+        imageLabel.setText("");
+        nameLabel.setText("");
+        quantityLabel.setText("");
+        priceLabel.setText("");
+    }
+
+    private void loadCartItems() {
+        AuthSession session = AuthState.current();
+        if (session == null) {
+            setEmptyState();
+            return;
+        }
+
+        FirebasePublicConfig config;
+        try {
+            config = FirebasePublicConfig.load();
+        } catch (Exception ex) {
+            setEmptyState();
+            return;
+        }
+
+        FirestoreRestClient rest = new FirestoreRestClient(config);
+        javax.swing.SwingWorker<List<CartItemData>, Void> worker = new javax.swing.SwingWorker<>() {
+            @Override
+            protected List<CartItemData> doInBackground() throws Exception {
+                String collectionPath = String.format("customers/%s/cart", session.uid());
+                JsonNode response = rest.listDocumentsAtPath(session.idToken(), collectionPath);
+                List<CartItemData> items = new ArrayList<>();
+                Long firstDiscount = null;
+
+                if (response != null && response.has("documents")) {
+                    for (JsonNode doc : response.get("documents")) {
+                        String name = FirestoreDocuments.readString(doc, "name", "Unnamed item");
+                        long quantity = FirestoreDocuments.readLong(doc, "quantity", 1L);
+                        long priceCents = FirestoreDocuments.readLong(doc, "priceCents", 0L);
+                        long totalCents = FirestoreDocuments.readLong(doc, "totalCents", priceCents * quantity);
+                        String imagePath = FirestoreDocuments.readString(doc, "imagePath", "");
+                        String menuItemId = FirestoreDocuments.readString(doc, "menuItemId", null);
+                        if (menuItemId == null) {
+                            // extract id from name of document path
+                            String namePath = doc.path("name").asText(null);
+                            if (namePath != null && namePath.lastIndexOf('/') >= 0) {
+                                menuItemId = namePath.substring(namePath.lastIndexOf('/') + 1);
+                            } else {
+                                menuItemId = "";
+                            }
+                        }
+                        Long itemDiscount = readOptionalDiscountCents(doc);
+                        if (firstDiscount == null && itemDiscount != null && itemDiscount > 0L) {
+                            firstDiscount = itemDiscount;
+                        }
+                        items.add(new CartItemData(menuItemId, name, quantity, priceCents, totalCents, imagePath));
+                    }
+                }
+
+                items.sort(Comparator.comparing(CartItemData::name, String.CASE_INSENSITIVE_ORDER));
+                discountCents = firstDiscount;
+                return items;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    cartItems.clear();
+                    cartItems.addAll(get());
+                    renderCart();
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    cartItems.clear();
+                    setEmptyState();
+                } catch (ExecutionException ee) {
+                    String msg = ee.getCause() != null ? ee.getCause().getMessage() : ee.getMessage();
+                    cartItems.clear();
+                    setEmptyState();
+                    JOptionPane.showMessageDialog(CustomerCartPanel.this, msg, "Cart load failed", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+
+        worker.execute();
+    }
+
+    private void renderCart() {
+        subtotalCents = 0L;
+        for (CartItemData item : cartItems) {
+            subtotalCents += item.totalCents();
+        }
+
+        long appliedDiscountCents = discountCents != null ? Math.max(0L, discountCents) : 0L;
+        long finalTotalCents = Math.max(0L, subtotalCents - appliedDiscountCents);
+
+        jLabel5.setText(Integer.toString(cartItems.size()));
+        jLabel2.setText(formatPrice(subtotalCents));
+        if (appliedDiscountCents > 0L) {
+            jLabel3.setVisible(true);
+            jLabel3.setText(formatPrice(appliedDiscountCents));
+        } else {
+            jLabel3.setVisible(false);
+            jLabel3.setText("");
+        }
+        jLabel4.setText(formatPrice(finalTotalCents));
+
+        showPanel(jPanel1, jLabel6, jLabel14, jLabel10, jLabel18, cartItems.size() > 0 ? cartItems.get(0) : null);
+        showPanel(jPanel2, jLabel7, jLabel15, jLabel11, jLabel19, cartItems.size() > 1 ? cartItems.get(1) : null);
+        showPanel(jPanel3, jLabel8, jLabel16, jLabel12, jLabel20, cartItems.size() > 2 ? cartItems.get(2) : null);
+        showPanel(jPanel4, jLabel9, jLabel17, jLabel13, jLabel21, cartItems.size() > 3 ? cartItems.get(3) : null);
+    }
+
+    private void showPanel(javax.swing.JPanel panel, javax.swing.JLabel imageLabel, javax.swing.JLabel nameLabel, javax.swing.JLabel quantityLabel, javax.swing.JLabel priceLabel, CartItemData item) {
+        if (item == null) {
+            clearPanel(panel, imageLabel, nameLabel, quantityLabel, priceLabel);
+            return;
+        }
+
+        panel.setVisible(true);
+        nameLabel.setText(item.name());
+        quantityLabel.setText(Long.toString(item.quantity()));
+        priceLabel.setText(formatPrice(item.totalCents()));
+
+        ImageIcon icon = loadMenuImage(item.imagePath(), imageLabel.getWidth(), imageLabel.getHeight());
+        if (icon != null) {
+            imageLabel.setIcon(icon);
+            imageLabel.setText("");
+        } else {
+            imageLabel.setIcon(null);
+            imageLabel.setText(item.imagePath() == null || item.imagePath().isBlank() ? "" : item.imagePath());
+        }
+    }
+
+    private Long readOptionalDiscountCents(com.fasterxml.jackson.databind.JsonNode document) {
+        Long discount = FirestoreDocuments.readLong(document, "discountCents", null);
+        if (discount != null) {
+            return discount;
+        }
+        discount = FirestoreDocuments.readLong(document, "discountAmountCents", null);
+        if (discount != null) {
+            return discount;
+        }
+        return FirestoreDocuments.readLong(document, "discount", null);
+    }
+
+    private String formatPrice(long priceCents) {
+        return "₱" + String.format(java.util.Locale.US, "%,.2f", priceCents / 100.0d);
+    }
+
+    private ImageIcon loadMenuImage(String imagePath, int width, int height) {
+        if (imagePath == null || imagePath.isBlank()) {
+            return null;
+        }
+
+        URL resource = resolveImageResource(imagePath);
+        Image sourceImage = null;
+        if (resource != null) {
+            sourceImage = new ImageIcon(resource).getImage();
+        } else {
+            File file = new File(imagePath);
+            if (file.exists()) {
+                sourceImage = new ImageIcon(file.getAbsolutePath()).getImage();
+            }
+        }
+
+        if (sourceImage == null) {
+            return null;
+        }
+
+        int targetWidth = width > 0 ? width : 60;
+        int targetHeight = height > 0 ? height : 50;
+        Image scaled = sourceImage.getScaledInstance(targetWidth, targetHeight, java.awt.Image.SCALE_SMOOTH);
+        return new ImageIcon(scaled);
+    }
+
+    private URL resolveImageResource(String imagePath) {
+        String normalizedPath = imagePath.startsWith("/") ? imagePath.substring(1) : imagePath;
+
+        URL resource = getClass().getResource("/com/mycompany/barkbites/Uploads/" + normalizedPath);
+        if (resource != null) {
+            return resource;
+        }
+
+        resource = getClass().getResource(imagePath.startsWith("/") ? imagePath : "/" + imagePath);
+        if (resource != null) {
+            return resource;
+        }
+
+        resource = getClass().getResource("/com/mycompany/barkbites/CustomerDesign/" + normalizedPath);
+        if (resource != null) {
+            return resource;
+        }
+
+        resource = getClass().getResource("/com/mycompany/barkbites/StaffDesign/" + normalizedPath);
+        if (resource != null) {
+            return resource;
+        }
+
+        File projectRoot = new File(System.getProperty("user.dir", "."));
+        File[] candidates = new File[] {
+            new File(projectRoot, "src/main/java/com/mycompany/barkbites/CustomerDesign/" + normalizedPath),
+            new File(projectRoot, "src/main/java/com/mycompany/barkbites/StaffDesign/" + normalizedPath),
+            new File(projectRoot, "src/main/resources/com/mycompany/barkbites/CustomerDesign/" + normalizedPath),
+            new File(projectRoot, "src/main/resources/com/mycompany/barkbites/StaffDesign/" + normalizedPath),
+            new File(projectRoot, "target/classes/com/mycompany/barkbites/CustomerDesign/" + normalizedPath),
+            new File(projectRoot, "target/classes/com/mycompany/barkbites/StaffDesign/" + normalizedPath)
+        };
+        for (File candidate : candidates) {
+            if (candidate.exists()) {
+                try {
+                    return candidate.toURI().toURL();
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private void submitCart() {
+        if (cartItems.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Your cart is empty.", "Submit cart", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JOptionPane.showMessageDialog(this, "Cart submitted.", "Submit cart", JOptionPane.INFORMATION_MESSAGE);
+        FormNavigator.redirect(this, new CustomerOrderProcessing());
     }
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -20,14 +335,32 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
-        jButton5 = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
-        jButton7 = new javax.swing.JButton();
         jButton8 = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
+        jButton5 = new javax.swing.JButton();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel14 = new javax.swing.JLabel();
+        jLabel18 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
+        jButton6 = new javax.swing.JButton();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel15 = new javax.swing.JLabel();
+        jLabel19 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
+        jButton7 = new javax.swing.JButton();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel16 = new javax.swing.JLabel();
+        jLabel20 = new javax.swing.JLabel();
+        jPanel4 = new javax.swing.JPanel();
+        jButton9 = new javax.swing.JButton();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
+        jLabel17 = new javax.swing.JLabel();
+        jLabel21 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -64,40 +397,108 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 570, 80, 60));
 
         jButton4.setText("jButton4");
-        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 370, -1, 40));
+        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 390, -1, 40));
 
         jLabel2.setText("jLabel2");
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 430, -1, -1));
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 440, -1, -1));
 
         jLabel3.setText("jLabel3");
-        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 450, -1, -1));
+        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 460, -1, -1));
 
         jLabel4.setText("jLabel4");
-        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 480, -1, -1));
-
-        jButton5.setText("jButton5");
-        getContentPane().add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 80, 40, 40));
-
-        jButton6.setText("jButton6");
-        getContentPane().add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(305, 160, 40, 30));
-
-        jButton7.setText("jButton7");
-        getContentPane().add(jButton7, new org.netbeans.lib.awtextra.AbsoluteConstraints(305, 240, 40, 30));
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(267, 476, 50, 40));
 
         jButton8.setText("jButton8");
-        getContentPane().add(jButton8, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 320, 120, 40));
+        getContentPane().add(jButton8, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 510, 190, 50));
 
         jLabel5.setText("jLabel5");
-        getContentPane().add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 30, -1, 30));
+        getContentPane().add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 10, -1, 40));
 
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jButton5.setText("jButton5");
+        jPanel1.add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 0, 40, 30));
+
+        jLabel6.setText("jLabel6");
+        jPanel1.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 60, 50));
+
+        jLabel10.setText("jLabel10");
+        jPanel1.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 50, -1, -1));
+
+        jLabel14.setText("jLabel14");
+        jPanel1.add(jLabel14, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 0, -1, 20));
+
+        jLabel18.setText("jLabel18");
+        jPanel1.add(jLabel18, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 50, -1, -1));
+
         getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, 320, 70));
 
         jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jButton6.setText("jButton6");
+        jButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton6ActionPerformed(evt);
+            }
+        });
+        jPanel2.add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 0, 40, 30));
+
+        jLabel7.setText("jLabel7");
+        jPanel2.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 60, 50));
+
+        jLabel11.setText("jLabel11");
+        jPanel2.add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 50, -1, -1));
+
+        jLabel15.setText("jLabel15");
+        jPanel2.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 0, -1, -1));
+
+        jLabel19.setText("jLabel19");
+        jPanel2.add(jLabel19, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 50, -1, -1));
+
         getContentPane().add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 160, 320, 70));
 
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jButton7.setText("jButton7");
+        jButton7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton7ActionPerformed(evt);
+            }
+        });
+        jPanel3.add(jButton7, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 0, 40, 30));
+
+        jLabel8.setText("jLabel8");
+        jPanel3.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 60, 50));
+
+        jLabel12.setText("jLabel12");
+        jPanel3.add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 50, -1, -1));
+
+        jLabel16.setText("jLabel16");
+        jPanel3.add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 0, -1, -1));
+
+        jLabel20.setText("jLabel20");
+        jPanel3.add(jLabel20, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 50, -1, -1));
+
         getContentPane().add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 240, 320, 70));
+
+        jPanel4.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jButton9.setText("jButton9");
+        jPanel4.add(jButton9, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 0, 40, 30));
+
+        jLabel9.setText("jLabel9");
+        jPanel4.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 60, 40));
+
+        jLabel13.setText("jLabel13");
+        jPanel4.add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 40, -1, -1));
+
+        jLabel17.setText("jLabel17");
+        jPanel4.add(jLabel17, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 0, -1, -1));
+
+        jLabel21.setText("jLabel21");
+        jPanel4.add(jLabel21, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 40, -1, -1));
+
+        getContentPane().add(jPanel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 320, 320, 60));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/CustomerDesign/CustomerCartPanel.png"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
@@ -117,6 +518,61 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         FormNavigator.redirect(this, new CustomerProfilePanelVisible());
     }//GEN-LAST:event_jButton3ActionPerformed
 
+    private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
+        submitCart();
+    }//GEN-LAST:event_jButton8ActionPerformed
+
+    private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton7ActionPerformed
+
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+        // Reserved for per-item actions.
+    }//GEN-LAST:event_jButton6ActionPerformed
+
+    private static final class CartItemData {
+
+        private final String menuItemId;
+        private final String name;
+        private final long quantity;
+        private final long priceCents;
+        private final long totalCents;
+        private final String imagePath;
+
+        private CartItemData(String menuItemId, String name, long quantity, long priceCents, long totalCents, String imagePath) {
+            this.menuItemId = menuItemId;
+            this.name = name;
+            this.quantity = quantity;
+            this.priceCents = priceCents;
+            this.totalCents = totalCents;
+            this.imagePath = imagePath;
+        }
+
+        private String menuItemId() {
+            return menuItemId;
+        }
+
+        private String name() {
+            return name;
+        }
+
+        private long quantity() {
+            return quantity;
+        }
+
+        private long priceCents() {
+            return priceCents;
+        }
+
+        private long totalCents() {
+            return totalCents;
+        }
+
+        private String imagePath() {
+            return imagePath;
+        }
+    }
+
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -134,13 +590,31 @@ public class CustomerCartPanel extends javax.swing.JFrame {
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
+    private javax.swing.JButton jButton9;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
+    private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel20;
+    private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     // End of variables declaration//GEN-END:variables
 }
