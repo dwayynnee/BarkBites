@@ -6,7 +6,6 @@ import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import java.awt.Color;
 import java.util.concurrent.ExecutionException;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.api.core.ApiFuture;
@@ -160,11 +159,6 @@ public class CustomerLoginPasswordRecovery extends javax.swing.JFrame {
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
         getContentPane().add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 320, 180, 40));
 
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
         getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 390, 240, 70));
         getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 10, -1, 70));
 
@@ -173,10 +167,6 @@ public class CustomerLoginPasswordRecovery extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton1ActionPerformed
 
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(() -> new CustomerLoginPasswordRecovery().setVisible(true));

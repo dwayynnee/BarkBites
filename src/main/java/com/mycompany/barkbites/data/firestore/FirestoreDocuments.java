@@ -112,14 +112,16 @@ public final class FirestoreDocuments {
         return readLongField(firestoreDoc, fieldName, fallback);
     }
 
+    @SuppressWarnings("null")
     public static Integer readInteger(JsonNode firestoreDoc, String fieldName, Integer fallback) {
         Long value = readLong(firestoreDoc, fieldName, fallback == null ? null : fallback.longValue());
-        return value == null ? fallback : value.intValue();
+        return value != null ? (int)value.longValue() : fallback;
     }
 
+    @SuppressWarnings("null")
     public static Integer readInteger(DocumentSnapshot firestoreDoc, String fieldName, Integer fallback) {
         Long value = readLongField(firestoreDoc, fieldName, fallback == null ? null : fallback.longValue());
-        return value == null ? fallback : value.intValue();
+        return value != null ? (int)value.longValue() : fallback;
     }
 
     public static Boolean readBoolean(JsonNode firestoreDoc, String fieldName, Boolean fallback) {

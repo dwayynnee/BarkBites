@@ -16,14 +16,12 @@ import java.io.File;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
 public class CustomerShowFoodPanel3 extends javax.swing.JFrame {
 
-    private static final String CART_COLLECTION = "cart";
     private static final String MENU_DOCUMENT_ID = "menu-003";
 
     private final StaffMenuService menuService = new StaffMenuService();

@@ -16,6 +16,7 @@ import java.util.Map;
  */
 public final class StaffInventoryService {
 
+    @SuppressWarnings("null")
     public List<StaffInventoryItem> listInventoryItems() {
         if (!FirebaseInitializer.isInitialized()) {
             return StaffDemoDataStore.listInventoryItems();
@@ -40,6 +41,7 @@ public final class StaffInventoryService {
         }
     }
 
+    @SuppressWarnings("null")
     public void upsertInventoryItem(StaffInventoryItem item) {
         if (!FirebaseInitializer.isInitialized()) {
             StaffDemoDataStore.upsertInventoryItem(item);
@@ -59,6 +61,7 @@ public final class StaffInventoryService {
         }
     }
 
+    @SuppressWarnings("null")
     public void deleteInventoryItem(String itemId) {
         if (!FirebaseInitializer.isInitialized()) {
             StaffDemoDataStore.deleteInventoryItem(itemId);

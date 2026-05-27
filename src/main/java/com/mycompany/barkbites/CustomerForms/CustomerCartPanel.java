@@ -5,26 +5,20 @@ import com.mycompany.barkbites.data.FirebasePublicConfig;
 import com.mycompany.barkbites.data.firestore.FirestoreRestClient;
 import com.mycompany.barkbites.data.firestore.FirestoreDocuments;
 import com.mycompany.barkbites.FormNavigator;
-import com.mycompany.barkbites.data.FirebaseInitializer;
 import com.mycompany.barkbites.data.auth.AuthSession;
 import com.mycompany.barkbites.data.auth.AuthState;
-import com.mycompany.barkbites.data.firestore.FirestoreDocuments;
 import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import java.awt.Image;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
 public class CustomerCartPanel extends javax.swing.JFrame {
-
-    private static final String CART_COLLECTION = "cart";
 
     private final List<CartItemData> cartItems = new ArrayList<>();
     private long subtotalCents;
@@ -151,7 +145,7 @@ public class CustomerCartPanel extends javax.swing.JFrame {
                         if (firstDiscount == null && itemDiscount != null && itemDiscount > 0L) {
                             firstDiscount = itemDiscount;
                         }
-                        items.add(new CartItemData(menuItemId, name, quantity, priceCents, totalCents, imagePath));
+                        items.add(new CartItemData(name, quantity, totalCents, imagePath));
                     }
                 }
 
@@ -460,11 +454,6 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jButton7.setText("jButton7");
-        jButton7.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton7ActionPerformed(evt);
-            }
-        });
         jPanel3.add(jButton7, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 0, 40, 30));
 
         jLabel8.setText("jLabel8");
@@ -522,34 +511,22 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         submitCart();
     }//GEN-LAST:event_jButton8ActionPerformed
 
-    private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton7ActionPerformed
-
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
         // Reserved for per-item actions.
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private static final class CartItemData {
 
-        private final String menuItemId;
         private final String name;
         private final long quantity;
-        private final long priceCents;
         private final long totalCents;
         private final String imagePath;
 
-        private CartItemData(String menuItemId, String name, long quantity, long priceCents, long totalCents, String imagePath) {
-            this.menuItemId = menuItemId;
+        private CartItemData(String name, long quantity, long totalCents, String imagePath) {
             this.name = name;
             this.quantity = quantity;
-            this.priceCents = priceCents;
             this.totalCents = totalCents;
             this.imagePath = imagePath;
-        }
-
-        private String menuItemId() {
-            return menuItemId;
         }
 
         private String name() {
@@ -558,10 +535,6 @@ public class CustomerCartPanel extends javax.swing.JFrame {
 
         private long quantity() {
             return quantity;
-        }
-
-        private long priceCents() {
-            return priceCents;
         }
 
         private long totalCents() {

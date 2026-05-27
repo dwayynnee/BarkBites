@@ -15,14 +15,11 @@ import java.io.File;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
 public class CustomerShowFoodPanel1 extends javax.swing.JFrame {
-
-    private static final String CART_COLLECTION = "cart";
 
     private final StaffMenuService menuService = new StaffMenuService();
     private final DecimalFormat priceFormat = new DecimalFormat("#,##0.00");
@@ -355,11 +352,6 @@ public class CustomerShowFoodPanel1 extends javax.swing.JFrame {
         jLabel2.setText("jLabel2");
         getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 380, -1, -1));
 
-        jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox1ActionPerformed(evt);
-            }
-        });
         getContentPane().add(jCheckBox1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 480, 70, -1));
         getContentPane().add(jCheckBox2, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 520, -1, -1));
 
@@ -399,10 +391,6 @@ public class CustomerShowFoodPanel1 extends javax.swing.JFrame {
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         addToCart();
     }//GEN-LAST:event_jButton4ActionPerformed
-
-    private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jCheckBox1ActionPerformed
 
     private record MenuCardData(String menuId, String name, long priceCents, String imagePath) {
     }

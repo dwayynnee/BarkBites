@@ -19,12 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import javax.swing.BorderFactory;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.JOptionPane;
-import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
@@ -184,11 +179,6 @@ public class StaffHistory extends javax.swing.JFrame {
     private void openStaffLandingPage() {
         // Action: return to the landing page.
         FormNavigator.redirect(this, new StaffLandingPage());
-    }
-
-    private void refreshPage() {
-        // Action: reload the current history screen.
-        loadHistoryAsync();
     }
 
     private static String formatTotal(long totalCents) {
