@@ -6,19 +6,48 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.cloud.firestore.DocumentSnapshot;
 
 /**
- * Helpers to build Firestore REST document bodies.
+ * Utility class for building and parsing Firestore documents.
+ * 
+ * This class provides helper methods to:
+ * 1. Build Firestore REST document structures (ObjectNode format)
+ * 2. Extract typed values from Firestore JSON documents with fallback defaults
+ * 3. Handle type conversions (long → int, string → number, etc.)
+ * 
+ * Firestore documents in REST format wrap fields in a "fields" object, where
+ * each field value is an object with type descriptors like:
+ * - {"stringValue": "hello"}
+ * - {"integerValue": "42"}
+ * - {"doubleValue": "3.14"}
+ * - {"booleanValue": true}
+ * 
+ * This class abstracts away these type descriptors for cleaner code.
  */
 public final class FirestoreDocuments {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    // Private constructor: utility class with only static methods
     private FirestoreDocuments() {
     }
 
+    /**
+     * Builds a customer document for Firestore storage.
+     * 
+     * Creates a Firestore document with customer info: studentId, name, mobile, and wallet balance.
+     * Used when registering new customers or updating customer records.
+     * 
+     * @param studentId the student identifier
+     * @param name the customer's full name
+     * @param mobile the customer's phone number
+     * @param walletBalanceCents the wallet balance in cents (e.g., 1000 = $10.00)
+     * @return an ObjectNode ready to be sent to Firestore
+     */
     public static ObjectNode customerDocument(String studentId, String name, String mobile, long walletBalanceCents) {
+        // Create root document structure and fields object
         ObjectNode root = MAPPER.createObjectNode();
         ObjectNode fields = root.putObject("fields");
 
+        // Add customer fields with type descriptors
         fields.set("studentId", stringValue(studentId));
         fields.set("name", stringValue(name));
         fields.set("mobile", stringValue(mobile));
@@ -27,10 +56,23 @@ public final class FirestoreDocuments {
         return root;
     }
 
+    /**
+     * Builds a customer document with email instead of mobile.
+     * 
+     * Alternative to customerDocument() for customers who prefer email contact.
+     * 
+     * @param studentId the student identifier
+     * @param name the customer's full name
+     * @param email the customer's email address
+     * @param walletBalanceCents the wallet balance in cents
+     * @return an ObjectNode ready to be sent to Firestore
+     */
     public static ObjectNode customerDocumentWithEmail(String studentId, String name, String email, long walletBalanceCents) {
+        // Create root document structure and fields object
         ObjectNode root = MAPPER.createObjectNode();
         ObjectNode fields = root.putObject("fields");
 
+        // Add customer fields with type descriptors (email instead of mobile)
         fields.set("studentId", stringValue(studentId));
         fields.set("name", stringValue(name));
         fields.set("email", stringValue(email));
@@ -86,25 +128,48 @@ public final class FirestoreDocuments {
         return readStringField(firestoreDoc, fieldName, fallback);
     }
 
+    /**
+     * Extracts a long integer value from a Firestore JSON document.
+     * 
+     * Handles multiple numeric formats that Firestore may return:
+     * - integerValue: stored as text (e.g., "42")
+     * - doubleValue: stored as text (e.g., "3.14") which gets rounded
+     * 
+     * If the field is missing or cannot be parsed, returns the fallback value.
+     * 
+     * @param firestoreDoc the Firestore JSON document (REST format)
+     * @param fieldName the name of the field to read
+     * @param fallback the default value if field is missing or invalid
+     * @return the parsed long value, or fallback if not found/invalid
+     */
     public static Long readLong(JsonNode firestoreDoc, String fieldName, Long fallback) {
+        // Retrieve field value from document
         JsonNode value = readField(firestoreDoc, fieldName);
         if (value == null) {
             return fallback;
         }
+        
+        // Try parsing as integer
         JsonNode longValue = value.get("integerValue");
         if (longValue != null && longValue.isTextual()) {
             try {
                 return Long.parseLong(longValue.asText());
             } catch (NumberFormatException ignored) {
+                // Fall through to try doubleValue
             }
         }
+        
+        // Try parsing as double (round to nearest long)
         JsonNode doubleValue = value.get("doubleValue");
         if (doubleValue != null && doubleValue.isTextual()) {
             try {
                 return Math.round(Double.parseDouble(doubleValue.asText()));
             } catch (NumberFormatException ignored) {
+                // Fall through to return fallback
             }
         }
+        
+        // Could not parse any numeric format
         return fallback;
     }
 
@@ -143,19 +208,54 @@ public final class FirestoreDocuments {
         return readBooleanField(firestoreDoc, fieldName, fallback);
     }
 
+    /**
+     * Wraps a string value in Firestore format.
+     * 
+     * Used when building documents to send to Firestore.
+     * Empty strings are converted to "" and null values are converted to empty string.
+     * 
+     * Firestore format: {"stringValue": "hello"}
+     * 
+     * @param value the string to wrap (null → "")
+     * @return an ObjectNode with the wrapped value
+     */
     public static ObjectNode stringValue(String value) {
+        // Wrap in Firestore's REST format for strings
         ObjectNode n = MAPPER.createObjectNode();
         n.put("stringValue", value == null ? "" : value);
         return n;
     }
 
+    /**
+     * Wraps a long integer in Firestore format.
+     * 
+     * Used when building documents to send to Firestore.
+     * Firestore stores integers as text strings.
+     * 
+     * Firestore format: {"integerValue": "42"}
+     * 
+     * @param value the long value to wrap
+     * @return an ObjectNode with the wrapped value
+     */
     public static ObjectNode integerValue(long value) {
+        // Convert to string for Firestore (integers stored as text)
         ObjectNode n = MAPPER.createObjectNode();
         n.put("integerValue", Long.toString(value));
         return n;
     }
 
+    /**
+     * Wraps a boolean in Firestore format.
+     * 
+     * Used when building documents to send to Firestore.
+     * 
+     * Firestore format: {"booleanValue": true}
+     * 
+     * @param value the boolean to wrap
+     * @return an ObjectNode with the wrapped value
+     */
     public static ObjectNode booleanValue(boolean value) {
+        // Wrap in Firestore's REST format for booleans
         ObjectNode n = MAPPER.createObjectNode();
         n.put("booleanValue", value);
         return n;

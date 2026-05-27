@@ -13,10 +13,19 @@ import java.util.Map;
 
 /**
  * Firestore reader for customer orders visible to staff.
+ * 
+ * This service provides read and status update capabilities for customer orders.
+ * It reads from the Firestore 'orders' collection and allows staff to update order status.
  */
 @SuppressWarnings("null")
 public final class StaffOrderService {
 
+    /**
+     * Retrieves all customer orders from Firestore.
+     * 
+     * @return List of orders with customer details and status information
+     * @throws IllegalStateException if Firebase is not initialized or if Firestore read fails
+     */
     public List<StaffOrderRecord> listOrders() {
         if (!FirebaseInitializer.isInitialized()) {
             throw new IllegalStateException("Firebase is not initialized.");
@@ -47,6 +56,14 @@ public final class StaffOrderService {
         }
     }
 
+    /**
+     * Updates the status of a customer order in Firestore.
+     * Common status values: "new", "ready", "completed", "cancelled"
+     * 
+     * @param orderId the ID of the order to update
+     * @param status the new status value
+     * @throws IllegalStateException if Firebase is not initialized or if Firestore update fails
+     */
     public void updateOrderStatus(String orderId, String status) {
         if (!FirebaseInitializer.isInitialized()) {
             throw new IllegalStateException("Firebase is not initialized.");

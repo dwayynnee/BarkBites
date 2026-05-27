@@ -210,23 +210,44 @@ public class StaffOrders extends javax.swing.JFrame {
         return label;
     }
 
+    /**
+     * Loads customer orders from Firestore asynchronously (non-blocking).
+     * 
+     * This method:
+     * 1. Fetches all orders from Firestore in a background thread
+     * 2. Filters to show only "new" and "ready" orders (hides completed/cancelled)
+     * 3. Sorts orders by creation time (newest first), then by ID
+     * 4. Limits display to MAX_CARDS (8 cards) to fit on screen
+     * 5. Updates the UI with the filtered orders
+     * 
+     * Uses SwingWorker to prevent blocking the GUI during network I/O.
+     */
     private void loadOrdersAsync() {
+        // Disable order actions during loading
         setOrderActionsEnabled(false);
+        
+        // Create background task to fetch and process orders
         javax.swing.SwingWorker<List<StaffOrderRecord>, Void> worker = new javax.swing.SwingWorker<>() {
             @Override
             protected List<StaffOrderRecord> doInBackground() {
+                // Fetch all orders from Firestore
                 List<StaffOrderRecord> orders = new ArrayList<>();
                 for (StaffOrderRecord order : orderService.listOrders()) {
                     String status = safeText(order.status());
+                    // Filter: only show active orders (not completed or cancelled)
                     if (!"completed".equalsIgnoreCase(status) && !"cancelled".equalsIgnoreCase(status)) {
                         orders.add(order);
                     }
                 }
+                
+                // Sort by creation time (newest first), then by order ID
                 orders.sort(
                         Comparator
                                 .comparingLong(StaffOrderRecord::createdAtMillis)
                                 .thenComparing(StaffOrderRecord::id)
                 );
+                
+                // Cap to MAX_CARDS (8) to fit on the screen
                 if (orders.size() > MAX_CARDS) {
                     return new ArrayList<>(orders.subList(0, MAX_CARDS));
                 }
@@ -236,28 +257,44 @@ public class StaffOrders extends javax.swing.JFrame {
             @Override
             protected void done() {
                 try {
+                    // Get the filtered orders and render them on the UI
                     displayedOrders = get();
                     selectedCardIndex = -1;
                     renderOrderCards();
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 } catch (ExecutionException ex) {
+                    // Show error message if something went wrong
                     String message = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
                     JOptionPane.showMessageDialog(StaffOrders.this, message, "Load orders failed", JOptionPane.ERROR_MESSAGE);
                 } finally {
+                    // Re-enable order actions
                     setOrderActionsEnabled(true);
                 }
             }
         };
+        // Start the background task
         worker.execute();
     }
 
+    /**
+     * Renders order data into the card display grid.
+     * 
+     * Updates MAX_CARDS (8) card panels with order information:
+     * - Order number, customer name, order ID, status, payment method, order items
+     * - Hides empty cards if fewer than MAX_CARDS orders are available
+     * - Applies visual styling (borders, background, cursor) for user interaction
+     */
     private void renderOrderCards() {
+        // Set layering: cards on top, background image behind
         getContentPane().setComponentZOrder(cardsContainerPanel, 0);
         getContentPane().setComponentZOrder(BG, getContentPane().getComponentCount() - 1);
+        
+        // Populate each card with order data or hide if no data
         for (int i = 0; i < MAX_CARDS; i++) {
             JPanel card = orderCards[i];
             if (i < displayedOrders.size()) {
+                // Get order and populate card fields
                 StaffOrderRecord order = displayedOrders.get(i);
                 orderNumberLabels[i].setText("Order #" + (i + 1));
                 orderNumberLabels[i].setHorizontalAlignment(SwingConstants.CENTER);
@@ -273,9 +310,11 @@ public class StaffOrders extends javax.swing.JFrame {
                 orderLabels[i].setHorizontalAlignment(SwingConstants.LEFT);
                 card.setVisible(true);
             } else {
+                // Hide unused cards
                 card.setVisible(false);
             }
         }
+        // Update visual selection highlighting
         updateSelectionStyles();
     }
 

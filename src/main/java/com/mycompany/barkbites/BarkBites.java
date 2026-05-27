@@ -13,12 +13,23 @@ import java.awt.Toolkit;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+/**
+ * BarkBites Main Application Entry Point
+ * 
+ * Launches the school canteen POS and management system with:
+ * - Dual-mode interface: Customer ordering and Staff management
+ * - Firebase/Firestore backend (with local demo data fallback)
+ * - Responsive window positioning across multi-monitor setups
+ * - Nimbus look-and-feel for modern UI appearance
+ */
 public class BarkBites {
 
     public static void main(String[] args) {
-        setNimbusLookAndFeelIfAvailable();
+        // Apply Nimbus theme for modern UI appearance\n        setNimbusLookAndFeelIfAvailable();
 
+        // Start on the Event Dispatch Thread for thread-safe GUI operations
         java.awt.EventQueue.invokeLater(() -> {
+            // Attempt to load Firebase configuration from properties file
             String firebaseWarning = null;
             try {
                 FirebasePublicConfig.load();
@@ -26,10 +37,13 @@ public class BarkBites {
                 firebaseWarning = ex.getMessage();
             }
 
+            // Initialize Firebase Admin SDK from environment if not already configured
             if (!FirebaseInitializer.isInitialized()) {
                 FirebaseInitializer.initializeFromEnvironment();
             }
 
+            // Show warning if Firebase configuration is missing
+            // (App can still run with demo data)
             if (firebaseWarning != null && !firebaseWarning.isBlank()) {
                 JOptionPane.showMessageDialog(
                         null,
@@ -43,9 +57,11 @@ public class BarkBites {
                 );
             }
 
+            // Launch Staff management portal
             StaffLandingPage staffLandingPage = new StaffLandingPage();
             staffLandingPage.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
+            // Launch Customer ordering portal
             CustomerLandingPage customerLandingPage = new CustomerLandingPage();
             customerLandingPage.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 

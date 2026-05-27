@@ -100,13 +100,25 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         priceLabel.setText("");
     }
 
+    /**
+     * Loads cart items from Firestore for the current customer asynchronously.
+     * 
+     * Process:
+     * 1. Get the authenticated customer session
+     * 2. Fetch the customer's cart documents from Firestore using REST API
+     * 3. Parse each cart item (name, quantity, price, discount)
+     * 4. Sort alphabetically by item name
+     * 5. Update UI to display cart contents
+     */
     private void loadCartItems() {
+        // Get the authenticated user session
         AuthSession session = AuthState.current();
         if (session == null) {
             setEmptyState();
             return;
         }
 
+        // Load Firebase public config (API key, project, etc.)
         FirebasePublicConfig config;
         try {
             config = FirebasePublicConfig.load();
@@ -115,25 +127,34 @@ public class CustomerCartPanel extends javax.swing.JFrame {
             return;
         }
 
+        // Create REST client for Firestore operations
         FirestoreRestClient rest = new FirestoreRestClient(config);
+        
+        // Use SwingWorker to load items in background (non-blocking)
         javax.swing.SwingWorker<List<CartItemData>, Void> worker = new javax.swing.SwingWorker<>() {
             @Override
             protected List<CartItemData> doInBackground() throws Exception {
+                // Build path to customer's cart subcollection
                 String collectionPath = String.format("customers/%s/cart", session.uid());
+                
+                // Query all documents in the cart
                 JsonNode response = rest.listDocumentsAtPath(session.idToken(), collectionPath);
                 List<CartItemData> items = new ArrayList<>();
                 Long firstDiscount = null;
 
+                // Parse each cart item document
                 if (response != null && response.has("documents")) {
                     for (JsonNode doc : response.get("documents")) {
+                        // Extract item details from Firestore document
                         String name = FirestoreDocuments.readString(doc, "name", "Unnamed item");
                         long quantity = FirestoreDocuments.readLong(doc, "quantity", 1L);
                         long priceCents = FirestoreDocuments.readLong(doc, "priceCents", 0L);
                         long totalCents = FirestoreDocuments.readLong(doc, "totalCents", priceCents * quantity);
                         String imagePath = FirestoreDocuments.readString(doc, "imagePath", "");
                         String menuItemId = FirestoreDocuments.readString(doc, "menuItemId", null);
+                        
+                        // Extract menu item ID from document path if not stored explicitly
                         if (menuItemId == null) {
-                            // extract id from name of document path
                             String namePath = doc.path("name").asText(null);
                             if (namePath != null && namePath.lastIndexOf('/') >= 0) {
                                 menuItemId = namePath.substring(namePath.lastIndexOf('/') + 1);
@@ -141,14 +162,19 @@ public class CustomerCartPanel extends javax.swing.JFrame {
                                 menuItemId = "";
                             }
                         }
+                        
+                        // Capture the first discount found (applied to whole cart)
                         Long itemDiscount = readOptionalDiscountCents(doc);
                         if (firstDiscount == null && itemDiscount != null && itemDiscount > 0L) {
                             firstDiscount = itemDiscount;
                         }
+                        
+                        // Add to cart
                         items.add(new CartItemData(name, quantity, totalCents, imagePath));
                     }
                 }
 
+                // Sort items alphabetically for consistent display
                 items.sort(Comparator.comparing(CartItemData::name, String.CASE_INSENSITIVE_ORDER));
                 discountCents = firstDiscount;
                 return items;
@@ -157,6 +183,7 @@ public class CustomerCartPanel extends javax.swing.JFrame {
             @Override
             protected void done() {
                 try {
+                    // Update in-memory cart with fetched items
                     cartItems.clear();
                     cartItems.addAll(get());
                     renderCart();
@@ -173,6 +200,7 @@ public class CustomerCartPanel extends javax.swing.JFrame {
             }
         };
 
+        // Start the background task
         worker.execute();
     }
 

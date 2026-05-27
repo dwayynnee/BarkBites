@@ -3,13 +3,31 @@ package com.mycompany.barkbites;
 import java.awt.Point;
 import javax.swing.JFrame;
 
+/**
+ * Navigation utility for transitioning between screens.
+ * 
+ * Provides clean screen transitions by:
+ * - Preserving the source window position for destination window
+ * - Maintaining the window state (normal/maximized)
+ * - Properly disposing of the source window after transition
+ * 
+ * Usage: FormNavigator.redirect(currentWindow, nextWindow);
+ */
 public final class FormNavigator {
 
+    // Private constructor: utility class with only static methods
     private FormNavigator() {
     }
 
     /**
-     * Shows {@code to} at the same screen position as {@code from}, then disposes {@code from}.
+     * Smoothly transitions from one frame to another.
+     * 
+     * Shows the destination frame at the same position as the source frame,
+     * preserves the window state (normal/maximized), then closes the source.
+     * This creates a seamless screen transition effect.
+     * 
+     * @param from the current window to close (can be null)
+     * @param to the next window to display (can be null to just close 'from')
      */
     public static void redirect(JFrame from, JFrame to) {
         if (to == null) {
