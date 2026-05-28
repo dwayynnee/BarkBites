@@ -383,7 +383,7 @@ public class CustomerCartPanel extends javax.swing.JFrame {
 
         clearAppliedVoucherState();
         JOptionPane.showMessageDialog(this, "Cart submitted.", "Submit cart", JOptionPane.INFORMATION_MESSAGE);
-        FormNavigator.redirect(this, new CustomerOrderProcessing());
+        FormNavigator.redirect(this, new CustomerPayment());
     }
 
     /**
@@ -575,6 +575,11 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(267, 476, 50, 40));
 
         jButton8.setText("jButton8");
+        jButton8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton8ActionPerformed(evt);
+            }
+        });
         getContentPane().add(jButton8, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 510, 190, 50));
 
         jLabel5.setText("jLabel5");
