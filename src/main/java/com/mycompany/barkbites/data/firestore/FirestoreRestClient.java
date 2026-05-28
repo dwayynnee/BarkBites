@@ -28,12 +28,34 @@ public final class FirestoreRestClient {
 
     public JsonNode getDocument(String idToken, String collection, String documentId) {
         String url = documentUrl(collection, documentId);
-        return send(idToken, HttpRequest.newBuilder().uri(URI.create(url)).GET().build());
+        try {
+            return send(idToken, HttpRequest.newBuilder().uri(URI.create(url)).GET().build());
+        } catch (IllegalStateException ex) {
+            String msg = ex.getMessage();
+            if (msg != null) {
+                String lower = msg.toLowerCase();
+                if (lower.contains("not found") || lower.contains("document") && lower.contains("not found")) {
+                    return null;
+                }
+            }
+            throw ex;
+        }
     }
 
     public JsonNode getDocumentAtPath(String idToken, String documentPath) {
         String url = documentUrlFromPath(documentPath);
-        return send(idToken, HttpRequest.newBuilder().uri(URI.create(url)).GET().build());
+        try {
+            return send(idToken, HttpRequest.newBuilder().uri(URI.create(url)).GET().build());
+        } catch (IllegalStateException ex) {
+            String msg = ex.getMessage();
+            if (msg != null) {
+                String lower = msg.toLowerCase();
+                if (lower.contains("not found") || lower.contains("document") && lower.contains("not found")) {
+                    return null;
+                }
+            }
+            throw ex;
+        }
     }
 
     public JsonNode upsertDocument(String idToken, String collection, String documentId, JsonNode documentBody) {
