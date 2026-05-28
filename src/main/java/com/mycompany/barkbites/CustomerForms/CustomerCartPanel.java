@@ -2,6 +2,7 @@ package com.mycompany.barkbites.CustomerForms;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mycompany.barkbites.data.FirebasePublicConfig;
+import com.mycompany.barkbites.data.CustomerVoucherState;
 import com.mycompany.barkbites.data.firestore.FirestoreRestClient;
 import com.mycompany.barkbites.data.firestore.FirestoreDocuments;
 import com.mycompany.barkbites.FormNavigator;
@@ -23,23 +24,47 @@ public class CustomerCartPanel extends javax.swing.JFrame {
     private final List<CartItemData> cartItems = new ArrayList<>();
     private long subtotalCents;
     private Long discountCents;
+    private String appliedVoucherCode;
 
     public CustomerCartPanel() {
         initComponents();
         configureUi();
         StaffFirebaseBootstrap.ensureInitialized(this);
+        AuthSession session = AuthState.current();
+        if (session != null) {
+            String savedVoucher = CustomerVoucherState.load(session.uid());
+            if (savedVoucher != null) {
+                appliedVoucherCode = savedVoucher;
+                jLabel22.setText(savedVoucher);
+                jButton4.setEnabled(false);
+            }
+        }
         loadCartItems();
 
         this.setResizable(false);
     }
 
+    /**
+     * Create the cart panel and display an applied voucher code.
+     * This constructor forwards to the default constructor and then sets
+     * the voucher label so the UI reflects any voucher the customer applied.
+     */
+    public CustomerCartPanel(String appliedVoucher) {
+        this();
+        setAppliedVoucher(appliedVoucher);
+    }
+
     private void configureUi() {
+        // Send background image to back so buttons remain clickable
         getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
+        jLabel1.setFocusable(false);
 
         bringToFront(jLabel2);
         bringToFront(jLabel3);
         bringToFront(jLabel4);
         bringToFront(jLabel5);
+        // Ensure jButton4 (voucher) is on top so clicks register
+        bringToFront(jButton4);
         bringToFront(jPanel1);
         bringToFront(jPanel2);
         bringToFront(jPanel3);
@@ -55,6 +80,8 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         makeButtonInvisible(jButton8);
         makeButtonInvisible(jButton9);
 
+        // Wire action listeners for the clickable (but visually invisible) buttons
+        jButton4.addActionListener(this::jButton4ActionPerformed);
         jButton8.addActionListener(this::jButton8ActionPerformed);
 
         setEmptyState();
@@ -205,6 +232,12 @@ public class CustomerCartPanel extends javax.swing.JFrame {
     }
 
     private void renderCart() {
+        if (cartItems.isEmpty()) {
+            clearAppliedVoucherState();
+            setEmptyState();
+            return;
+        }
+
         subtotalCents = 0L;
         for (CartItemData item : cartItems) {
             subtotalCents += item.totalCents();
@@ -228,6 +261,10 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         showPanel(jPanel2, jLabel7, jLabel15, jLabel11, jLabel19, cartItems.size() > 1 ? cartItems.get(1) : null);
         showPanel(jPanel3, jLabel8, jLabel16, jLabel12, jLabel20, cartItems.size() > 2 ? cartItems.get(2) : null);
         showPanel(jPanel4, jLabel9, jLabel17, jLabel13, jLabel21, cartItems.size() > 3 ? cartItems.get(3) : null);
+
+        if (appliedVoucherCode != null && !appliedVoucherCode.isBlank()) {
+            applyVoucherToCart(appliedVoucherCode);
+        }
     }
 
     private void showPanel(javax.swing.JPanel panel, javax.swing.JLabel imageLabel, javax.swing.JLabel nameLabel, javax.swing.JLabel quantityLabel, javax.swing.JLabel priceLabel, CartItemData item) {
@@ -339,12 +376,118 @@ public class CustomerCartPanel extends javax.swing.JFrame {
 
     private void submitCart() {
         if (cartItems.isEmpty()) {
+            clearAppliedVoucherState();
             JOptionPane.showMessageDialog(this, "Your cart is empty.", "Submit cart", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
+        clearAppliedVoucherState();
         JOptionPane.showMessageDialog(this, "Cart submitted.", "Submit cart", JOptionPane.INFORMATION_MESSAGE);
         FormNavigator.redirect(this, new CustomerOrderProcessing());
+    }
+
+    /**
+     * Clears the applied voucher from the current UI and from persisted local storage.
+     * This keeps checkout and empty-cart behavior consistent.
+     */
+    private void clearAppliedVoucherState() {
+        appliedVoucherCode = null;
+        discountCents = null;
+        jLabel22.setText("");
+        jLabel3.setVisible(false);
+        jLabel3.setText("");
+        jLabel4.setText(formatPrice(subtotalCents));
+        jButton4.setEnabled(true);
+
+        AuthSession session = AuthState.current();
+        if (session != null) {
+            CustomerVoucherState.save(session.uid(), null);
+        }
+    }
+
+    /**
+     * Set the applied voucher code to display in the cart UI.
+     * Encapsulates the UI detail for where the voucher is shown (jLabel22).
+     */
+    public void setAppliedVoucher(String voucherCode) {
+        if (voucherCode == null || voucherCode.isBlank()) {
+            appliedVoucherCode = null;
+            jLabel22.setText("");
+            // clear any previously-applied discount
+            discountCents = null;
+            jLabel3.setVisible(false);
+            jLabel3.setText("");
+            jLabel4.setText(formatPrice(subtotalCents));
+            jButton4.setEnabled(true);
+            AuthSession session = AuthState.current();
+            if (session != null) {
+                CustomerVoucherState.save(session.uid(), null);
+            }
+            return;
+        }
+
+        // display the voucher code and apply its discount to the current cart totals
+        appliedVoucherCode = voucherCode;
+        jLabel22.setText(voucherCode);
+        AuthSession session = AuthState.current();
+        if (session != null) {
+            CustomerVoucherState.save(session.uid(), voucherCode);
+        }
+        applyVoucherToCart(voucherCode);
+        // once applied, prevent re-applying from the cart UI
+        jButton4.setEnabled(false);
+    }
+
+    /**
+     * Fetches voucher metadata (discount_percent) from Firestore and applies
+     * it to the current cart totals. The Firestore field `discount_percent` is
+     * expected to be stored as an integer (e.g. 10 for 10%). We convert it to
+     * a decimal percentage and compute the monetary discount against
+     * `subtotalCents` then update `discountCents` and the visible totals.
+     */
+    private void applyVoucherToCart(String voucherCode) {
+        AuthSession session = AuthState.current();
+        if (session == null) {
+            JOptionPane.showMessageDialog(this, "Please sign in to apply vouchers.", "Voucher", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        FirebasePublicConfig config;
+        try {
+            config = FirebasePublicConfig.load();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Unable to load Firebase configuration.", "Voucher", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        FirestoreRestClient rest = new FirestoreRestClient(config);
+        try {
+            com.fasterxml.jackson.databind.JsonNode voucherDoc = rest.getDocument(session.idToken(), "Vouchers", voucherCode);
+            if (voucherDoc == null) {
+                JOptionPane.showMessageDialog(this, "Voucher not found.", "Voucher", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            Long discountPercentInt = FirestoreDocuments.readLong(voucherDoc, "discount_percent", null);
+            if (discountPercentInt == null) {
+                JOptionPane.showMessageDialog(this, "Voucher does not specify a discount percent.", "Voucher", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            // Convert integer percent (e.g. 10) to decimal (0.10)
+            double percent = discountPercentInt.doubleValue() / 100.0d;
+
+            // Compute discount amount from subtotalCents and update UI
+            long computedDiscount = Math.max(0L, Math.round(subtotalCents * percent));
+            discountCents = computedDiscount;
+            jLabel3.setVisible(true);
+            jLabel3.setText(formatPrice(discountCents));
+            long finalTotal = Math.max(0L, subtotalCents - discountCents);
+            jLabel4.setText(formatPrice(finalTotal));
+            jLabel2.setText(formatPrice(subtotalCents));
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Unable to retrieve voucher details.", "Voucher", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -383,6 +526,7 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         jLabel13 = new javax.swing.JLabel();
         jLabel17 = new javax.swing.JLabel();
         jLabel21 = new javax.swing.JLabel();
+        jLabel22 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -419,12 +563,7 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 570, 80, 60));
 
         jButton4.setText("jButton4");
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
-            }
-        });
-        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 390, -1, 40));
+        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 390, 90, 50));
 
         jLabel2.setText("jLabel2");
         getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 440, -1, -1));
@@ -487,6 +626,11 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jButton7.setText("jButton7");
+        jButton7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton7ActionPerformed(evt);
+            }
+        });
         jPanel3.add(jButton7, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 0, 40, 30));
 
         jLabel8.setText("jLabel8");
@@ -521,6 +665,7 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         jPanel4.add(jLabel21, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 40, -1, -1));
 
         getContentPane().add(jPanel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 320, 320, 60));
+        getContentPane().add(jLabel22, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 390, 60, 40));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/CustomerDesign/CustomerCartPanel.png"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
@@ -545,12 +690,24 @@ public class CustomerCartPanel extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton8ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        // If a voucher is already displayed, prevent re-opening the voucher screen
+        // and inform the user that the voucher has already been claimed.
+        String displayed = jLabel22.getText();
+        if (displayed != null && !displayed.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Voucher already claimed", "Voucher", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
         FormNavigator.redirect(this, new CustomerVoucher());
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
         // Reserved for per-item actions.
     }//GEN-LAST:event_jButton6ActionPerformed
+
+    private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
+        // Reserved for per-item actions (button 7). Kept as a stub so NetBeans-generated
+        // action listener wiring compiles cleanly.
+    }//GEN-LAST:event_jButton7ActionPerformed
 
     private static final class CartItemData {
 
@@ -615,6 +772,7 @@ public class CustomerCartPanel extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
+    private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;

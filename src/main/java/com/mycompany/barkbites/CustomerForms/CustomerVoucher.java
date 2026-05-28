@@ -256,17 +256,18 @@ public class CustomerVoucher extends javax.swing.JFrame {
                         }
                         Firestore firestore = FirebaseInitializer.getFirestore();
                         DocumentReference ref = firestore.collection("Vouchers").document(voucherCode);
-                        ref.set(
-                                Map.of(
-                                        "total_uses", newTotalUses,
-                                        "used", shouldMarkAsUsed
-                                ),
-                                SetOptions.merge()
-                        ).get();
+                        java.util.Map<String, Object> updateMap = new java.util.HashMap<>();
+                        updateMap.put("total_uses", Long.valueOf(newTotalUses));
+                        updateMap.put("used", Boolean.valueOf(shouldMarkAsUsed));
+                        ref.set(updateMap, SetOptions.merge()).get();
                     }
 
                     showMessageOnEDT("Voucher Activated", "Validation", JOptionPane.INFORMATION_MESSAGE);
-                    javax.swing.SwingUtilities.invokeLater(() -> jTextField1.setText(""));
+                    javax.swing.SwingUtilities.invokeLater(() -> {
+                        jTextField1.setText("");
+                        // After activation, navigate back to cart and show the applied voucher
+                        FormNavigator.redirect(CustomerVoucher.this, new CustomerCartPanel(voucherCode));
+                    });
                 } catch (IllegalStateException ex) {
                     String msg = ex.getMessage();
                     if (msg != null && msg.toLowerCase().contains("missing or insufficient permissions")) {
