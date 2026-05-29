@@ -57,12 +57,14 @@ public class StaffMenu extends javax.swing.JFrame {
         makeButtonInvisible(StatisticsButton);
         makeButtonInvisible(LogoutButton);
         makeButtonInvisible(HistoryButton);
+        makeButtonInvisible(CashIn);
 
         // Action: route the navigation buttons to the matching screens.
         OrdersButton.addActionListener(evt -> openStaffOrders());
         InventoryButton.addActionListener(evt -> openStaffInventory());
         StatisticsButton.addActionListener(evt -> openStaffStatistics());
         LogoutButton.addActionListener(evt -> openStaffLandingPage());
+        CashIn.addActionListener(evt -> openStaffCashIn());
 
         boolean firebaseReady = true;
         if (!java.beans.Beans.isDesignTime()) {
@@ -95,7 +97,6 @@ public class StaffMenu extends javax.swing.JFrame {
         // Action: hook up the menu refresh, save, and history controls.
         refreshButton.addActionListener(evt -> loadMenuItemsAsync());
         saveButton.addActionListener(evt -> saveMenuItem());
-        HistoryButton.setText("History");
         HistoryButton.addActionListener(evt -> openStaffHistory());
 
         installCardClickTarget(jPanel1, 0);
@@ -437,6 +438,11 @@ public class StaffMenu extends javax.swing.JFrame {
         FormNavigator.redirect(this, new StaffHistory());
     }
 
+    private void openStaffCashIn() {
+        // Action: open the Cash In screen.
+        FormNavigator.redirect(this, new StaffCashIn());
+    }
+
     private static void makeButtonInvisible(javax.swing.JButton button) {
         // Keeps the button clickable while removing the visible chrome.
         button.setText("");
@@ -494,6 +500,7 @@ public class StaffMenu extends javax.swing.JFrame {
         jLabel14 = new javax.swing.JLabel();
         jLabel15 = new javax.swing.JLabel();
         jLabel16 = new javax.swing.JLabel();
+        CashIn = new javax.swing.JButton();
         BG = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -512,14 +519,20 @@ public class StaffMenu extends javax.swing.JFrame {
         getContentPane().add(OrdersButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 130, 140, 60));
 
         InventoryButton.setText("jButton2");
-        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 210, 140, 70));
+        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 190, 140, 70));
 
         StatisticsButton.setText("jButton3");
-        getContentPane().add(StatisticsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 370, 140, 80));
+        getContentPane().add(StatisticsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 330, 140, 70));
 
         LogoutButton.setText("jButton4");
         getContentPane().add(LogoutButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 550, 100, 30));
-        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 460, 140, 70));
+
+        HistoryButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                HistoryButtonActionPerformed(evt);
+            }
+        });
+        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 400, 140, 70));
 
         QuantityField.setText("jTextField1");
         getContentPane().add(QuantityField, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 360, 190, 30));
@@ -604,11 +617,18 @@ public class StaffMenu extends javax.swing.JFrame {
 
         getContentPane().add(MenuCards, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 130, 400, 440));
 
+        CashIn.setText("jButton1");
+        getContentPane().add(CashIn, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 470, 140, 70));
+
         BG.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffMenu.png"))); // NOI18N
         getContentPane().add(BG, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void HistoryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_HistoryButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_HistoryButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -643,6 +663,7 @@ public class StaffMenu extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel BG;
+    private javax.swing.JButton CashIn;
     private javax.swing.JButton HistoryButton;
     private javax.swing.JButton InventoryButton;
     private javax.swing.JButton LogoutButton;

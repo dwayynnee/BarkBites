@@ -5,10 +5,12 @@
 package com.mycompany.barkbites.StaffForms;
 
 import com.mycompany.barkbites.FormNavigator;
+import com.mycompany.barkbites.data.staff.StaffCashInRecord;
+import com.mycompany.barkbites.data.staff.StaffCashInService;
 import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import com.mycompany.barkbites.data.staff.StaffOrderRecord;
 import com.mycompany.barkbites.data.staff.StaffOrderService;
-import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Color;
 import java.awt.Font;
 import java.time.Instant;
@@ -38,8 +40,9 @@ public class StaffHistory extends javax.swing.JFrame {
             DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a").withZone(ZoneId.systemDefault());
 
     private final StaffOrderService orderService = new StaffOrderService();
+    private final StaffCashInService cashInService = new StaffCashInService();
     private final DefaultTableModel historyTableModel = new DefaultTableModel(
-            new Object[] { "Order ID", "Customer", "Status", "Payment", "Total", "Order", "Created" },
+            new Object[] { "Type", "Customer", "Amount", "Reference", "Details", "Created" },
             0
     ) {
         @Override
@@ -47,6 +50,9 @@ public class StaffHistory extends javax.swing.JFrame {
             return false;
         }
     };
+    private javax.swing.JLabel historyTitleLabel;
+    private javax.swing.JScrollPane historyScrollPane;
+    private javax.swing.JTable historyTable;
     /**
      * Creates new form StaffHistory
      */
@@ -64,6 +70,7 @@ public class StaffHistory extends javax.swing.JFrame {
         makeButtonInvisible(StaffStatistics);
         makeButtonInvisible(Refresh);
         makeButtonInvisible(Logout);
+        makeButtonInvisible(Cashin);
 
         // Action: connect each button to its matching screen.
         StaffOrders.addActionListener(evt -> openStaffOrders());
@@ -71,6 +78,7 @@ public class StaffHistory extends javax.swing.JFrame {
         StaffMenu.addActionListener(evt -> openStaffMenu());
         StaffStatistics.addActionListener(evt -> openStaffStatistics());
         Logout.addActionListener(evt -> openStaffLandingPage());
+        Cashin.addActionListener(evt -> openStaffCashIn());
         Refresh.addActionListener(evt -> loadHistoryAsync());
 
         if (firebaseReady) {
@@ -82,11 +90,12 @@ public class StaffHistory extends javax.swing.JFrame {
         historyPanel.setOpaque(true);
         historyPanel.setBackground(new Color(255, 255, 255, 230));
         historyPanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-        historyPanel.setLayout(new BorderLayout());
 
         historyTable.setRowHeight(24);
         historyTable.setShowGrid(false);
         historyTable.setFillsViewportHeight(true);
+        historyTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        historyTable.setPreferredScrollableViewportSize(new Dimension(660, 330));
         historyTable.setBackground(Color.WHITE);
         historyTable.setForeground(Color.BLACK);
         historyTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -97,48 +106,75 @@ public class StaffHistory extends javax.swing.JFrame {
 
         historyScrollPane.setBorder(BorderFactory.createEmptyBorder());
         historyScrollPane.getViewport().setBackground(Color.WHITE);
+        historyScrollPane.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        historyScrollPane.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        historyScrollPane.getVerticalScrollBar().setUnitIncrement(16);
         historyScrollPane.setViewportView(historyTable);
 
         historyTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         historyTitleLabel.setForeground(new Color(25, 25, 25));
-        historyTitleLabel.setText("Order History");
-
-        historyPanel.removeAll();
-        historyPanel.add(historyTitleLabel, BorderLayout.NORTH);
-        historyPanel.add(historyScrollPane, BorderLayout.CENTER);
+        historyTitleLabel.setText("History");
     }
 
     private void loadHistoryAsync() {
         Refresh.setEnabled(false);
-        SwingWorker<List<StaffOrderRecord>, Void> worker = new SwingWorker<>() {
+        SwingWorker<List<HistoryEntry>, Void> worker = new SwingWorker<>() {
             @Override
-            protected List<StaffOrderRecord> doInBackground() {
-                List<StaffOrderRecord> orders = new ArrayList<>(orderService.listOrders());
-                orders.sort(
+            protected List<HistoryEntry> doInBackground() {
+                List<HistoryEntry> historyEntries = new ArrayList<>();
+
+                for (StaffOrderRecord order : orderService.listOrders()) {
+                    historyEntries.add(new HistoryEntry(
+                            "Order",
+                            safeText(order.customerName()),
+                            formatTotal(order.totalCents()),
+                            safeText(order.id()),
+                            safeText(order.status()),
+                            order.createdAtMillis()
+                    ));
+                }
+
+                for (StaffCashInRecord cashIn : cashInService.listCashInRecords()) {
+                    historyEntries.add(new HistoryEntry(
+                            "Cash In",
+                            safeText(cashIn.customerName()),
+                            formatTotal(cashIn.amountCents()),
+                            safeText(cashIn.id()),
+                            formatTotal(cashIn.balanceBeforeCents()),
+                            cashIn.createdAtMillis()
+                    ));
+                }
+
+                historyEntries.sort(
                         Comparator
-                                .comparingLong(StaffOrderRecord::createdAtMillis)
+                                .comparingLong(HistoryEntry::createdAtMillis)
                                 .reversed()
-                                .thenComparing(StaffOrderRecord::id)
+                                .thenComparing(HistoryEntry::reference)
                 );
-                return orders;
+
+                return historyEntries;
             }
 
             @Override
             protected void done() {
                 try {
-                    List<StaffOrderRecord> orders = get();
+                    List<HistoryEntry> historyEntries = get();
                     historyTableModel.setRowCount(0);
-                    for (StaffOrderRecord order : orders) {
+                    for (HistoryEntry entry : historyEntries) {
                         historyTableModel.addRow(new Object[] {
-                            safeText(order.id()),
-                            safeText(order.customerName()),
-                            safeText(order.status()),
-                            safeText(order.payment()),
-                            formatTotal(order.totalCents()),
-                            safeText(order.order()),
-                            formatCreatedAt(order.createdAtMillis())
+                            entry.type(),
+                            entry.customer(),
+                            entry.amount(),
+                            entry.reference(),
+                            entry.details(),
+                            formatCreatedAt(entry.createdAtMillis())
                         });
                     }
+                    historyTableModel.fireTableDataChanged();
+                    historyTable.revalidate();
+                    historyTable.repaint();
+                    historyScrollPane.revalidate();
+                    historyScrollPane.repaint();
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 } catch (ExecutionException ex) {
@@ -186,8 +222,16 @@ public class StaffHistory extends javax.swing.JFrame {
         FormNavigator.redirect(this, new StaffLandingPage());
     }
 
+    private void openStaffCashIn() {
+        // Action: open the Cash In screen.
+        FormNavigator.redirect(this, new StaffCashIn());
+    }
+
     private static String formatTotal(long totalCents) {
         return "₱" + String.format("%,.2f", totalCents / 100.0d);
+    }
+
+    private record HistoryEntry(String type, String customer, String amount, String reference, String details, long createdAtMillis) {
     }
 
     private static String formatCreatedAt(long createdAtMillis) {
@@ -213,35 +257,49 @@ public class StaffHistory extends javax.swing.JFrame {
     private void initComponents() {
 
         historyPanel = new javax.swing.JPanel();
+        historyTitleLabel = new javax.swing.JLabel();
+        historyScrollPane = new javax.swing.JScrollPane();
+        historyTable = new javax.swing.JTable(historyTableModel);
         StaffOrders = new javax.swing.JButton();
         StaffInventory = new javax.swing.JButton();
         StaffMenu = new javax.swing.JButton();
         StaffStatistics = new javax.swing.JButton();
         Refresh = new javax.swing.JButton();
         Logout = new javax.swing.JButton();
+        Cashin = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
         getContentPane().add(historyPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 200, 660, 360));
 
+        historyScrollPane.setViewportView(historyTable);
+        historyPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        historyPanel.add(historyTitleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+        historyPanel.add(historyScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 660, 330));
+
         StaffOrders.setText("jButton1");
-        getContentPane().add(StaffOrders, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 120, 140, 70));
+        getContentPane().add(StaffOrders, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 130, 140, 60));
 
         StaffInventory.setText("jButton2");
-        getContentPane().add(StaffInventory, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 210, 140, 70));
+        getContentPane().add(StaffInventory, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 200, 140, 60));
 
         StaffMenu.setText("jButton3");
-        getContentPane().add(StaffMenu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 290, 140, 70));
+        getContentPane().add(StaffMenu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 270, 140, 50));
 
         StaffStatistics.setText("jButton4");
-        getContentPane().add(StaffStatistics, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 380, 140, 70));
+        getContentPane().add(StaffStatistics, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 330, 140, 70));
 
         Refresh.setText("jButton5");
         getContentPane().add(Refresh, new org.netbeans.lib.awtextra.AbsoluteConstraints(780, 110, 100, 50));
 
         Logout.setText("jButton6");
         getContentPane().add(Logout, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 540, 100, 40));
+
+        Cashin.setText("jButton1");
+        getContentPane().add(Cashin, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 400, 140, 60));
+
+        jLabel1.setIcon(new javax.swing.ImageIcon("C:\\BarkBites\\src\\main\\java\\com\\mycompany\\barkbites\\StaffDesign\\StaffHistory.png")); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         pack();
@@ -279,6 +337,7 @@ public class StaffHistory extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton Cashin;
     private javax.swing.JButton Logout;
     private javax.swing.JButton Refresh;
     private javax.swing.JButton StaffInventory;

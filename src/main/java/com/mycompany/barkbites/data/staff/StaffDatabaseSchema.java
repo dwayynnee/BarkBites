@@ -10,6 +10,7 @@ package com.mycompany.barkbites.data.staff;
  * - menu: Contains staff menu items (dishes, prices, quantities)
  * - inventory: Contains inventory tracking data
  * - orders: Contains customer orders placed via the app
+ * - cashIns: Contains staff cash-in transactions for customer wallets
  * - statistics: Contains sales summary and reporting data
  * - settings: Contains configuration documents (like staffPassword)
  */
@@ -19,6 +20,7 @@ public final class StaffDatabaseSchema {
     private static volatile String menuCollection = "menu";
     private static volatile String inventoryCollection = "inventory";
     private static volatile String ordersCollection = "orders";
+    private static volatile String cashInHistoryCollection = "cashIns";
     private static volatile String statisticsCollection = "statistics";
     private static volatile String settingsCollection = "settings";
     private static volatile String staffPasswordDocument = "staffPassword";
@@ -58,6 +60,17 @@ public final class StaffDatabaseSchema {
     /** Set the orders collection name to a custom value */
     public static void setOrdersCollection(String collection) {
         ordersCollection = normalize(collection, "orders");
+    }
+
+    // ==================== Cash In History Collection ====================
+    /** @return the current cash-in history collection name */
+    public static String cashInHistoryCollection() {
+        return cashInHistoryCollection;
+    }
+
+    /** Set the cash-in history collection name to a custom value */
+    public static void setCashInHistoryCollection(String collection) {
+        cashInHistoryCollection = normalize(collection, "cashIns");
     }
 
     // ==================== Statistics Collection ====================

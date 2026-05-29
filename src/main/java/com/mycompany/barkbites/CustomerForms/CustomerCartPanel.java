@@ -1,5 +1,9 @@
 package com.mycompany.barkbites.CustomerForms;
 
+/*
+ * CustomerCartPanel — UI for viewing and editing the customer's cart.
+ */
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mycompany.barkbites.data.FirebasePublicConfig;
 import com.mycompany.barkbites.data.CustomerVoucherState;
@@ -8,7 +12,6 @@ import com.mycompany.barkbites.data.firestore.FirestoreDocuments;
 import com.mycompany.barkbites.FormNavigator;
 import com.mycompany.barkbites.data.auth.AuthSession;
 import com.mycompany.barkbites.data.auth.AuthState;
-import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import java.awt.Image;
 import java.io.File;
 import java.net.URL;
@@ -29,7 +32,6 @@ public class CustomerCartPanel extends javax.swing.JFrame {
     public CustomerCartPanel() {
         initComponents();
         configureUi();
-        StaffFirebaseBootstrap.ensureInitialized(this);
         AuthSession session = AuthState.current();
         if (session != null) {
             String savedVoucher = CustomerVoucherState.load(session.uid());
@@ -262,7 +264,7 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         showPanel(jPanel4, jLabel9, jLabel17, jLabel13, jLabel21, cartItems.size() > 3 ? cartItems.get(3) : null);
 
         if (appliedVoucherCode != null && !appliedVoucherCode.isBlank()) {
-            applyVoucherToCart(appliedVoucherCode);
+            applyVoucherToCartAsync(appliedVoucherCode);
         }
     }
 
@@ -432,7 +434,7 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         if (session != null) {
             CustomerVoucherState.save(session.uid(), voucherCode);
         }
-        applyVoucherToCart(voucherCode);
+        applyVoucherToCartAsync(voucherCode);
         // once applied, prevent re-applying from the cart UI
         jButton4.setEnabled(false);
     }
@@ -444,7 +446,7 @@ public class CustomerCartPanel extends javax.swing.JFrame {
      * a decimal percentage and compute the monetary discount against
      * `subtotalCents` then update `discountCents` and the visible totals.
      */
-    private void applyVoucherToCart(String voucherCode) {
+    private void applyVoucherToCartAsync(String voucherCode) {
         AuthSession session = AuthState.current();
         if (session == null) {
             JOptionPane.showMessageDialog(this, "Please sign in to apply vouchers.", "Voucher", JOptionPane.WARNING_MESSAGE);
@@ -460,33 +462,47 @@ public class CustomerCartPanel extends javax.swing.JFrame {
         }
 
         FirestoreRestClient rest = new FirestoreRestClient(config);
-        try {
-            com.fasterxml.jackson.databind.JsonNode voucherDoc = rest.getDocument(session.idToken(), "Vouchers", voucherCode);
-            if (voucherDoc == null) {
-                JOptionPane.showMessageDialog(this, "Voucher not found.", "Voucher", JOptionPane.INFORMATION_MESSAGE);
-                return;
+        javax.swing.SwingWorker<Long, Void> worker = new javax.swing.SwingWorker<>() {
+            @Override
+            protected Long doInBackground() throws Exception {
+                com.fasterxml.jackson.databind.JsonNode voucherDoc = rest.getDocument(session.idToken(), "Vouchers", voucherCode);
+                if (voucherDoc == null) {
+                    return null;
+                }
+
+                Long discountPercentInt = FirestoreDocuments.readLong(voucherDoc, "discount_percent", null);
+                if (discountPercentInt == null) {
+                    return null;
+                }
+
+                double percent = discountPercentInt.doubleValue() / 100.0d;
+                return Math.max(0L, Math.round(subtotalCents * percent));
             }
 
-            Long discountPercentInt = FirestoreDocuments.readLong(voucherDoc, "discount_percent", null);
-            if (discountPercentInt == null) {
-                JOptionPane.showMessageDialog(this, "Voucher does not specify a discount percent.", "Voucher", JOptionPane.INFORMATION_MESSAGE);
-                return;
+            @Override
+            protected void done() {
+                try {
+                    Long computedDiscount = get();
+                    if (computedDiscount == null) {
+                        JOptionPane.showMessageDialog(CustomerCartPanel.this, "Voucher not found or invalid.", "Voucher", JOptionPane.INFORMATION_MESSAGE);
+                        return;
+                    }
+
+                    discountCents = computedDiscount;
+                    jLabel3.setVisible(true);
+                    jLabel3.setText(formatPrice(discountCents));
+                    long finalTotal = Math.max(0L, subtotalCents - discountCents);
+                    jLabel4.setText(formatPrice(finalTotal));
+                    jLabel2.setText(formatPrice(subtotalCents));
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException ex) {
+                    JOptionPane.showMessageDialog(CustomerCartPanel.this, "Unable to retrieve voucher details.", "Voucher", JOptionPane.ERROR_MESSAGE);
+                }
             }
+        };
 
-            // Convert integer percent (e.g. 10) to decimal (0.10)
-            double percent = discountPercentInt.doubleValue() / 100.0d;
-
-            // Compute discount amount from subtotalCents and update UI
-            long computedDiscount = Math.max(0L, Math.round(subtotalCents * percent));
-            discountCents = computedDiscount;
-            jLabel3.setVisible(true);
-            jLabel3.setText(formatPrice(discountCents));
-            long finalTotal = Math.max(0L, subtotalCents - discountCents);
-            jLabel4.setText(formatPrice(finalTotal));
-            jLabel2.setText(formatPrice(subtotalCents));
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Unable to retrieve voucher details.", "Voucher", JOptionPane.ERROR_MESSAGE);
-        }
+        worker.execute();
     }
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents

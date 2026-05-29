@@ -49,6 +49,7 @@ public class StaffStatistics extends javax.swing.JFrame {
         makeButtonInvisible(LogoutButton);
         makeButtonInvisible(refreshButton);
         makeButtonInvisible(HistoryButton);
+        makeButtonInvisible(CashIn);
 
         // Action: route each button to the matching staff screen.
         OrdersButton.addActionListener(evt -> openStaffOrders());
@@ -56,6 +57,7 @@ public class StaffStatistics extends javax.swing.JFrame {
         MenuButton.addActionListener(evt -> openStaffMenu());
         LogoutButton.addActionListener(evt -> openStaffLandingPage());
         HistoryButton.addActionListener(evt -> openStaffHistory());
+        CashIn.addActionListener(evt -> openStaffCashIn());
 
         boolean firebaseReady = true;
         if (!java.beans.Beans.isDesignTime()) {
@@ -143,6 +145,11 @@ public class StaffStatistics extends javax.swing.JFrame {
         FormNavigator.redirect(this, new StaffHistory());
     }
 
+    private void openStaffCashIn() {
+        // Action: open the Cash In screen.
+        FormNavigator.redirect(this, new StaffCashIn());
+    }
+
     private static void makeButtonInvisible(javax.swing.JButton button) {
         // Keeps the button clickable while removing the visible chrome.
         button.setText("");
@@ -171,6 +178,7 @@ public class StaffStatistics extends javax.swing.JFrame {
         MenuButton = new javax.swing.JButton();
         LogoutButton = new javax.swing.JButton();
         HistoryButton = new javax.swing.JButton();
+        CashIn = new javax.swing.JButton();
         BG = new javax.swing.JLabel();
 
         jButton5.setText("jButton5");
@@ -202,19 +210,22 @@ public class StaffStatistics extends javax.swing.JFrame {
         getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(770, 120, 120, 50));
 
         OrdersButton.setText("jButton1");
-        getContentPane().add(OrdersButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 130, 140, 70));
+        getContentPane().add(OrdersButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 120, 140, 70));
 
         InventoryButton.setText("jButton2");
-        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 210, 140, 70));
+        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 190, 140, 70));
 
         MenuButton.setText("jButton3");
-        getContentPane().add(MenuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 290, 140, 70));
+        getContentPane().add(MenuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 260, 140, 70));
 
         LogoutButton.setText("jButton4");
         getContentPane().add(LogoutButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 540, 90, 40));
 
         HistoryButton.setText("jButton6");
-        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 460, 140, 70));
+        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 400, 140, 70));
+
+        CashIn.setText("jButton1");
+        getContentPane().add(CashIn, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 470, 140, 70));
 
         BG.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffStatistics.png"))); // NOI18N
         getContentPane().add(BG, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
@@ -255,6 +266,7 @@ public class StaffStatistics extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel BG;
+    private javax.swing.JButton CashIn;
     private javax.swing.JButton HistoryButton;
     private javax.swing.JButton InventoryButton;
     private javax.swing.JButton LogoutButton;

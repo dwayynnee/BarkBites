@@ -1,5 +1,9 @@
 package com.mycompany.barkbites.CustomerForms;
 
+/*
+ * CustomerCashInPanel — UI for customer to add cash to their wallet.
+ */
+
 import com.mycompany.barkbites.FormNavigator;
 import com.mycompany.barkbites.data.FirebasePublicConfig;
 import com.mycompany.barkbites.data.auth.AuthSession;

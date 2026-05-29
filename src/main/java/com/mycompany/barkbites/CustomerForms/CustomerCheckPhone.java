@@ -1,5 +1,9 @@
 package com.mycompany.barkbites.CustomerForms;
 
+/*
+ * CustomerCheckPhone — UI for verifying customer phone numbers.
+ */
+
 import com.mycompany.barkbites.FormNavigator;
 import java.awt.Color;
 import java.awt.event.KeyAdapter;

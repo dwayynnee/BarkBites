@@ -1,5 +1,9 @@
 package com.mycompany.barkbites.CustomerForms;
 
+/*
+ * CustomerSignupPanel — registration UI allowing new customers to sign up.
+ */
+
 import com.mycompany.barkbites.FormNavigator;
 import com.mycompany.barkbites.data.FirebasePublicConfig;
 import com.mycompany.barkbites.data.auth.AuthSession;

@@ -1,5 +1,9 @@
 package com.mycompany.barkbites.CustomerForms;
 
+/*
+ * CustomerVoucher — UI to redeem vouchers and update Firestore documents.
+ */
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +20,6 @@ import com.mycompany.barkbites.data.auth.AuthState;
 import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 

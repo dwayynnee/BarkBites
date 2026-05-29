@@ -1,5 +1,12 @@
 package com.mycompany.barkbites.CustomerForms;
 
+/**
+ * CustomerProfilePanelVisible
+ * Shows the customer's profile information including a masked wallet balance
+ * and allows toggling visibility. Loads profile data asynchronously from
+ * Firestore via FirestoreRestClient.
+ */
+
 import com.mycompany.barkbites.FormNavigator;
 import com.mycompany.barkbites.data.FirebasePublicConfig;
 import com.mycompany.barkbites.data.auth.AuthSession;
@@ -30,26 +37,24 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         getContentPane().setComponentZOrder(jButton1, 0);
         getContentPane().setComponentZOrder(jButton2, 0);
         getContentPane().setComponentZOrder(jButton3, 0);
-        getContentPane().setComponentZOrder(jButton4, 0);
-        getContentPane().setComponentZOrder(jButton5, 0);
-        getContentPane().setComponentZOrder(jButton6, 0);
+        // jButton4 was removed; keep jButton7 on top of background components
+        getContentPane().setComponentZOrder(jButton7, 0);
+        // removed jButton5/jButton6
 
         // Wire button actions (the methods exist, but no listeners were attached).
         jButton1.addActionListener(this::jButton1ActionPerformed);
         jButton2.addActionListener(this::jButton2ActionPerformed);
         jButton3.addActionListener(this::jButton3ActionPerformed);
-        jButton4.addActionListener(this::jButton4ActionPerformed);
-        jButton5.addActionListener(this::jButton5ActionPerformed);
-        jButton6.addActionListener(this::jButton6ActionPerformed);
+        // jButton4 removed in UI; no listener to attach
+        // jButton5/jButton6 removed
         jButton7.addActionListener(e -> toggleWalletBalanceVisibility());
 
         makeButtonInvisible(jButton1);
         makeButtonInvisible(jButton2);
         makeButtonInvisible(jButton3);
-        makeButtonInvisible(jButton4);
-        makeButtonInvisible(jButton5);
-        makeButtonInvisible(jButton6);
+        // jButton5/jButton6 removed
         makeButtonInvisible(jButton7);
+        makeButtonInvisible(jButton8);
 
         jLabel4.setVisible(true);
         jLabel4.setText(maskWalletBalance(null));
@@ -180,7 +185,6 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
         jButton5 = new javax.swing.JButton();
         jButton6 = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
@@ -194,6 +198,11 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jButton1.setText("jButton1");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
         getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 570, -1, 60));
 
         jButton2.setText("jButton2");
@@ -201,9 +210,6 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
 
         jButton3.setText("jButton3");
         getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 570, -1, 60));
-
-        jButton4.setText("jButton4");
-        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 305, 150, 70));
 
         jButton5.setText("jButton5");
         getContentPane().add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 400, 120, 130));
@@ -214,22 +220,27 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("jLabel2");
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 90, 170, 30));
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 90, 170, 30));
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setText("jLabel3");
-        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 120, 220, 20));
+        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 120, 220, 20));
 
-        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel4.setText("jLabel4");
-        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 250, 70, 30));
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 290, 160, 30));
 
         jButton7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/CustomerDesign/eye-open.png"))); // NOI18N
-        getContentPane().add(jButton7, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 250, -1, 30));
+        getContentPane().add(jButton7, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 290, -1, 30));
 
         jButton8.setText("jButton8");
-        getContentPane().add(jButton8, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 180, 130, 50));
+        jButton8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton8ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jButton8, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 20, 100, 40));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/CustomerDesign/CustomerProfilePanelVisible.png"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
@@ -249,15 +260,10 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         FormNavigator.redirect(this, new CustomerCartPanel());
     }//GEN-LAST:event_jButton3ActionPerformed
 
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        FormNavigator.redirect(this, new CustomerCashInPanel());
-    }//GEN-LAST:event_jButton4ActionPerformed
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {                                         
-        FormNavigator.redirect(this, new CustomerQrScannerPanel());
-    } 
-    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {                                         
-        FormNavigator.redirect(this, new CustomerQrScanPanel());
-    }  
+    private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
+        FormNavigator.redirect(this, new CustomerLandingPage());
+    }//GEN-LAST:event_jButton8ActionPerformed
+    // jButton5/jButton6 removed
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -270,7 +276,6 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;

@@ -1,5 +1,9 @@
 package com.mycompany.barkbites.CustomerForms;
 
+/*
+ * CustomerShowFoodPanel2 — food detail display for item variants (panel 2).
+ */
+
 import com.mycompany.barkbites.FormNavigator;
 import com.mycompany.barkbites.data.FirebasePublicConfig;
 import com.mycompany.barkbites.data.auth.AuthSession;
@@ -133,6 +137,7 @@ public class CustomerShowFoodPanel2 extends javax.swing.JFrame {
     private void refreshMenuLabels() {
         jLabel2.setText(Integer.toString(quantity));
         jLabel3.setText(formatPrice(currentMenuPriceCents));
+        jLabel6.setText(formatPrice(currentMenuPriceCents));
         jLabel4.setText(currentMenuName != null ? currentMenuName : "Unavailable");
 
         ImageIcon icon = loadMenuImage(currentMenuImagePath, jLabel5.getWidth(), jLabel5.getHeight());
@@ -319,7 +324,6 @@ public class CustomerShowFoodPanel2 extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
         jButton4 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
@@ -335,25 +339,26 @@ public class CustomerShowFoodPanel2 extends javax.swing.JFrame {
         jButton3.setText("jButton3");
         getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 370, 40, 40));
 
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel2.setText("jLabel2");
         getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 380, -1, -1));
-        getContentPane().add(jCheckBox1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 480, 70, -1));
+        getContentPane().add(jCheckBox1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 480, 20, -1));
         getContentPane().add(jCheckBox2, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 520, -1, -1));
 
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel3.setText("jLabel3");
         getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 570, 70, 50));
 
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel4.setText("jLabel4");
         getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 340, 110, 30));
 
         jLabel5.setText("jLabel5");
         getContentPane().add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 100, 320, 220));
 
+        jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel6.setText("jLabel3");
         getContentPane().add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 370, 70, 40));
-
-        jLabel7.setText("jLabel3");
-        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 370, 70, 40));
 
         jButton4.setText("jButton4");
         getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 560, 310, 70));
@@ -400,6 +405,5 @@ public class CustomerShowFoodPanel2 extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     // End of variables declaration//GEN-END:variables
 }

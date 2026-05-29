@@ -9,6 +9,7 @@ import com.mycompany.barkbites.data.staff.StaffInventoryItem;
 import com.mycompany.barkbites.data.staff.StaffInventoryService;
 import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import javax.swing.DefaultListModel;
@@ -71,6 +72,7 @@ public class StaffInventory extends javax.swing.JFrame {
         makeButtonInvisible(InventoryButton);
         makeButtonInvisible(LogoutButton);
         makeButtonInvisible(HistoryButton);
+        makeButtonInvisible(CashIn);
         makeButtonInvisible(newButton);
         makeButtonInvisible(saveButton);
         makeButtonInvisible(deleteButton);
@@ -86,6 +88,7 @@ public class StaffInventory extends javax.swing.JFrame {
         InventoryButton.addActionListener(evt -> openStaffStatistics());
         LogoutButton.addActionListener(evt -> logout());
         HistoryButton.addActionListener(evt -> openStaffHistory());
+        CashIn.addActionListener(evt -> openStaffCashIn());
 
         inventoryList.setModel(inventoryModel);
         listScroll.setViewportView(inventoryList);
@@ -103,15 +106,57 @@ public class StaffInventory extends javax.swing.JFrame {
     }
 
     private void configureUi() {
+        // Action: give the inventory list a more polished container treatment.
+        listScroll.setOpaque(false);
+        listScroll.getViewport().setOpaque(false);
+        listScroll.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new Color(23, 57, 122), 2),
+                javax.swing.BorderFactory.createEmptyBorder(6, 6, 6, 6)
+        ));
+        listScroll.getVerticalScrollBar().setUnitIncrement(16);
+        listScroll.getVerticalScrollBar().setPreferredSize(new Dimension(14, 0));
+        listScroll.getVerticalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = new Color(23, 57, 122);
+                this.trackColor = new Color(236, 241, 248);
+            }
+
+            @Override
+            protected javax.swing.JButton createDecreaseButton(int orientation) {
+                return createZeroButton();
+            }
+
+            @Override
+            protected javax.swing.JButton createIncreaseButton(int orientation) {
+                return createZeroButton();
+            }
+
+            private javax.swing.JButton createZeroButton() {
+                javax.swing.JButton button = new javax.swing.JButton();
+                button.setPreferredSize(new Dimension(0, 0));
+                button.setMinimumSize(new Dimension(0, 0));
+                button.setMaximumSize(new Dimension(0, 0));
+                return button;
+            }
+        });
+
         // Action: render inventory rows with a clean, readable layout.
         inventoryList.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
             JLabel label = new JLabel(formatInventoryItem(value));
             label.setOpaque(true);
-            label.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 10, 8, 10));
+            label.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                    javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(223, 230, 240)),
+                    javax.swing.BorderFactory.createEmptyBorder(10, 12, 10, 12)
+            ));
             label.setBackground(isSelected ? new Color(23, 57, 122) : Color.WHITE);
             label.setForeground(isSelected ? Color.WHITE : Color.BLACK);
             return label;
         });
+        inventoryList.setBackground(Color.WHITE);
+        inventoryList.setSelectionBackground(new Color(23, 57, 122));
+        inventoryList.setSelectionForeground(Color.WHITE);
+        inventoryList.setFixedCellHeight(42);
         inventoryList.addListSelectionListener(evt -> {
             if (!evt.getValueIsAdjusting()) {
                 populateFormFromSelection();
@@ -304,6 +349,12 @@ public class StaffInventory extends javax.swing.JFrame {
         // Action: open the History screen.
         FormNavigator.redirect(this, new StaffHistory());
     }
+
+    private void openStaffCashIn() {
+        // Action: open the Cash In screen.
+        FormNavigator.redirect(this, new StaffCashIn());
+    }
+
     private void logout() {
         // Action: return to the landing page.
         FormNavigator.redirect(this, new StaffLandingPage());
@@ -349,6 +400,7 @@ public class StaffInventory extends javax.swing.JFrame {
         InventoryButton = new javax.swing.JButton();
         LogoutButton = new javax.swing.JButton();
         HistoryButton = new javax.swing.JButton();
+        CashIn = new javax.swing.JButton();
         BG = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -385,16 +437,19 @@ public class StaffInventory extends javax.swing.JFrame {
         getContentPane().add(OrdersButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 120, 140, 70));
 
         MenuButton.setText("jButton2");
-        getContentPane().add(MenuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 290, 140, 70));
+        getContentPane().add(MenuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 260, 140, 70));
 
         InventoryButton.setText("jButton3");
-        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 370, 140, 80));
+        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 330, 140, 70));
 
         LogoutButton.setText("jButton4");
         getContentPane().add(LogoutButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 550, 100, 30));
 
         HistoryButton.setText("jButton1");
-        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 460, 140, 70));
+        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 400, 140, 70));
+
+        CashIn.setText("jButton1");
+        getContentPane().add(CashIn, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 470, 140, 70));
 
         BG.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffInventory.png"))); // NOI18N
         getContentPane().add(BG, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
@@ -443,6 +498,7 @@ public class StaffInventory extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel BG;
+    private javax.swing.JButton CashIn;
     private javax.swing.JButton HistoryButton;
     private javax.swing.JButton InventoryButton;
     private javax.swing.JButton LogoutButton;

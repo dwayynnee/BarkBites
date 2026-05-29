@@ -1,6 +1,7 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
+ * StaffOrders.java
+ * UI for staff to view and manage orders. Contains card rendering
+ * and status update functionality backed by StaffOrderService.
  */
 package com.mycompany.barkbites.StaffForms;
 
@@ -19,8 +20,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComboBox;
+// Removed unused javax.swing.DefaultComboBoxModel and JComboBox imports (parameterized in place)
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
@@ -65,6 +65,7 @@ public class StaffOrders extends javax.swing.JFrame {
         makeButtonInvisible(StatisticsButton);
         makeButtonInvisible(LogoutButton);
         makeButtonInvisible(HistoryButton);
+        makeButtonInvisible(CashIn);
         makeButtonInvisible(updateButton);
         makeButtonInvisible(refreshButton);
 
@@ -74,6 +75,7 @@ public class StaffOrders extends javax.swing.JFrame {
         StatisticsButton.addActionListener(evt -> openStaffStatistics());
         LogoutButton.addActionListener(evt -> openStaffLandingPage());
         HistoryButton.addActionListener(evt -> openStaffHistory());
+        CashIn.addActionListener(evt -> openStaffCashIn());
         refreshButton.addActionListener(evt -> loadOrdersAsync());
         updateButton.addActionListener(evt -> updateSelectedOrderStatusAsync());
 
@@ -81,12 +83,14 @@ public class StaffOrders extends javax.swing.JFrame {
         if (!java.beans.Beans.isDesignTime()) {
             firebaseReady = StaffFirebaseBootstrap.ensureInitialized(this);
         }
-        configureOrderCards();
-        getContentPane().setComponentZOrder(BG, getContentPane().getComponentCount() - 1);
-        if (firebaseReady) {
-            loadOrdersAsync();
-        } else {
-            setOrderActionsEnabled(false);
+        if (!java.beans.Beans.isDesignTime()) {
+            configureOrderCards();
+            getContentPane().setComponentZOrder(BG, getContentPane().getComponentCount() - 1);
+            if (firebaseReady) {
+                loadOrdersAsync();
+            } else {
+                setOrderActionsEnabled(false);
+            }
         }
 
         this.setResizable(false);
@@ -129,6 +133,11 @@ public class StaffOrders extends javax.swing.JFrame {
         FormNavigator.redirect(this, new StaffHistory());
     }
 
+    private void openStaffCashIn() {
+        // Action: open the Cash In screen.
+        FormNavigator.redirect(this, new StaffCashIn());
+    }
+
     private static void makeButtonInvisible(javax.swing.JButton button) {
         // Keeps the button clickable while removing the visible chrome.
         button.setText("");
@@ -139,6 +148,10 @@ public class StaffOrders extends javax.swing.JFrame {
     }
 
     private void configureOrderCards() {
+        if (java.beans.Beans.isDesignTime()) {
+            return;
+        }
+
         // Action: prepare the container for dynamic card rendering.
         cardsContainerPanel.setOpaque(false);
         cardsContainerPanel.setBorder(null);
@@ -403,7 +416,7 @@ public class StaffOrders extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        statusComboBox = new javax.swing.JComboBox<>();
+        statusComboBox = new javax.swing.JComboBox<String>();
         refreshButton = new javax.swing.JButton();
         updateButton = new javax.swing.JButton();
         cardsContainerPanel = new javax.swing.JPanel();
@@ -428,12 +441,13 @@ public class StaffOrders extends javax.swing.JFrame {
         StatisticsButton = new javax.swing.JButton();
         LogoutButton = new javax.swing.JButton();
         HistoryButton = new javax.swing.JButton();
+        CashIn = new javax.swing.JButton();
         BG = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        statusComboBox.setModel(new DefaultComboBoxModel<>(new String[] { "new", "processing", "ready", "completed", "cancelled" }));
+        statusComboBox.setModel(new javax.swing.DefaultComboBoxModel<String>(new String[] { "new", "processing", "ready", "completed", "cancelled" }));
         getContentPane().add(statusComboBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 130, 160, 30));
 
         refreshButton.setText("Refresh");
@@ -494,19 +508,22 @@ public class StaffOrders extends javax.swing.JFrame {
                 InventoryButtonActionPerformed(evt);
             }
         });
-        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 210, 140, 70));
+        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 190, 140, 70));
 
         MenuButton.setText("jButton2");
-        getContentPane().add(MenuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 290, 140, 70));
+        getContentPane().add(MenuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 260, 140, 70));
 
         StatisticsButton.setText("jButton3");
-        getContentPane().add(StatisticsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 380, 140, 70));
+        getContentPane().add(StatisticsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 330, 140, 70));
 
         LogoutButton.setText("jButton4");
         getContentPane().add(LogoutButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 550, 90, 30));
 
         HistoryButton.setText("jButton1");
-        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 460, 140, 70));
+        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 400, 140, 70));
+
+        CashIn.setText("jButton1");
+        getContentPane().add(CashIn, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 470, 140, 70));
 
         BG.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffOrders.png"))); // NOI18N
         getContentPane().add(BG, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
@@ -551,6 +568,7 @@ public class StaffOrders extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel BG;
+    private javax.swing.JButton CashIn;
     private javax.swing.JButton HistoryButton;
     private javax.swing.JButton InventoryButton;
     private javax.swing.JButton LogoutButton;
@@ -574,7 +592,7 @@ public class StaffOrders extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JButton refreshButton;
-    private JComboBox<String> statusComboBox;
+    private javax.swing.JComboBox<String> statusComboBox;
     private javax.swing.JButton updateButton;
     // End of variables declaration//GEN-END:variables
 }

@@ -1,5 +1,9 @@
 package com.mycompany.barkbites.CustomerForms;
 
+/*
+ * CustomerMenuPanel — displays menu items and navigates to food details.
+ */
+
 import com.mycompany.barkbites.FormNavigator;
 import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import com.mycompany.barkbites.data.staff.StaffMenuItem;
@@ -26,7 +30,6 @@ public class CustomerMenuPanel extends javax.swing.JFrame {
 
         configureMenuUi();
         StaffFirebaseBootstrap.ensureInitialized(this);
-        menuService.seedDefaultMenuItemsIfMissing();
         loadMenuItemsAsync();
 
         this.setResizable(false);
@@ -61,6 +64,7 @@ public class CustomerMenuPanel extends javax.swing.JFrame {
         javax.swing.SwingWorker<List<StaffMenuItem>, Void> worker = new javax.swing.SwingWorker<>() {
             @Override
             protected List<StaffMenuItem> doInBackground() {
+                menuService.seedDefaultMenuItemsIfMissing();
                 return menuService.listMenuItems();
             }
 

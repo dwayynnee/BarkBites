@@ -1,7 +1,6 @@
 package com.mycompany.barkbites.data.staff;
 
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
@@ -124,8 +123,13 @@ public final class StaffOrderService {
         }
         Firestore firestore = FirebaseInitializer.getFirestore();
         try {
-            DocumentReference reference = firestore.collection(StaffDatabaseSchema.ordersCollection()).document(orderId);
-            reference.set(Map.of("status", status), com.google.cloud.firestore.SetOptions.merge()).get();
+            ApiFuture<QuerySnapshot> future = firestore.collectionGroup(StaffDatabaseSchema.ordersCollection()).get();
+            QuerySnapshot snapshot = future.get();
+            for (QueryDocumentSnapshot document : snapshot.getDocuments()) {
+                if (orderId.equals(document.getId())) {
+                    document.getReference().set(Map.of("status", status), com.google.cloud.firestore.SetOptions.merge()).get();
+                }
+            }
         } catch (Exception ex) {
             throw new IllegalStateException("Failed to update order status in Firestore.", ex);
         }

@@ -1,5 +1,9 @@
 package com.mycompany.barkbites.CustomerForms;
 
+/*
+ * CustomerLandingPage — initial screen for customers; navigates to other flows.
+ */
+
 import com.mycompany.barkbites.FormNavigator;
 
 public class CustomerLandingPage extends javax.swing.JFrame {

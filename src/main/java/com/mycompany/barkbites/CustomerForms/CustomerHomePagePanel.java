@@ -1,5 +1,9 @@
 package com.mycompany.barkbites.CustomerForms;
 
+/*
+ * CustomerHomePagePanel — main landing UI for customers showing banners and orders.
+ */
+
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
@@ -10,6 +14,7 @@ import com.mycompany.barkbites.data.auth.AuthSession;
 import com.mycompany.barkbites.data.FirebaseInitializer;
 import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import java.awt.Cursor;
+import java.util.Objects;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.concurrent.ExecutionException;
@@ -47,6 +52,9 @@ public class CustomerHomePagePanel extends javax.swing.JFrame {
         makeButtonInvisible(jButton6);
         makeButtonInvisible(jButton7);
 
+        bringToFront(jButton5);
+        bringToFront(jButton7);
+
         makePanelClickable(jPanel1);
         jPanel1.setVisible(false);
         jPanel1.addMouseListener(new MouseAdapter() {
@@ -74,6 +82,9 @@ public class CustomerHomePagePanel extends javax.swing.JFrame {
                 FormNavigator.redirect(CustomerHomePagePanel.this, new CustomerOrderDetails());
             }
         });
+
+        jButton5.addActionListener(evt -> FormNavigator.redirect(this, new CustomerMenuPanel()));
+        jButton7.addActionListener(evt -> FormNavigator.redirect(this, new CustomerProfilePanelVisible()));
     }
 
     private void loadOrderBannerVisibility() {
@@ -88,9 +99,8 @@ public class CustomerHomePagePanel extends javax.swing.JFrame {
             protected Boolean doInBackground() throws Exception {
                 Firestore firestore = FirebaseInitializer.getFirestore();
                 ApiFuture<QuerySnapshot> future = firestore.collection("customers")
-                        .document(session.uid())
+                    .document(Objects.requireNonNull(session.uid(), "session.uid()"))
                         .collection("orders")
-                        .limit(1)
                         .get();
                 QuerySnapshot snapshot = future.get();
                 if (snapshot == null) {
@@ -98,7 +108,11 @@ public class CustomerHomePagePanel extends javax.swing.JFrame {
                 }
 
                 for (QueryDocumentSnapshot document : snapshot.getDocuments()) {
-                    if (document.exists()) {
+                    String status = document.getString("status");
+                    if (status == null) {
+                        status = document.getString("Status");
+                    }
+                    if (status == null || (!"completed".equalsIgnoreCase(status) && !"cancelled".equalsIgnoreCase(status))) {
                         return true;
                     }
                 }
