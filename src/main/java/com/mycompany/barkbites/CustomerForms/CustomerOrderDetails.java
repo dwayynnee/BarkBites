@@ -1,8 +1,8 @@
 package com.mycompany.barkbites.CustomerForms;
 
-public class CustomerOrderProcessing extends javax.swing.JFrame {
+public class CustomerOrderDetails extends javax.swing.JFrame {
 
-    public CustomerOrderProcessing() {
+    public CustomerOrderDetails() {
         initComponents();
         this.setResizable(false);
     }
@@ -22,7 +22,7 @@ public class CustomerOrderProcessing extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(() -> new CustomerOrderProcessing().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> new CustomerOrderDetails().setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
