@@ -1,8 +1,20 @@
 package com.mycompany.barkbites.CustomerForms;
 
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.google.cloud.firestore.QuerySnapshot;
 import com.mycompany.barkbites.FormNavigator;
 import com.mycompany.barkbites.data.auth.AuthState;
+import com.mycompany.barkbites.data.auth.AuthSession;
+import com.mycompany.barkbites.data.FirebaseInitializer;
+import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
+import java.awt.Cursor;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.concurrent.ExecutionException;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 
 public class CustomerHomePagePanel extends javax.swing.JFrame {
 
@@ -14,6 +26,8 @@ public class CustomerHomePagePanel extends javax.swing.JFrame {
         }
         initComponents();
         configureUI();
+        StaffFirebaseBootstrap.ensureInitialized(this);
+        loadOrderBannerVisibility();
 
         this.setResizable(false);
     }
@@ -23,6 +37,8 @@ public class CustomerHomePagePanel extends javax.swing.JFrame {
      * Buttons are positioned over the background image for visual design.
      */
     private void configureUI() {
+        getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
+
         makeButtonInvisible(jButton1);
         makeButtonInvisible(jButton2);
         makeButtonInvisible(jButton3);
@@ -30,12 +46,95 @@ public class CustomerHomePagePanel extends javax.swing.JFrame {
         makeButtonInvisible(jButton5);
         makeButtonInvisible(jButton6);
         makeButtonInvisible(jButton7);
+
+        makePanelClickable(jPanel1);
+        jPanel1.setVisible(false);
+        jPanel1.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                FormNavigator.redirect(CustomerHomePagePanel.this, new CustomerOrderDetails());
+            }
+        });
+
+        jLabel2.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                FormNavigator.redirect(CustomerHomePagePanel.this, new CustomerOrderDetails());
+            }
+        });
+        jLabel3.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                FormNavigator.redirect(CustomerHomePagePanel.this, new CustomerOrderDetails());
+            }
+        });
+        jLabel4.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                FormNavigator.redirect(CustomerHomePagePanel.this, new CustomerOrderDetails());
+            }
+        });
     }
 
-    /**
-     * Makes a button invisible while keeping it clickable.
-     * Removes all visual elements (text, background, border, focus indicator).
-     */
+    private void loadOrderBannerVisibility() {
+        AuthSession session = AuthState.current();
+        if (session == null) {
+            jPanel1.setVisible(false);
+            return;
+        }
+
+        SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Boolean doInBackground() throws Exception {
+                Firestore firestore = FirebaseInitializer.getFirestore();
+                ApiFuture<QuerySnapshot> future = firestore.collection("customers")
+                        .document(session.uid())
+                        .collection("orders")
+                        .limit(1)
+                        .get();
+                QuerySnapshot snapshot = future.get();
+                if (snapshot == null) {
+                    return false;
+                }
+
+                for (QueryDocumentSnapshot document : snapshot.getDocuments()) {
+                    if (document.exists()) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    jPanel1.setVisible(Boolean.TRUE.equals(get()));
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    jPanel1.setVisible(false);
+                } catch (ExecutionException ex) {
+                    jPanel1.setVisible(false);
+                }
+            }
+        };
+
+        worker.execute();
+    }
+
+    private void bringToFront(java.awt.Component component) {
+        if (component != null) {
+            getContentPane().setComponentZOrder(component, 0);
+        }
+    }
+
+    private static void makePanelClickable(javax.swing.JPanel panel) {
+        if (panel == null) {
+            return;
+        }
+        panel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        panel.setOpaque(true);
+    }
+
     private static void makeButtonInvisible(javax.swing.JButton button) {
         if (button == null) {
             return;
@@ -45,11 +144,17 @@ public class CustomerHomePagePanel extends javax.swing.JFrame {
         button.setContentAreaFilled(false);
         button.setBorderPainted(false);
         button.setFocusPainted(false);
+        button.setEnabled(true);
+        button.setFocusable(true);
     }
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
@@ -62,44 +167,39 @@ public class CustomerHomePagePanel extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        jPanel1.setBackground(new java.awt.Color(39, 87, 145));
+        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(252, 201, 41));
+        jLabel2.setText("View Order Details");
+        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 170, 30));
+
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(248, 237, 221));
+        jLabel3.setText("<-");
+        jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 10, 40, 20));
+
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(248, 237, 221));
+        jLabel4.setText("Your order is still processing…");
+        jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 40, -1, -1));
+
+        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 470, 340, 90));
+
         jButton1.setText("jButton1");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 570, -1, 60));
+        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 330, 150, 30));
 
         jButton2.setText("jButton2");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 570, -1, 60));
+        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 450, 90, 100));
 
         jButton3.setText("jButton3");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
-            }
-        });
-        getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 570, -1, 60));
+        getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 450, 100, 100));
 
         jButton4.setText("jButton4");
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
-            }
-        });
-        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 570, -1, 60));
+        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 450, 90, 100));
 
         jButton5.setText("jButton5");
-        jButton5.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton5ActionPerformed(evt);
-            }
-        });
         getContentPane().add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 570, -1, 60));
 
         jButton6.setText("jButton6");
@@ -111,11 +211,6 @@ public class CustomerHomePagePanel extends javax.swing.JFrame {
         getContentPane().add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 570, -1, 60));
 
         jButton7.setText("jButton7");
-        jButton7.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton7ActionPerformed(evt);
-            }
-        });
         getContentPane().add(jButton7, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 570, -1, 60));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/CustomerDesign/CustomerHomePagePanel.png"))); // NOI18N
@@ -169,5 +264,9 @@ public class CustomerHomePagePanel extends javax.swing.JFrame {
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
 }
