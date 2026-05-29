@@ -531,12 +531,15 @@ public class StaffMenu extends javax.swing.JFrame {
         jLabel4.setText("jLabel4");
         jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 60, 130, 60));
 
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel2.setText("jLabel2");
         jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 156, 110, 20));
 
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel3.setText("jLabel3");
         jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 176, 100, -1));
 
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel1.setText("jLabel1");
         jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 136, 110, 20));
 
@@ -547,12 +550,15 @@ public class StaffMenu extends javax.swing.JFrame {
         jLabel8.setText("jLabel8");
         jPanel2.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(37, 56, 120, 70));
 
+        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel7.setText("jLabel7");
         jPanel2.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(97, 176, 50, 20));
 
+        jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel6.setText("jLabel6");
         jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(77, 136, 90, 20));
 
+        jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel5.setText("jLabel5");
         jPanel2.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(67, 156, 60, -1));
 
@@ -560,15 +566,18 @@ public class StaffMenu extends javax.swing.JFrame {
 
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        jLabel9.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel9.setText("jLabel9");
         jPanel3.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 180, 80, 20));
 
         jLabel10.setText("jLabel10");
         jPanel3.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(33, 56, 120, 70));
 
+        jLabel11.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel11.setText("jLabel11");
         jPanel3.add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 140, 100, 20));
 
+        jLabel12.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel12.setText("jLabel12");
         jPanel3.add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 160, 100, -1));
 
@@ -579,12 +588,15 @@ public class StaffMenu extends javax.swing.JFrame {
         jLabel13.setText("jLabel13");
         jPanel4.add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 60, 120, 60));
 
+        jLabel14.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel14.setText("jLabel14");
         jPanel4.add(jLabel14, new org.netbeans.lib.awtextra.AbsoluteConstraints(73, 140, 100, 20));
 
+        jLabel15.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel15.setText("jLabel15");
         jPanel4.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 160, 100, 20));
 
+        jLabel16.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel16.setText("jLabel16");
         jPanel4.add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 180, 80, -1));
 

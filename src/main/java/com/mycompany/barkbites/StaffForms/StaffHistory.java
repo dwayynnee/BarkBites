@@ -213,9 +213,6 @@ public class StaffHistory extends javax.swing.JFrame {
     private void initComponents() {
 
         historyPanel = new javax.swing.JPanel();
-        historyTitleLabel = new javax.swing.JLabel();
-        historyScrollPane = new javax.swing.JScrollPane();
-        historyTable = new javax.swing.JTable();
         StaffOrders = new javax.swing.JButton();
         StaffInventory = new javax.swing.JButton();
         StaffMenu = new javax.swing.JButton();
@@ -226,23 +223,6 @@ public class StaffHistory extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        historyPanel.setBackground(new java.awt.Color(255, 255, 255));
-        historyPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 200, 200)));
-        historyPanel.setLayout(new java.awt.BorderLayout());
-
-        historyTitleLabel.setFont(new java.awt.Font("Segoe UI", 1, 18));
-        historyTitleLabel.setForeground(new java.awt.Color(25, 25, 25));
-        historyTitleLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 12, 8, 12));
-        historyTitleLabel.setText("Order History");
-        historyPanel.add(historyTitleLabel, java.awt.BorderLayout.NORTH);
-
-        historyTable.setModel(historyTableModel);
-        historyTable.setFillsViewportHeight(true);
-        historyTable.setRowHeight(24);
-        historyScrollPane.setViewportView(historyTable);
-        historyPanel.add(historyScrollPane, java.awt.BorderLayout.CENTER);
-
         getContentPane().add(historyPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 200, 660, 360));
 
         StaffOrders.setText("jButton1");
@@ -262,8 +242,6 @@ public class StaffHistory extends javax.swing.JFrame {
 
         Logout.setText("jButton6");
         getContentPane().add(Logout, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 540, 100, 40));
-
-        jLabel1.setIcon(new javax.swing.ImageIcon("C:\\Users\\markd\\Downloads\\Staff Design\\StaffHistory.png")); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         pack();
@@ -308,9 +286,6 @@ public class StaffHistory extends javax.swing.JFrame {
     private javax.swing.JButton StaffOrders;
     private javax.swing.JButton StaffStatistics;
     private javax.swing.JPanel historyPanel;
-    private javax.swing.JLabel historyTitleLabel;
-    private javax.swing.JScrollPane historyScrollPane;
-    private javax.swing.JTable historyTable;
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 }
