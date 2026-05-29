@@ -1,130 +1,99 @@
 # Bark Bites
 
-School Canteen POS & Management System (Standalone Java Swing Prototype)
+School Canteen POS & Management System — Java Swing prototype
 
-This repository is intentionally **localized and standalone**:
-- No databases
-- No cloud services
-- No external storage
+This repository provides two complementary modes:
 
-All data lives in **in-memory arrays** managed by OOP "Manager" classes.
+- Standalone mock mode: in-memory Manager classes manage data for quick demos and OOP assessments.
+- Firebase-backed mode: optional Firebase Auth + Firestore via REST for a realistic end-to-end flow.
+
+Pick the mode that suits you — both are supported by the same UI and core logic.
 
 -----
 
 ## Overview
 
-Bark Bites is a high-fidelity mock-up designed for OOP assessment.
-
-- **Customer Ordering GUI**: 360×650 (kiosk-style)
-- **Staff Management GUI**: 1600×900 (operations/admin)
-- UI built with **absolute positioning** (`null` layout) over background images
-- Business logic (array traversal, stock deduction, totals) is hidden behind Manager classes
+- **Customer Ordering GUI**: kiosk-style layout for quick ordering
+- **Staff Management GUI**: admin views for inventory, orders and cash-in
+- UI built with Swing (absolute positioning over background imagery) and screen-specific controller panels
+- Business logic lives in Manager/Service classes to keep UI code focused on presentation
 
 ## Quick Start
 
 ### Prerequisites
-- Java JDK 24+
+- Java JDK 17+ (JDK 24 is recommended if you use modern language features)
+- Maven (optional — useful for building from CLI)
 
-### Firebase (no per-device setup)
+### Configuration: Firebase (optional)
 
-This project is set up to use **Firebase Auth + Firestore via REST** using only:
-- Firebase **Project ID**
-- Firebase **Web API Key**
-
-These values are configured in [src/main/resources/firebase.properties](src/main/resources/firebase.properties) and are safe to share in the repo.
-
-Optional dev overrides (environment variables):
+If you want the Firebase-backed mode, set values in `src/main/resources/firebase.properties` or via env vars:
 - `FIREBASE_PROJECT_ID`
 - `FIREBASE_WEB_API_KEY`
 
-### Verify Firebase is connected
+There is a small smoke-test tool at `src/main/java/com/mycompany/barkbites/tools/FirebaseSmokeTest.java` you can run to verify connectivity.
 
-Run the manual smoke test main class:
-- [src/main/java/com/mycompany/barkbites/tools/FirebaseSmokeTest.java](src/main/java/com/mycompany/barkbites/tools/FirebaseSmokeTest.java)
+### Run (IDE)
 
-It will:
-- prompt for Student ID + password
-- sign in using Firebase Auth REST
-- write a small document to Firestore (`smoketests/{uid}`)
+Open the project in your IDE (VS Code / IntelliJ / NetBeans) and run the main class:
 
-### Run (VS Code)
-- Use the task: **BarkBites: Run Standalone Mock**
+- `com.mycompany.barkbites.BarkBites` — starts the application windows
 
-This compiles the project into `bin/` and launches both the customer + staff windows.
+### Run (CLI, Maven)
 
-## OOP Structure (4 Pillars)
+Compile and run quickly via Maven (recommended for CLI users):
+
+```bash
+mvn compile
+mvn -Dexec.mainClass="com.mycompany.barkbites.BarkBites" exec:java
+```
+
+The app will launch the customer + staff windows.
+
+## OOP Structure (high-level)
 
 ### Encapsulation
-- Manager classes hold data in **private arrays** and expose safe methods only.
+- Manager/service classes hold application state and expose methods for safe access.
 
 ### Inheritance
-- `Product` is the base class.
-- `FoodItem` and `BeverageItem` extend `Product`.
+- UI screens typically extend Swing frames/panels; domain objects use small inheritance hierarchies where appropriate.
 
 ### Polymorphism
-- `OrderManager.calculateCartTotalCents(Product[] cartItems)` accepts a base-type array and works for mixed subclasses.
+- Order and cart processing accept base-type product arrays/collections so mixed product types are supported.
 
 ### Abstraction
-- GUIs never do complex loops/stock updates directly.
-- Checkout rules live in `OrderManager.placeOrder(...)`.
+- Persistence and remote calls are abstracted behind service/utility classes so UI code stays thin.
 
-## Project Structure
+## Project Structure (snapshot)
 
 ```
 BarkBites/
-├── images/
-│   └── logo.png
 ├── src/
-│   ├── data/
-│   │   ├── BarkBitesSystem.java
-│   │   ├── CartManager.java
-│   │   ├── InventoryManager.java
-│   │   └── OrderManager.java
-│   ├── gui/
-│   │   ├── CustomerKioskFrame.java
-│   │   ├── StaffManagementFrame.java
-│   │   └── StandaloneMockApp.java
-│   └── models/
-│       ├── Product.java
-│       ├── FoodItem.java
-│       ├── BeverageItem.java
-│       ├── CartLine.java
-│       ├── OrderLine.java
-│       ├── OrderStatus.java
-│       └── PosOrder.java
+│   ├── main/java/com/mycompany/barkbites/  (UI, forms, services)
+│   ├── main/resources/firebase.properties
+│   └── test/
 └── README.md
 ```
 
 ## UI Assets
 
-Optional background images (your Canva exports):
+Optional background images (for nicer visuals):
 - `images/customer-kiosk.png`
 - `images/staff-management.png`
 
-If the images are missing, the frames render a simple fallback background so the prototype still runs.
+If images are missing, the UI falls back to simple backgrounds so the app still runs.
 
-## 📝 License
+## Design notes
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- The repo supports both a lightweight in-memory demo mode and a Firebase-backed mode for a more realistic flow.
+- The payment flow is implemented in `CustomerPayment` and coordinated with order/inventory services — see `payment_flow_summary.md` for an annotated diagram.
 
-## 🤝 Contributing
+## License
 
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+This project is MIT licensed. See the `LICENSE` file.
 
-## 📧 Support
+## Contributing
 
-For questions or issues:
-1. Check browser console (F12) for web app errors
-2. Check terminal output for Node/Java errors
-3. Confirm Firestore rules allow the intended access patterns
+Fork, branch, implement, and open a pull request. Keep changes focused and run the app locally to verify UI flows.
 
----
-
-**Ready to get started?** Run `npm install` then `npm start`.
 
 
