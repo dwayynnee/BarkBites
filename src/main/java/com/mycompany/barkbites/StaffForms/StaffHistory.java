@@ -52,7 +52,10 @@ public class StaffHistory extends javax.swing.JFrame {
      */
     public StaffHistory() {
         initComponents();
-        StaffFirebaseBootstrap.ensureInitialized(this);
+        boolean firebaseReady = true;
+        if (!java.beans.Beans.isDesignTime()) {
+            firebaseReady = StaffFirebaseBootstrap.ensureInitialized(this);
+        }
         configureHistoryPanel();
         // Action: keep the generated buttons clickable while hiding their chrome.
         makeButtonInvisible(StaffOrders);
@@ -70,7 +73,9 @@ public class StaffHistory extends javax.swing.JFrame {
         Logout.addActionListener(evt -> openStaffLandingPage());
         Refresh.addActionListener(evt -> loadHistoryAsync());
 
-        loadHistoryAsync();
+        if (firebaseReady) {
+            loadHistoryAsync();
+        }
     }
 
     private void configureHistoryPanel() {

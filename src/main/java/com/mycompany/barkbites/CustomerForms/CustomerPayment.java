@@ -152,6 +152,41 @@ public class CustomerPayment extends javax.swing.JFrame {
                 ObjectNode updateDoc = buildCustomerWalletUpdate(customerDoc, updatedWallet);
                 firestore.upsertDocument(session.idToken(), "customers", session.uid(), updateDoc);
 
+                // Build order document
+                String orderId = "order-" + System.currentTimeMillis();
+                String customerName = FirestoreDocuments.readString(customerDoc, "name", "");
+                ObjectNode order = MAPPER.createObjectNode();
+                ObjectNode fields = order.putObject("fields");
+                fields.set("id", FirestoreDocuments.stringValue(orderId));
+                fields.set("Customer Name", FirestoreDocuments.stringValue(customerName));
+                fields.set("CustomerID", FirestoreDocuments.stringValue(session.uid()));
+                fields.set("Payment", FirestoreDocuments.stringValue("wallet"));
+                fields.set("status", FirestoreDocuments.stringValue("processing"));
+                fields.set("totalCents", FirestoreDocuments.integerValue(totals.finalTotalCents()));
+
+                // Persist order under customers/{uid}/orders/{orderId}
+                String orderPath = String.format("customers/%s/orders/%s", session.uid(), orderId);
+                firestore.upsertDocumentAtPath(session.idToken(), orderPath, order);
+
+                // Delete all cart items under customers/{uid}/cart
+                JsonNode cartList = firestore.listDocumentsAtPath(session.idToken(), String.format("customers/%s/cart", session.uid()));
+                if (cartList != null && cartList.has("documents")) {
+                    for (JsonNode doc : cartList.get("documents")) {
+                        JsonNode nameNode = doc.get("name");
+                        if (nameNode != null && nameNode.isTextual()) {
+                            String fullName = nameNode.asText();
+                            int idx = fullName.indexOf("/documents/");
+                            String relPath = idx >= 0 ? fullName.substring(idx + "/documents/".length()) : null;
+                            if (relPath != null && !relPath.isBlank()) {
+                                firestore.deleteDocumentAtPath(session.idToken(), relPath);
+                            }
+                        }
+                    }
+                }
+
+                // Clear persisted voucher state
+                CustomerVoucherState.save(session.uid(), null);
+
                 return new PaymentResult(updatedWallet, totals.finalTotalCents());
             }
 

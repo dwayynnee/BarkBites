@@ -64,8 +64,13 @@ public class StaffMenu extends javax.swing.JFrame {
         StatisticsButton.addActionListener(evt -> openStaffStatistics());
         LogoutButton.addActionListener(evt -> openStaffLandingPage());
 
-        StaffFirebaseBootstrap.ensureInitialized(this);
-        menuService.seedDefaultMenuItemsIfMissing();
+        boolean firebaseReady = true;
+        if (!java.beans.Beans.isDesignTime()) {
+            firebaseReady = StaffFirebaseBootstrap.ensureInitialized(this);
+        }
+        if (firebaseReady) {
+            menuService.seedDefaultMenuItemsIfMissing();
+        }
         configureCrudUi();
         makeButtonInvisible(refreshButton);
         makeButtonInvisible(saveButton);
@@ -76,7 +81,9 @@ public class StaffMenu extends javax.swing.JFrame {
         MenuCards.setOpaque(false);
         MenuCards.setVisible(true);
         getContentPane().setComponentZOrder(MenuCards, 0);
-        loadMenuItemsAsync();
+        if (firebaseReady) {
+            loadMenuItemsAsync();
+        }
 
         this.setResizable(false);
     }

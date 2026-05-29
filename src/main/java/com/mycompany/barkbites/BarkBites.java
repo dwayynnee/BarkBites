@@ -2,7 +2,6 @@ package com.mycompany.barkbites;
 
 import com.mycompany.barkbites.CustomerForms.CustomerLandingPage;
 import com.mycompany.barkbites.StaffForms.StaffLandingPage;
-import com.mycompany.barkbites.data.FirebaseInitializer;
 import com.mycompany.barkbites.data.FirebasePublicConfig;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -37,9 +36,22 @@ public class BarkBites {
                 firebaseWarning = ex.getMessage();
             }
 
-            // Initialize Firebase Admin SDK from environment if not already configured
-            if (!FirebaseInitializer.isInitialized()) {
-                FirebaseInitializer.initializeFromEnvironment();
+            // Initialize Firebase Admin SDK from environment if not already configured.
+            // Use reflection so the main class does not require successful compilation
+            // of Firebase-related classes (helps when the admin SDK is missing).
+            try {
+                Class<?> fi = Class.forName("com.mycompany.barkbites.data.FirebaseInitializer");
+                java.lang.reflect.Method isInit = fi.getMethod("isInitialized");
+                Object isInitialized = isInit.invoke(null);
+                boolean initialized = isInitialized instanceof Boolean ? (Boolean) isInitialized : false;
+                if (!initialized) {
+                    java.lang.reflect.Method initFromEnv = fi.getMethod("initializeFromEnvironment");
+                    initFromEnv.invoke(null);
+                }
+            } catch (ClassNotFoundException cnfe) {
+                // Firebase initializer not present on classpath — proceed without it.
+            } catch (Exception ex) {
+                // Ignore initialization errors here; other screens will handle missing Firebase.
             }
 
             // Show warning if Firebase configuration is missing

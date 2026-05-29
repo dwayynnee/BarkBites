@@ -90,9 +90,14 @@ public class StaffInventory extends javax.swing.JFrame {
         inventoryList.setModel(inventoryModel);
         listScroll.setViewportView(inventoryList);
 
-        StaffFirebaseBootstrap.ensureInitialized(this);
+        boolean firebaseReady = true;
+        if (!java.beans.Beans.isDesignTime()) {
+            firebaseReady = StaffFirebaseBootstrap.ensureInitialized(this);
+        }
         configureUi();
-        loadInventoryAsync();
+        if (firebaseReady) {
+            loadInventoryAsync();
+        }
 
         this.setResizable(false);
     }

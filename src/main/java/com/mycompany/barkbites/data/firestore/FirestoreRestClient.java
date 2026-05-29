@@ -93,6 +93,11 @@ public final class FirestoreRestClient {
         return send(idToken, HttpRequest.newBuilder().uri(URI.create(url)).DELETE().build());
     }
 
+    public JsonNode deleteDocumentAtPath(String idToken, String documentPath) {
+        String url = documentUrlFromPath(documentPath);
+        return send(idToken, HttpRequest.newBuilder().uri(URI.create(url)).DELETE().build());
+    }
+
     private JsonNode send(String idToken, HttpRequest request) {
         try {
             HttpRequest.Builder builder = HttpRequest.newBuilder(request.uri())

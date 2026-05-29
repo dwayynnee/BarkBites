@@ -57,9 +57,14 @@ public class StaffStatistics extends javax.swing.JFrame {
         LogoutButton.addActionListener(evt -> openStaffLandingPage());
         HistoryButton.addActionListener(evt -> openStaffHistory());
 
-        StaffFirebaseBootstrap.ensureInitialized(this);
+        boolean firebaseReady = true;
+        if (!java.beans.Beans.isDesignTime()) {
+            firebaseReady = StaffFirebaseBootstrap.ensureInitialized(this);
+        }
         configureUi();
-        loadSummaryAsync();
+        if (firebaseReady) {
+            loadSummaryAsync();
+        }
 
         this.setResizable(false);
     }

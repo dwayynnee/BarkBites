@@ -32,7 +32,9 @@ public class StaffPassword extends javax.swing.JFrame {
         initComponents();
 
         setupPinFields();
-        loadStaffPinAsync();
+        if (!java.beans.Beans.isDesignTime()) {
+            loadStaffPinAsync();
+        }
 
         this.setResizable(false);
     }

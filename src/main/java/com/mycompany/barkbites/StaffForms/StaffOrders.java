@@ -77,7 +77,10 @@ public class StaffOrders extends javax.swing.JFrame {
         refreshButton.addActionListener(evt -> loadOrdersAsync());
         updateButton.addActionListener(evt -> updateSelectedOrderStatusAsync());
 
-        boolean firebaseReady = StaffFirebaseBootstrap.ensureInitialized(this);
+        boolean firebaseReady = false;
+        if (!java.beans.Beans.isDesignTime()) {
+            firebaseReady = StaffFirebaseBootstrap.ensureInitialized(this);
+        }
         configureOrderCards();
         getContentPane().setComponentZOrder(BG, getContentPane().getComponentCount() - 1);
         if (firebaseReady) {

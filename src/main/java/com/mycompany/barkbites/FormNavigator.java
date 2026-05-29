@@ -49,11 +49,13 @@ public final class FormNavigator {
             to.setLocation(fromLocation);
         }
 
-        to.setVisible(true);
-        to.setExtendedState(fromExtendedState);
-
+        // Dispose the source before showing the destination to avoid both
+        // windows being visible at the same time (prevents "double screen" effect).
         if (from != null) {
             from.dispose();
         }
+
+        to.setExtendedState(fromExtendedState);
+        to.setVisible(true);
     }
 }
