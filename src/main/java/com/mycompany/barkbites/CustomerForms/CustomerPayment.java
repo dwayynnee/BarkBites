@@ -152,21 +152,23 @@ public class CustomerPayment extends javax.swing.JFrame {
                 ObjectNode updateDoc = buildCustomerWalletUpdate(customerDoc, updatedWallet);
                 firestore.upsertDocument(session.idToken(), "customers", session.uid(), updateDoc);
 
-                // Build order document
+                // Build order document once, then write it to both the customer order
+                // subcollection and the top-level staff-visible orders collection.
                 String orderId = "order-" + System.currentTimeMillis();
                 String customerName = FirestoreDocuments.readString(customerDoc, "name", "");
-                ObjectNode order = MAPPER.createObjectNode();
-                ObjectNode fields = order.putObject("fields");
-                fields.set("id", FirestoreDocuments.stringValue(orderId));
-                fields.set("Customer Name", FirestoreDocuments.stringValue(customerName));
-                fields.set("CustomerID", FirestoreDocuments.stringValue(session.uid()));
-                fields.set("Payment", FirestoreDocuments.stringValue("wallet"));
-                fields.set("status", FirestoreDocuments.stringValue("processing"));
-                fields.set("totalCents", FirestoreDocuments.integerValue(totals.finalTotalCents()));
+                ObjectNode order = buildOrderDocument(orderId, session.uid(), customerName, totals.finalTotalCents(), totals.orderSummary());
 
                 // Persist order under customers/{uid}/orders/{orderId}
-                String orderPath = String.format("customers/%s/orders/%s", session.uid(), orderId);
-                firestore.upsertDocumentAtPath(session.idToken(), orderPath, order);
+                String ordersCollectionPath = String.format("customers/%s/orders", session.uid());
+                JsonNode orderResult;
+                try {
+                    orderResult = firestore.createDocumentWithId(session.idToken(), ordersCollectionPath, orderId, order);
+                    System.out.println("Order create result: " + (orderResult == null ? "null" : orderResult.toString()));
+                } catch (Exception ex) {
+                    System.err.println("Order creation failed: " + ex.getMessage());
+                    ex.printStackTrace(System.err);
+                    throw ex;
+                }
 
                 // Delete all cart items under customers/{uid}/cart
                 JsonNode cartList = firestore.listDocumentsAtPath(session.idToken(), String.format("customers/%s/cart", session.uid()));
@@ -178,7 +180,8 @@ public class CustomerPayment extends javax.swing.JFrame {
                             int idx = fullName.indexOf("/documents/");
                             String relPath = idx >= 0 ? fullName.substring(idx + "/documents/".length()) : null;
                             if (relPath != null && !relPath.isBlank()) {
-                                firestore.deleteDocumentAtPath(session.idToken(), relPath);
+                                JsonNode delRes = firestore.deleteDocumentAtPath(session.idToken(), relPath);
+                                System.out.println("Deleted cart doc " + relPath + " -> " + (delRes == null ? "null" : delRes.toString()));
                             }
                         }
                     }
@@ -213,13 +216,22 @@ public class CustomerPayment extends javax.swing.JFrame {
     private PaymentTotals readCartTotals(FirestoreRestClient firestore, AuthSession session) {
         JsonNode list = firestore.listDocumentsAtPath(session.idToken(), String.format("customers/%s/cart", session.uid()));
         long subtotal = 0L;
+        StringBuilder orderSummary = new StringBuilder();
 
         if (list != null && list.has("documents")) {
             for (JsonNode doc : list.get("documents")) {
+                String name = FirestoreDocuments.readString(doc, "name", "");
                 long quantity = FirestoreDocuments.readLong(doc, "quantity", 1L);
                 long priceCents = FirestoreDocuments.readLong(doc, "priceCents", 0L);
                 long lineTotal = FirestoreDocuments.readLong(doc, "totalCents", priceCents * quantity);
                 subtotal += Math.max(0L, lineTotal);
+
+                if (!name.isBlank()) {
+                    if (orderSummary.length() > 0) {
+                        orderSummary.append(' ');
+                    }
+                    orderSummary.append(name).append(' ').append(quantity).append('x');
+                }
             }
         }
 
@@ -237,7 +249,7 @@ public class CustomerPayment extends javax.swing.JFrame {
         }
 
         long finalTotal = Math.max(0L, subtotal - discount);
-        return new PaymentTotals(subtotal, discount, finalTotal);
+        return new PaymentTotals(subtotal, discount, finalTotal, orderSummary.toString().trim());
     }
 
     private ObjectNode buildCustomerWalletUpdate(JsonNode customerDoc, long updatedWalletBalanceCents) {
@@ -256,7 +268,24 @@ public class CustomerPayment extends javax.swing.JFrame {
         return update;
     }
 
-    private record PaymentTotals(long subtotalCents, long discountCents, long finalTotalCents) {
+    private ObjectNode buildOrderDocument(String orderId, String customerId, String customerName, long totalCents, String orderSummary) {
+        ObjectNode order = MAPPER.createObjectNode();
+        ObjectNode fields = order.putObject("fields");
+        fields.set("id", FirestoreDocuments.stringValue(orderId));
+        fields.set("customerName", FirestoreDocuments.stringValue(customerName));
+        fields.set("Customer Name", FirestoreDocuments.stringValue(customerName));
+        fields.set("customerId", FirestoreDocuments.stringValue(customerId));
+        fields.set("CustomerID", FirestoreDocuments.stringValue(customerId));
+        fields.set("payment", FirestoreDocuments.stringValue("wallet"));
+        fields.set("Payment", FirestoreDocuments.stringValue("wallet"));
+        fields.set("status", FirestoreDocuments.stringValue("processing"));
+        fields.set("totalCents", FirestoreDocuments.integerValue(totalCents));
+        fields.set("createdAtMillis", FirestoreDocuments.integerValue(System.currentTimeMillis()));
+        fields.set("Order", FirestoreDocuments.stringValue(orderSummary));
+        return order;
+    }
+
+    private record PaymentTotals(long subtotalCents, long discountCents, long finalTotalCents, String orderSummary) {
     }
 
     private record PaymentResult(long updatedWalletCents, long paidAmountCents) {

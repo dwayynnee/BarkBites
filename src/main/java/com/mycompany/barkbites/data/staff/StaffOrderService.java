@@ -33,27 +33,81 @@ public final class StaffOrderService {
         Firestore firestore = FirebaseInitializer.getFirestore();
         List<StaffOrderRecord> orders = new ArrayList<>();
         try {
-            ApiFuture<QuerySnapshot> future = firestore.collection(StaffDatabaseSchema.ordersCollection()).get();
-            QuerySnapshot snapshot = future.get();
-            for (QueryDocumentSnapshot document : snapshot.getDocuments()) {
-                orders.add(new StaffOrderRecord(
-                        document.getId(),
-                        FirestoreDocuments.readString(document, "customerName", "Guest"),
-                        FirestoreDocuments.readString(document, "status", "new"),
-                        FirestoreDocuments.readString(document, "payment", "cash"),
-                        FirestoreDocuments.readString(
-                                document,
-                                "order",
-                                FirestoreDocuments.readString(document, "orderSummary", "No items")
-                        ),
-                        FirestoreDocuments.readLong(document, "totalCents", 0L),
-                        FirestoreDocuments.readLong(document, "createdAtMillis", 0L)
-                ));
-            }
+            // 1) Read any root-level orders collection.
+            addOrdersFromSnapshot(orders, firestore.collection(StaffDatabaseSchema.ordersCollection()).get());
+
+            // 2) Read all nested orders subcollections via collection group so orders
+            //    created under customers/{uid}/orders/{orderId} are visible to staff.
+            addOrdersFromSnapshot(orders, firestore.collectionGroup(StaffDatabaseSchema.ordersCollection()).get());
+
+            // 3) Sort newest-first so recent orders appear at the top.
+            orders.sort(
+                    java.util.Comparator
+                            .comparingLong(StaffOrderRecord::createdAtMillis)
+                            .reversed()
+                            .thenComparing(StaffOrderRecord::id)
+            );
+
             return orders;
         } catch (Exception ex) {
             throw new IllegalStateException("Failed to load orders from Firestore.", ex);
         }
+    }
+
+    private void addOrdersFromSnapshot(List<StaffOrderRecord> target, ApiFuture<QuerySnapshot> future) throws Exception {
+        QuerySnapshot snapshot = future.get();
+        for (QueryDocumentSnapshot document : snapshot.getDocuments()) {
+            target.add(new StaffOrderRecord(
+                    document.getId(),
+                    firstNonBlank(
+                            FirestoreDocuments.readString(document, "customerName", null),
+                            FirestoreDocuments.readString(document, "Customer Name", null),
+                            FirestoreDocuments.readString(document, "name", null),
+                            "Guest"
+                    ),
+                    firstNonBlank(
+                            FirestoreDocuments.readString(document, "status", null),
+                            FirestoreDocuments.readString(document, "Status", null),
+                            "new"
+                    ),
+                    firstNonBlank(
+                            FirestoreDocuments.readString(document, "payment", null),
+                            FirestoreDocuments.readString(document, "Payment", null),
+                            "cash"
+                    ),
+                    firstNonBlank(
+                            FirestoreDocuments.readString(document, "Order", null),
+                            FirestoreDocuments.readString(document, "order", null),
+                            FirestoreDocuments.readString(document, "orderSummary", null),
+                            "No items"
+                    ),
+                    FirestoreDocuments.readLong(document, "totalCents", 0L),
+                    firstNonZero(
+                            FirestoreDocuments.readLong(document, "createdAtMillis", null),
+                            FirestoreDocuments.readLong(document, "createdAt", null),
+                            FirestoreDocuments.readLong(document, "timestamp", null),
+                            0L
+                    )
+            ));
+        }
+    }
+
+    private static String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return "";
+    }
+
+    private static long firstNonZero(Long... values) {
+        for (Long value : values) {
+            if (value != null && value.longValue() != 0L) {
+                return value.longValue();
+            }
+        }
+        return 0L;
     }
 
     /**

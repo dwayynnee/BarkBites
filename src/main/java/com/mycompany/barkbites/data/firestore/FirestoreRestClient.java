@@ -78,6 +78,21 @@ public final class FirestoreRestClient {
         return send(idToken, req);
     }
 
+    /**
+     * Create a document in a collection path using a client-specified document ID.
+     * This performs a POST to the collection URL with ?documentId=... so Firestore
+     * creates the document atomically using the provided ID.
+     */
+    public JsonNode createDocumentWithId(String idToken, String collectionPath, String documentId, JsonNode documentBody) {
+        String url = collectionUrlFromPath(collectionPath) + "?documentId=" + encodeSegment(documentId);
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(documentBody.toString(), StandardCharsets.UTF_8))
+                .build();
+        return send(idToken, req);
+    }
+
     public JsonNode listDocuments(String idToken, String collection) {
         String url = collectionUrl(collection);
         return send(idToken, HttpRequest.newBuilder().uri(URI.create(url)).GET().build());

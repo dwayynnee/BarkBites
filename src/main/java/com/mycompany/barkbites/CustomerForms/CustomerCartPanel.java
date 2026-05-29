@@ -82,7 +82,6 @@ public class CustomerCartPanel extends javax.swing.JFrame {
 
         // Wire action listeners for the clickable (but visually invisible) buttons
         jButton4.addActionListener(this::jButton4ActionPerformed);
-        jButton8.addActionListener(this::jButton8ActionPerformed);
 
         setEmptyState();
     }
