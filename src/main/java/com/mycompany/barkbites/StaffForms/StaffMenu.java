@@ -58,12 +58,14 @@ public class StaffMenu extends javax.swing.JFrame {
         makeButtonInvisible(LogoutButton);
         makeButtonInvisible(HistoryButton);
         makeButtonInvisible(CashIn);
+        makeButtonInvisible(jButton1);
 
         // Action: route the navigation buttons to the matching screens.
         OrdersButton.addActionListener(evt -> openStaffOrders());
         InventoryButton.addActionListener(evt -> openStaffInventory());
         StatisticsButton.addActionListener(evt -> openStaffStatistics());
         LogoutButton.addActionListener(evt -> openStaffLandingPage());
+        jButton1.addActionListener(evt -> openStaffVouchers());
         CashIn.addActionListener(evt -> openStaffCashIn());
 
         boolean firebaseReady = true;
@@ -441,6 +443,11 @@ public class StaffMenu extends javax.swing.JFrame {
     private void openStaffCashIn() {
         // Action: open the Cash In screen.
         FormNavigator.redirect(this, new StaffCashIn());
+    }
+    
+        private void openStaffVouchers() {
+        // Action: open the Vouchers screen.
+        FormNavigator.redirect(this, new StaffVouchers());
     }
 
     private static void makeButtonInvisible(javax.swing.JButton button) {

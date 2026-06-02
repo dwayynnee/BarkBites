@@ -75,11 +75,13 @@ public class StaffHistory extends javax.swing.JFrame {
         makeButtonInvisible(Refresh);
         makeButtonInvisible(Logout);
         makeButtonInvisible(Cashin);
+        makeButtonInvisible(jButton1);
 
         // Action: connect each button to its matching screen.
         StaffOrders.addActionListener(evt -> openStaffOrders());
         StaffInventory.addActionListener(evt -> openStaffInventory());
         StaffMenu.addActionListener(evt -> openStaffMenu());
+        jButton1.addActionListener(evt -> openStaffVouchers());
         StaffStatistics.addActionListener(evt -> openStaffStatistics());
         Logout.addActionListener(evt -> openStaffLandingPage());
         Cashin.addActionListener(evt -> openStaffCashIn());
@@ -220,6 +222,11 @@ public class StaffHistory extends javax.swing.JFrame {
         // Action: open the Orders screen.
         FormNavigator.redirect(this, new StaffOrders());
     }
+    
+        private void openStaffVouchers() {
+        // Action: open the Orders screen.
+        FormNavigator.redirect(this, new StaffVouchers());
+    }
 
     private void openStaffInventory() {
         // Action: open the Inventory screen.
@@ -283,6 +290,7 @@ public class StaffHistory extends javax.swing.JFrame {
         Refresh = new javax.swing.JButton();
         Logout = new javax.swing.JButton();
         Cashin = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -309,6 +317,9 @@ public class StaffHistory extends javax.swing.JFrame {
 
         Cashin.setText("jButton1");
         getContentPane().add(Cashin, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 430, 140, 60));
+
+        jButton1.setText("jButton1");
+        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 490, 140, 60));
 
         jLabel1.setIcon(new javax.swing.ImageIcon("C:\\BarkBites\\src\\main\\java\\com\\mycompany\\barkbites\\StaffDesign\\StaffHistory.png")); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
@@ -356,6 +367,7 @@ public class StaffHistory extends javax.swing.JFrame {
     private javax.swing.JButton StaffOrders;
     private javax.swing.JButton StaffStatistics;
     private javax.swing.JPanel historyPanel;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 }

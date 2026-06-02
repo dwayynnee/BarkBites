@@ -50,12 +50,14 @@ public class StaffStatistics extends javax.swing.JFrame {
         makeButtonInvisible(refreshButton);
         makeButtonInvisible(HistoryButton);
         makeButtonInvisible(CashIn);
+        makeButtonInvisible(jButton2);
 
         // Action: route each button to the matching staff screen.
         OrdersButton.addActionListener(evt -> openStaffOrders());
         InventoryButton.addActionListener(evt -> openStaffInventory());
         MenuButton.addActionListener(evt -> openStaffMenu());
         LogoutButton.addActionListener(evt -> openStaffLandingPage());
+        jButton2.addActionListener(evt -> openStaffVouchers());
         HistoryButton.addActionListener(evt -> openStaffHistory());
         CashIn.addActionListener(evt -> openStaffCashIn());
 
@@ -133,6 +135,11 @@ public class StaffStatistics extends javax.swing.JFrame {
     private void openStaffMenu() {
         // Action: open the Menu screen.
         FormNavigator.redirect(this, new StaffMenu());
+    }
+    
+        private void openStaffVouchers() {
+        // Action: open the Menu screen.
+        FormNavigator.redirect(this, new StaffVouchers());
     }
 
     private void openStaffLandingPage() {

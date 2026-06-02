@@ -77,6 +77,7 @@ public class StaffInventory extends javax.swing.JFrame {
         makeButtonInvisible(saveButton);
         makeButtonInvisible(deleteButton);
         makeButtonInvisible(refreshButton);
+        makeButtonInvisible(jButton2);
 
         makeFieldBackgroundInvisible(nameField);
         makeFieldBackgroundInvisible(quantityField);
@@ -87,6 +88,7 @@ public class StaffInventory extends javax.swing.JFrame {
         MenuButton.addActionListener(evt -> openStaffMenu());
         InventoryButton.addActionListener(evt -> openStaffStatistics());
         LogoutButton.addActionListener(evt -> logout());
+        jButton2.addActionListener(evt -> openStaffVouchers());
         HistoryButton.addActionListener(evt -> openStaffHistory());
         CashIn.addActionListener(evt -> openStaffCashIn());
 
@@ -348,6 +350,11 @@ public class StaffInventory extends javax.swing.JFrame {
     private void openStaffHistory() {
         // Action: open the History screen.
         FormNavigator.redirect(this, new StaffHistory());
+    }
+    
+        private void openStaffVouchers() {
+        // Action: open the History screen.
+        FormNavigator.redirect(this, new StaffVouchers());
     }
 
     private void openStaffCashIn() {

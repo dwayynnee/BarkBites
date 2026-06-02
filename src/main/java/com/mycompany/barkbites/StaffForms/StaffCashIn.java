@@ -107,6 +107,7 @@ public class StaffCashIn extends javax.swing.JFrame {
             makeButtonInvisible(refresh);
             makeButtonInvisible(send);
             makeButtonInvisible(cancel);
+            makeButtonInvisible(jButton1);
         }
 
         Order.addActionListener(evt -> FormNavigator.redirect(this, new StaffOrders()));
@@ -115,6 +116,7 @@ public class StaffCashIn extends javax.swing.JFrame {
         Statistics.addActionListener(evt -> FormNavigator.redirect(this, new StaffStatistics()));
         History.addActionListener(evt -> FormNavigator.redirect(this, new StaffHistory()));
         Logout.addActionListener(evt -> FormNavigator.redirect(this, new StaffLandingPage()));
+        jButton1.addActionListener(evt -> FormNavigator.redirect(this, new StaffVouchers()));
         refresh.addActionListener(evt -> loadUsersAsync());
         send.addActionListener(evt -> confirmCashIn());
 
@@ -483,10 +485,10 @@ public class StaffCashIn extends javax.swing.JFrame {
         getContentPane().add(Users, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 280, 420, 280));
 
         name.setText("jTextField1");
-        getContentPane().add(name, new org.netbeans.lib.awtextra.AbsoluteConstraints(700, 320, 140, 30));
+        getContentPane().add(name, new org.netbeans.lib.awtextra.AbsoluteConstraints(700, 330, 140, 30));
 
         amount.setText("a");
-        getContentPane().add(amount, new org.netbeans.lib.awtextra.AbsoluteConstraints(700, 380, 140, 30));
+        getContentPane().add(amount, new org.netbeans.lib.awtextra.AbsoluteConstraints(700, 390, 140, 40));
 
         send.setText("jButton1");
         getContentPane().add(send, new org.netbeans.lib.awtextra.AbsoluteConstraints(780, 430, 80, 40));
