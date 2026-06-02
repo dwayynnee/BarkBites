@@ -501,6 +501,7 @@ public class StaffMenu extends javax.swing.JFrame {
         jLabel15 = new javax.swing.JLabel();
         jLabel16 = new javax.swing.JLabel();
         CashIn = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
         BG = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -516,23 +517,23 @@ public class StaffMenu extends javax.swing.JFrame {
         getContentPane().add(saveButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 510, 100, 50));
 
         OrdersButton.setText("jButton1");
-        getContentPane().add(OrdersButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 130, 140, 60));
+        getContentPane().add(OrdersButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 110, 140, 60));
 
         InventoryButton.setText("jButton2");
-        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 190, 140, 70));
+        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 170, 140, 70));
 
         StatisticsButton.setText("jButton3");
-        getContentPane().add(StatisticsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 330, 140, 70));
+        getContentPane().add(StatisticsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 300, 140, 70));
 
         LogoutButton.setText("jButton4");
-        getContentPane().add(LogoutButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 550, 100, 30));
+        getContentPane().add(LogoutButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 560, 100, 30));
 
         HistoryButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 HistoryButtonActionPerformed(evt);
             }
         });
-        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 400, 140, 70));
+        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 370, 140, 60));
 
         QuantityField.setText("jTextField1");
         getContentPane().add(QuantityField, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 360, 190, 30));
@@ -618,7 +619,15 @@ public class StaffMenu extends javax.swing.JFrame {
         getContentPane().add(MenuCards, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 130, 400, 440));
 
         CashIn.setText("jButton1");
-        getContentPane().add(CashIn, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 470, 140, 70));
+        CashIn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                CashInActionPerformed(evt);
+            }
+        });
+        getContentPane().add(CashIn, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 430, 140, 60));
+
+        jButton1.setText("jButton1");
+        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 490, 140, 70));
 
         BG.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffMenu.png"))); // NOI18N
         getContentPane().add(BG, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
@@ -629,6 +638,10 @@ public class StaffMenu extends javax.swing.JFrame {
     private void HistoryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_HistoryButtonActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_HistoryButtonActionPerformed
+
+    private void CashInActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CashInActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_CashInActionPerformed
 
     /**
      * @param args the command line arguments
@@ -672,6 +685,7 @@ public class StaffMenu extends javax.swing.JFrame {
     private javax.swing.JTextField QuantityField;
     private javax.swing.JButton StatisticsButton;
     private javax.swing.JTextField imagePathField;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;

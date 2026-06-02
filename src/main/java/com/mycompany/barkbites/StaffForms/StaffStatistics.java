@@ -179,6 +179,7 @@ public class StaffStatistics extends javax.swing.JFrame {
         LogoutButton = new javax.swing.JButton();
         HistoryButton = new javax.swing.JButton();
         CashIn = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
         BG = new javax.swing.JLabel();
 
         jButton5.setText("jButton5");
@@ -210,28 +211,40 @@ public class StaffStatistics extends javax.swing.JFrame {
         getContentPane().add(refreshButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(770, 120, 120, 50));
 
         OrdersButton.setText("jButton1");
-        getContentPane().add(OrdersButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 120, 140, 70));
+        getContentPane().add(OrdersButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 120, 140, 60));
 
         InventoryButton.setText("jButton2");
-        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 190, 140, 70));
+        InventoryButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                InventoryButtonActionPerformed(evt);
+            }
+        });
+        getContentPane().add(InventoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 180, 140, 60));
 
         MenuButton.setText("jButton3");
-        getContentPane().add(MenuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 260, 140, 70));
+        getContentPane().add(MenuButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 240, 140, 60));
 
         LogoutButton.setText("jButton4");
-        getContentPane().add(LogoutButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 540, 90, 40));
+        getContentPane().add(LogoutButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 560, 90, 40));
 
         HistoryButton.setText("jButton6");
-        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 400, 140, 70));
+        getContentPane().add(HistoryButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 370, 140, 60));
 
         CashIn.setText("jButton1");
-        getContentPane().add(CashIn, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 470, 140, 70));
+        getContentPane().add(CashIn, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 440, 140, 50));
+
+        jButton2.setText("jButton2");
+        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 500, 140, 60));
 
         BG.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffStatistics.png"))); // NOI18N
         getContentPane().add(BG, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void InventoryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_InventoryButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_InventoryButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -272,6 +285,7 @@ public class StaffStatistics extends javax.swing.JFrame {
     private javax.swing.JButton LogoutButton;
     private javax.swing.JButton MenuButton;
     private javax.swing.JButton OrdersButton;
+    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton5;
     private javax.swing.JLabel monthOrdersValue;
     private javax.swing.JLabel monthSalesValue;

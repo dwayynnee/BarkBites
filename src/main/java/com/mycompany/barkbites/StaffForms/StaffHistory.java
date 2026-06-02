@@ -10,6 +10,7 @@ import com.mycompany.barkbites.data.staff.StaffCashInService;
 import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import com.mycompany.barkbites.data.staff.StaffOrderRecord;
 import com.mycompany.barkbites.data.staff.StaffOrderService;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Color;
 import java.awt.Font;
@@ -62,6 +63,9 @@ public class StaffHistory extends javax.swing.JFrame {
         if (!java.beans.Beans.isDesignTime()) {
             firebaseReady = StaffFirebaseBootstrap.ensureInitialized(this);
         }
+
+        getContentPane().setComponentZOrder(historyPanel, 0);
+        getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
         configureHistoryPanel();
         // Action: keep the generated buttons clickable while hiding their chrome.
         makeButtonInvisible(StaffOrders);
@@ -87,9 +91,24 @@ public class StaffHistory extends javax.swing.JFrame {
     }
 
     private void configureHistoryPanel() {
+        if (historyTitleLabel == null) {
+            historyTitleLabel = new javax.swing.JLabel();
+        }
+        if (historyScrollPane == null) {
+            historyScrollPane = new javax.swing.JScrollPane();
+        }
+        if (historyTable == null) {
+            historyTable = new javax.swing.JTable(historyTableModel);
+        }
+
         historyPanel.setOpaque(true);
         historyPanel.setBackground(new Color(255, 255, 255, 230));
         historyPanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        historyPanel.setLayout(new BorderLayout(0, 8));
+
+        historyTitleLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        historyPanel.add(historyTitleLabel, BorderLayout.NORTH);
+        historyPanel.add(historyScrollPane, BorderLayout.CENTER);
 
         historyTable.setRowHeight(24);
         historyTable.setShowGrid(false);
@@ -257,9 +276,6 @@ public class StaffHistory extends javax.swing.JFrame {
     private void initComponents() {
 
         historyPanel = new javax.swing.JPanel();
-        historyTitleLabel = new javax.swing.JLabel();
-        historyScrollPane = new javax.swing.JScrollPane();
-        historyTable = new javax.swing.JTable(historyTableModel);
         StaffOrders = new javax.swing.JButton();
         StaffInventory = new javax.swing.JButton();
         StaffMenu = new javax.swing.JButton();
@@ -273,31 +289,26 @@ public class StaffHistory extends javax.swing.JFrame {
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
         getContentPane().add(historyPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 200, 660, 360));
 
-        historyScrollPane.setViewportView(historyTable);
-        historyPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-        historyPanel.add(historyTitleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
-        historyPanel.add(historyScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 660, 330));
-
         StaffOrders.setText("jButton1");
-        getContentPane().add(StaffOrders, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 130, 140, 60));
+        getContentPane().add(StaffOrders, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 110, 140, 60));
 
         StaffInventory.setText("jButton2");
-        getContentPane().add(StaffInventory, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 200, 140, 60));
+        getContentPane().add(StaffInventory, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 170, 140, 60));
 
         StaffMenu.setText("jButton3");
-        getContentPane().add(StaffMenu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 270, 140, 50));
+        getContentPane().add(StaffMenu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 240, 140, 50));
 
         StaffStatistics.setText("jButton4");
-        getContentPane().add(StaffStatistics, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 330, 140, 70));
+        getContentPane().add(StaffStatistics, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 290, 140, 70));
 
         Refresh.setText("jButton5");
         getContentPane().add(Refresh, new org.netbeans.lib.awtextra.AbsoluteConstraints(780, 110, 100, 50));
 
         Logout.setText("jButton6");
-        getContentPane().add(Logout, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 540, 100, 40));
+        getContentPane().add(Logout, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 560, 100, 40));
 
         Cashin.setText("jButton1");
-        getContentPane().add(Cashin, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 400, 140, 60));
+        getContentPane().add(Cashin, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 430, 140, 60));
 
         jLabel1.setIcon(new javax.swing.ImageIcon("C:\\BarkBites\\src\\main\\java\\com\\mycompany\\barkbites\\StaffDesign\\StaffHistory.png")); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));

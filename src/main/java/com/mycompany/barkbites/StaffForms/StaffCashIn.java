@@ -451,28 +451,29 @@ public class StaffCashIn extends javax.swing.JFrame {
         amount = new javax.swing.JTextField();
         send = new javax.swing.JButton();
         cancel = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         Order.setText("jButton1");
-        getContentPane().add(Order, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 120, 140, 70));
+        getContentPane().add(Order, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 110, 140, 60));
 
         Inventory.setText("jButton2");
-        getContentPane().add(Inventory, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 200, 140, 60));
+        getContentPane().add(Inventory, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 180, 140, 50));
 
         Menu.setText("jButton3");
-        getContentPane().add(Menu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 270, 140, 60));
+        getContentPane().add(Menu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 240, 140, 50));
 
         Statistics.setText("jButton4");
-        getContentPane().add(Statistics, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 330, 140, 70));
+        getContentPane().add(Statistics, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 300, 140, 60));
 
         History.setText("jButton5");
-        getContentPane().add(History, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 400, 140, 60));
+        getContentPane().add(History, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 360, 140, 60));
 
         Logout.setText("jButton6");
-        getContentPane().add(Logout, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 540, 100, 50));
+        getContentPane().add(Logout, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 560, 90, 30));
 
         refresh.setText("jButton1");
         getContentPane().add(refresh, new org.netbeans.lib.awtextra.AbsoluteConstraints(770, 130, 110, 60));
@@ -492,6 +493,9 @@ public class StaffCashIn extends javax.swing.JFrame {
 
         cancel.setText("jButton2");
         getContentPane().add(cancel, new org.netbeans.lib.awtextra.AbsoluteConstraints(690, 430, -1, 40));
+
+        jButton1.setText("jButton1");
+        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 490, 140, 60));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffCashIn.png"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
@@ -545,6 +549,7 @@ public class StaffCashIn extends javax.swing.JFrame {
     private javax.swing.JScrollPane Users;
     private javax.swing.JTextField amount;
     private javax.swing.JButton cancel;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JTextField name;
     private javax.swing.JButton refresh;

@@ -1,280 +1,123 @@
-# BarkBites — Methods Summary
+ # Updated Methods Summary (generated)
 
+ Packages discovered:
+ - com.mycompany.barkbites
+ - com.mycompany.barkbites.CustomerForms
+ - com.mycompany.barkbites.StaffForms
+ - com.mycompany.barkbites.data
+ - com.mycompany.barkbites.data.auth
+ - com.mycompany.barkbites.data.firestore
+ - com.mycompany.barkbites.data.staff
+ - org.netbeans.lib.awtextra
 
-## Navigation & App Entry
+ ---
 
-- `FormNavigator.redirect(JFrame from, JFrame to)` — Smoothly transitions between frames, preserves position/state, and closes the source window.
-- `BarkBites.main(String[] args)` — Application entry point that initializes look-and-feel and launches the UI.
-- `BarkBites.positionSideBySide(JFrame leftFrame, JFrame rightFrame)` — Utility to place two frames side-by-side (used for demos or multi-window views).
-- `BarkBites.setNimbusLookAndFeelIfAvailable()` — Sets Nimbus L&F if present on JVM.
+ ## Key UI classes (Customer)
 
-## Staff Forms (primary UI screens)
-Note: `initComponents()` and auto-generated small action handlers are excluded.
+ - CustomerPayment — [src/main/java/com/mycompany/barkbites/CustomerForms/CustomerPayment.java](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerPayment.java#L35-L35)
+   - constructor: `public CustomerPayment()` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerPayment.java#L35-L35)
+   - `private void configureUi()` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerPayment.java#L41-L41)
+   - `private void processWalletPayment()` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerPayment.java#L118-L118)
+   - `private PaymentTotals readCartTotals(FirestoreRestClient firestore, AuthSession session)` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerPayment.java#L220-L220)
+   - `private ObjectNode buildCustomerWalletUpdate(JsonNode customerDoc, long updatedWalletBalanceCents)` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerPayment.java#L259-L259)
+   - `private ObjectNode buildOrderDocument(String orderId, String customerId, String customerName, long totalCents, String orderSummary)` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerPayment.java#L275-L275)
 
-### StaffLandingPage
-- `StaffLandingPage()` (constructor) — Prepares the landing page UI and attaches handlers.
-- `openStaffPassword()` — Opens the staff PIN/password entry screen.
-- `makeButtonInvisible(javax.swing.JButton button)` — Helper to hide buttons when appropriate.
+ - CustomerCartPanel — [src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java#L32-L32)
+   - constructors: `public CustomerCartPanel()` [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java#L32-L32), `public CustomerCartPanel(String appliedVoucher)` [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java#L54-L54)
+   - `private void configureUi()` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java#L59-L59)
+   - `private void loadCartItems()` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java#L141-L141)
+   - `private void applyVoucherToCartAsync(String voucherCode)` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java#L449-L449)
+   - `private void submitCart()` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java#L378-L378)
 
-### StaffPassword
-- `StaffPassword()` (constructor) — Sets up the PIN entry UI.
-- `setupPinFields()` — Configures PIN input fields (focus movement, filters).
-- `setPinInputsEnabled(boolean enabled)` — Enable/disable PIN inputs while loading or verifying.
-- `loadStaffPinAsync()` — Loads configured PIN asynchronously from backend/storage.
-- `checkPinAndMaybeLogin()` — Verifies entered PIN and navigates to the staff UI if valid.
-- `clearPin()` — Clears entered PIN digits.
-- `makePinFieldTransparent(JTextField field)` — UI helper for pin field appearance.
-- `configurePinField(JTextField field, JTextField next, JTextField prev)` — Wire up navigation between PIN fields.
+ - CustomerMenuPanel — [src/main/java/com/mycompany/barkbites/CustomerForms/CustomerMenuPanel.java](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerMenuPanel.java#L28-L28)
+   - `public CustomerMenuPanel()` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerMenuPanel.java#L28-L28)
+   - `private void configureMenuUi()` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerMenuPanel.java#L33-L33)
+   - `private void loadMenuItemsAsync()` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerMenuPanel.java#L??-L??) (see file for exact placement)
 
-### StaffCashIn
-- `StaffCashIn()` (constructor) — Prepares Cash-In UI.
-- `configureUi()` — Sets up UI controls, table model, and listeners.
-- `loadUsersAsync()` — Loads list of users (wallets) asynchronously.
-- `applySearchFilter()` — Filters table rows per search input.
-- `populateEditorFromSelection()` — Populate editor fields from selected user row.
-- `confirmCashIn()` — Validate and confirm cash-in action before committing.
-- `performCashIn(CashInUser user, long cashInAmountCents)` — Performs the cash-in operation (backend call) asynchronously.
-- `getSelectedUser()` — Returns currently selected `CashInUser` from table.
-- `parseMoneyToCents(String amountText)` — Parses a user-entered currency string to cents (long).
-- `clearEditorFields()` and `clearTableAndEditor()` — Helpers to reset UI state.
-- `formatWallet(Long walletBalanceCents)` — Formats wallet balance to display string.
+ - CustomerCashInPanel — [src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCashInPanel.java](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCashInPanel.java#L36-L36)
+   - `public CustomerCashInPanel()` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCashInPanel.java#L36-L36)
+   - wallet helpers: `loadWalletBalance()`, `cashInAmount(long)` — [file](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCashInPanel.java#L199-L199)
 
-### StaffInventory
-- `StaffInventory()` (constructor) — Sets up inventory management UI.
-- `configureUi()` — Customize scrollbars, card UI, and form behavior.
-- `loadInventoryAsync()` — Loads inventory items from backend asynchronously.
-- `populateFormFromSelection()` — Fill the edit form with selected item values.
-- `clearForm()` — Reset the edit form to empty values.
-- `saveInventoryItem()` — Create/update inventory item (performs async save to DB).
-- `deleteInventoryItem()` — Remove selected inventory item (async delete).
-- `setBusy(boolean busy)` — Toggles busy indicator and disables UI when busy.
-- `generateDocumentId()` — Helper to create new document IDs for items.
-- `formatInventoryItem(StaffInventoryItem item)` — Format item summary for display.
-- `openStaffOrders()`, `openStaffMenu()`, `openStaffStatistics()`, `openStaffHistory()`, `openStaffCashIn()` — Navigation helpers to switch screens.
-- `logout()` — Log out current user / return to landing page.
-- `makeButtonInvisible(javax.swing.JButton button)`, `makeFieldBackgroundInvisible(javax.swing.JTextField field)` — UI helpers.
+ - CustomerOrderDetails, CustomerOrderConfirmed, CustomerLoginPanel, CustomerHomePagePanel — constructors and `configureUi()` present (see files under CustomerForms/ for anchors).
 
-### StaffMenu
-- `StaffMenu()` (constructor) — Prepares menu CRUD UI for staff.
-- `configureCrudUi()` — Configure cards view, editors, and controls.
-- `loadMenuItemsAsync()` — Loads menu items from backend.
-- `populateFormFromSelection()` — Fill menu item editor with selected item.
-- `clearMenuForm()` — Reset menu edit form.
-- `saveMenuItem()` — Create/update menu item in backend.
-- `deleteSelectedMenuItem()` — Delete a selected menu item.
-- `setBusy(boolean busy)` — Toggle busy indicator while saving/loading.
-- `renderMenuCards()` — Render grid of product/menu cards in UI.
-- `applyCard(StaffMenuItem item, JPanel panel, JLabel nameLabel, JLabel priceLabel, JLabel quantityLabel, JLabel imageLabel, int index)` — Populate a card UI with item data.
-- `installCardClickTarget(Component component, int itemIndex)` — Attach click handler to card components.
-- `selectMenuItem(StaffMenuItem item)` — Select an item for editing/viewing.
-- `findSelectedMenuItem()` — Return currently selected `StaffMenuItem`.
-- `formatPrice(long priceCents)` — Format price for display.
-- `loadMenuImage(String imagePath, int width, int height)` and `resolveImageResource(String imagePath)` — Helpers to load/cached images for cards.
-- `openStaffOrders()`, `openStaffInventory()`, `openStaffStatistics()`, `openStaffLandingPage()`, `openStaffHistory()`, `openStaffCashIn()` — Navigation helpers.
-- `makeButtonInvisible(javax.swing.JButton button)`, `makeTextFieldInvisible(JTextField textField)` — UI helpers.
+ ## Key UI classes (Staff)
 
-### StaffOrders
-- `StaffOrders()` (constructor) — Prepares the orders UI and card view.
-- `openStaffInventory()`, `openStaffMenu()`, `openStaffStatistics()`, `openStaffLandingPage()`, `openStaffHistory()`, `openStaffCashIn()` — Navigation helpers.
-- `makeButtonInvisible(javax.swing.JButton button)` — UI helper.
-- `configureOrderCards()` — Setup cards UI for orders and click handlers.
-- `createCardLabel()` — Helper to create reusable JLabel for card UI.
-- `loadOrdersAsync()` — Loads order records asynchronously.
-- `renderOrderCards()` — Render order cards in the UI from loaded data.
-- `selectCard(int cardIndex)` — Select a card in the UI.
-- `updateSelectionStyles()` — Apply selection visuals to cards.
-- `updateSelectedOrderStatusAsync()` — Change status of selected order via background task.
-- `setOrderActionsEnabled(boolean enabled)` — Enable/disable order action controls.
-- `safeText(String value)` — Null-safe text helper.
+ - StaffMenu — [src/main/java/com/mycompany/barkbites/StaffForms/StaffMenu.java](src/main/java/com/mycompany/barkbites/StaffForms/StaffMenu.java#L49-L49)
+   - `public StaffMenu()` — [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffMenu.java#L49-L49)
+   - CRUD: `private void loadMenuItemsAsync()` [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffMenu.java#L124-L124), `private void saveMenuItem()` [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffMenu.java#L181-L181), `private void deleteSelectedMenuItem()` [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffMenu.java#L242-L242)
+   - card helpers: `private void renderMenuCards()`, `private void applyCard(...)` — [file anchors available]
 
-### StaffHistory
-- `StaffHistory()` (constructor) — Prepares transaction history UI.
-- `configureHistoryPanel()` — Setup table model and columns.
-- `loadHistoryAsync()` — Loads history entries from backend asynchronously.
-- `makeButtonInvisible(javax.swing.JButton button)` — UI helper.
-- `openStaffOrders()`, `openStaffInventory()`, `openStaffMenu()`, `openStaffStatistics()`, `openStaffLandingPage()`, `openStaffCashIn()` — Navigation helpers.
-- `formatTotal(long totalCents)` — Format total amounts for display.
-- `formatCreatedAt(long createdAtMillis)` — Format epoch millis into human-readable date/time.
-- `safeText(String value)` — Null-safe string helper.
+ - StaffInventory — [src/main/java/com/mycompany/barkbites/StaffForms/StaffInventory.java](src/main/java/com/mycompany/barkbites/StaffForms/StaffInventory.java#L43-L43)
+   - `public StaffInventory()` — [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffInventory.java#L43-L43)
+   - `private void loadInventoryAsync()` — [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffInventory.java#L172-L172)
+   - `private void saveInventoryItem()` — [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffInventory.java#L226-L226)
+   - `private void deleteInventoryItem()` — [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffInventory.java#L280-L280)
 
-### StaffStatistics
-- `StaffStatistics()` (constructor) — Prepares the statistics/dashboard UI.
-- `configureUi()` — Setup charts/labels and UI look.
-- `loadSummaryAsync()` — Load daily/aggregate statistics asynchronously.
-- `setBusy(boolean busy)` — Toggle busy indicator while loading.
-- `formatPesos(long cents)` — Format money values into peso representation.
-- Navigation helpers: `openStaffOrders()`, `openStaffInventory()`, `openStaffMenu()`, `openStaffLandingPage()`, `openStaffHistory()`, `openStaffCashIn()`.
-- `makeButtonInvisible(javax.swing.JButton button)` — UI helper.
+ - StaffOrders — [src/main/java/com/mycompany/barkbites/StaffForms/StaffOrders.java](src/main/java/com/mycompany/barkbites/StaffForms/StaffOrders.java#L57-L57)
+   - `public StaffOrders()` — [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffOrders.java#L57-L57)
+   - `private void loadOrdersAsync()` — [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffOrders.java#L241-L241)
+   - `private void updateSelectedOrderStatusAsync()` — [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffOrders.java#L360-L360)
 
-## Data & Services
+ - StaffCashIn — [src/main/java/com/mycompany/barkbites/StaffForms/StaffCashIn.java](src/main/java/com/mycompany/barkbites/StaffForms/StaffCashIn.java#L61-L61)
+   - `public StaffCashIn()` — [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffCashIn.java#L61-L61)
+   - `private void loadUsersAsync()` — [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffCashIn.java#L164-L164)
+   - `private void performCashIn(CashInUser user, long cashInAmountCents)` — [file](src/main/java/com/mycompany/barkbites/StaffForms/StaffCashIn.java#L317-L317)
 
-## Customer Forms
-Note: GUI-generated `initComponents()` and trivial auto-generated action stubs are omitted.
+ - StaffHistory, StaffStatistics — UI constructors and `loadXAsync()` present (see files under StaffForms/ for anchors).
 
-### CustomerCartPanel
-- `CustomerCartPanel()` (constructor) — Cart UI showing selected items and totals.
-- `CustomerCartPanel(String appliedVoucher)` — Constructor with pre-applied voucher code.
-- `configureUi()` — Setup card panels and cart UI behaviors.
-- `bringToFront(Component component)` — Bring a particular cart panel to front.
-- `makeButtonInvisible(JButton button)` — UI helper for hiding unused buttons.
-- `setEmptyState()` — Set the cart UI to an empty-state view.
-- `clearPanel(JPanel panel, JLabel imageLabel, JLabel nameLabel, JLabel quantityLabel, JLabel priceLabel)` — Clear one card slot.
-- `loadCartItems()` — Load cart items from backend/document into UI.
-- `renderCart()` — Render cart items into the visible panels.
-- `showPanel(JPanel panel, JLabel imageLabel, JLabel nameLabel, JLabel quantityLabel, JLabel priceLabel, CartItemData item)` — Populate a single card with CartItemData.
-- `readOptionalDiscountCents(JsonNode document)` — Read discount cents from cart/source doc.
-- `formatPrice(long priceCents)` — Format money for display in cart.
-- `loadMenuImage(String imagePath, int width, int height)` and `resolveImageResource(String imagePath)` — Image helpers for product thumbnails.
-- `submitCart()` — Submit the current cart to create an order.
-- `clearAppliedVoucherState()` — Remove any applied voucher from UI state.
-- `setAppliedVoucher(String voucherCode)` — Public setter to apply voucher code programmatically.
-- `applyVoucherToCartAsync(String voucherCode)` — Validate/apply voucher asynchronously.
+ ## Services and data layer
 
-### CustomerCashInPanel
-- `CustomerCashInPanel()` (constructor) — Cash-in UI for customers.
-- `bringToFront(Component component)` — Bring a child component to the front.
-- `makeButtonInvisible(JButton button)` — Helper to hide buttons.
-- `makeIconButton(JButton button)` — Style helper for icon buttons.
-- `makeTextFieldTransparent(JTextField field)` — UI appearance helper.
-- `loadIcon(String resourcePath)` — Load small icon resources.
-- `setBusy(boolean busy)` — Toggle busy indicator while loading/processing.
-- `toggleWalletBalanceVisibility()` — Show/hide masked wallet balance.
-- `updateWalletToggleButton()` — Update toggle button visuals/state.
-- `refreshWalletLabel()` — Refresh displayed wallet amount.
-- `formatWalletBalance(Long walletBalanceCents)` and `maskWalletBalance(Long walletBalanceCents)` — Formatting helpers.
-- `parsePesosToCents(String input)` — Parse input to cents.
-- `loadWalletBalance()` — Async load of wallet balance.
-- `cashInTypedAmount()` — Handler when user types a custom cash-in amount.
-- `cashInAmount(long amountCents)` — Execute cash-in operation (creates update request).
+ - FirestoreRestClient — [src/main/java/com/mycompany/barkbites/data/firestore/FirestoreRestClient.java](src/main/java/com/mycompany/barkbites/data/firestore/FirestoreRestClient.java#L1-L1)
+   - `public FirestoreRestClient(FirebasePublicConfig config)`
+   - `public JsonNode getDocument(String idToken, String collection, String documentId)`
+   - `public JsonNode getDocumentAtPath(String idToken, String documentPath)`
+   - `public JsonNode createDocumentWithId(String idToken, String collectionPath, String documentId, JsonNode documentBody)`
+   - `public JsonNode listDocumentsAtPath(String idToken, String collectionPath)`
+   - `public JsonNode deleteDocumentAtPath(String idToken, String documentPath)`
 
-### CustomerCheckPhone
-- `CustomerCheckPhone()` (constructor) — Phone code verification screen.
-- `configureForm()` — Setup digit fields and form behavior.
-- `bringToFront(Component component)` — Bring component forward in the layout.
-- `makeButtonInvisible(JButton button)`, `makeTextFieldTransparent(JTextField field)` — UI helpers.
-- `configureDigitField(JTextField field, JTextField next, JTextField previous)` — Wire digit fields for OTP input.
-- `enteredCode()` — Read concatenated entered OTP digits.
-- `attemptResetCode()` — Trigger resending a verification code.
-- `clearCodeFields()` — Clear input fields.
-- `startResendTimer()` / `stopResendTimer()` / `updateTimerLabel()` / `updateResendButtonState()` — Timer helpers for resend flow.
-- `resendCode()` — Send a new verification code.
+ - FirestoreDocuments — [src/main/java/com/mycompany/barkbites/data/firestore/FirestoreDocuments.java](src/main/java/com/mycompany/barkbites/data/firestore/FirestoreDocuments.java#L1-L1)
+   - Utilities: `customerDocument`, `customerDocumentWithEmail`, `readLong`, `readString`, `integerValue`, `stringValue`, `integerValue`
 
-### CustomerLandingPage
-- `CustomerLandingPage()` (constructor) — Landing page for customer flows (entry point to menu/cart).
+ - FirebaseAuthRestService — [src/main/java/com/mycompany/barkbites/data/auth/FirebaseAuthRestService.java](src/main/java/com/mycompany/barkbites/data/auth/FirebaseAuthRestService.java#L1-L1)
+   - `public AuthSession signUp(String studentId, String password)`
+   - `public AuthSession signIn(String studentId, String password)`
+   - `public boolean isEmailRegistered(String email)`
 
-### CustomerLoginOptions
-- `CustomerLoginOptions()` (constructor) — Offers login choices to customer.
+ - StaffMenuService — [src/main/java/com/mycompany/barkbites/data/staff/StaffMenuService.java](src/main/java/com/mycompany/barkbites/data/staff/StaffMenuService.java#L32-L32)
+   - `public void seedDefaultMenuItemsIfMissing()` — [file](src/main/java/com/mycompany/barkbites/data/staff/StaffMenuService.java#L32-L32)
+   - `public List<StaffMenuItem> listMenuItems()` — [file](src/main/java/com/mycompany/barkbites/data/staff/StaffMenuService.java#L81-L81)
+   - `public void upsertMenuItem(StaffMenuItem item)` — [file](src/main/java/com/mycompany/barkbites/data/staff/StaffMenuService.java#L119-L119)
+   - `public void deleteMenuItem(String itemId)` — [file](src/main/java/com/mycompany/barkbites/data/staff/StaffMenuService.java#L144-L144)
 
-### CustomerHomePagePanel
-- `CustomerHomePagePanel()` (constructor) — Main customer home UI.
-- `configureUI()` — Setup menu/category click targets and dynamic UI.
-- `loadOrderBannerVisibility()` — Async check whether to show order banner (pending orders).
-- `bringToFront(Component component)` — Helper to bring components to front.
-- `makePanelClickable(JPanel panel)` — Attach click handlers to a panel.
+ - StaffInventoryService — [src/main/java/com/mycompany/barkbites/data/staff/StaffInventoryService.java](src/main/java/com/mycompany/barkbites/data/staff/StaffInventoryService.java#L28-L28)
+   - `public List<StaffInventoryItem> listInventoryItems()` — [file](src/main/java/com/mycompany/barkbites/data/staff/StaffInventoryService.java#L28-L28)
+   - `public void upsertInventoryItem(StaffInventoryItem item)` — [file](src/main/java/com/mycompany/barkbites/data/staff/StaffInventoryService.java#L62-L62)
+   - `public void deleteInventoryItem(String itemId)` — [file](src/main/java/com/mycompany/barkbites/data/staff/StaffInventoryService.java#L95-L95)
 
-### CustomerLoginPanel
-- `CustomerLoginPanel()` (constructor) — Login form for customers.
-- `bringToFront(Component component)` — UI helper.
-- `makeButtonInvisible(JButton button)`, `makeTextFieldTransparent(JTextField field)`, `makePasswordFieldTransparent(JPasswordField field)` — Visual helpers.
-- `setBusy(boolean busy)` — Toggle busy state while authenticating.
-- `attemptLogin()` — Perform login (runs async AuthSession retrieval).
-- `friendlyAuthError(String message)` — Map backend messages to friendlier text.
-- `togglePasswordVisibility()` / `updatePasswordToggleButton()` — Password visibility helpers.
-- `loadIcon(String resourcePath)` — Icon loader.
+ - StaffOrderService — [src/main/java/com/mycompany/barkbites/data/staff/StaffOrderService.java](src/main/java/com/mycompany/barkbites/data/staff/StaffOrderService.java#L28-L28)
+   - `public List<StaffOrderRecord> listOrders()` — [file](src/main/java/com/mycompany/barkbites/data/staff/StaffOrderService.java#L28-L28)
+   - `public void updateOrderStatus(String orderId, String status)` — [file](src/main/java/com/mycompany/barkbites/data/staff/StaffOrderService.java#L120-L120)
 
-### CustomerLoginPasswordRecovery
-- `CustomerLoginPasswordRecovery()` (constructor) — Password recovery screen.
-- `bringToFront(Component component)` — UI helper.
-- `makeButtonInvisible(JButton button)` / `makeTextFieldTransparent(JTextField field)` — Visual helpers.
-- `setBusy(boolean busy)` — Toggle busy indicator during network checks.
-- `attemptEmailCheck()` — Verify email exists / send reset link.
+ - StaffCashInService — [src/main/java/com/mycompany/barkbites/data/staff/StaffCashInService.java](src/main/java/com/mycompany/barkbites/data/staff/StaffCashInService.java#L20-L20)
+   - `public List<StaffCashInRecord> listCashInRecords()` — [file](src/main/java/com/mycompany/barkbites/data/staff/StaffCashInService.java#L20-L20)
+   - `public void recordCashIn(String customerId, String customerName, String studentId, long amountCents, long balanceBeforeCents, long balanceAfterCents)` — [file](src/main/java/com/mycompany/barkbites/data/staff/StaffCashInService.java#L55-L55)
 
-### CustomerMenuPanel
-- `CustomerMenuPanel()` (constructor) — Customer-facing menu browser.
-- `configureMenuUi()` — Prepare card grid and scroller.
-- `loadMenuItemsAsync()` — Load menu items asynchronously (reuses `StaffMenuItem`).
-- `renderMenuCards()` — Render menu cards for customers.
-- `applyCard(StaffMenuItem item, JPanel panel, JLabel imageLabel, JLabel nameLabel, JLabel priceLabel)` — Populate card UI.
-- `formatPrice(long priceCents)` — Price formatting helper.
-- `loadMenuImage(String imagePath, int width, int height)` / `resolveImageResource(String imagePath)` — Image helpers.
+ ## Models / Records
 
-### CustomerOrderConfirmed
-- `CustomerOrderConfirmed()` (constructor) — Success screen after an order is placed.
-- `configureUi()` — Setup confirmation UI elements.
+ - `StaffMenuItem` — [src/main/java/com/mycompany/barkbites/data/staff/StaffMenuItem.java](src/main/java/com/mycompany/barkbites/data/staff/StaffMenuItem.java#L1-L1) — `record StaffMenuItem(String id, String name, long priceCents, int quantity, String imagePath)`
+ - `StaffInventoryItem` — [src/main/java/com/mycompany/barkbites/data/staff/StaffInventoryItem.java](src/main/java/com/mycompany/barkbites/data/staff/StaffInventoryItem.java#L1-L1) — `record StaffInventoryItem(String id, String name, int quantity, String unit, String imagePath)`
+ - `StaffOrderRecord` — [src/main/java/com/mycompany/barkbites/data/staff/StaffOrderRecord.java](src/main/java/com/mycompany/barkbites/data/staff/StaffOrderRecord.java#L1-L1) — `record StaffOrderRecord(String id, String customerName, String status, String payment, String order, long totalCents, long createdAtMillis)`
+ - `AuthSession` — [src/main/java/com/mycompany/barkbites/data/auth/AuthSession.java](src/main/java/com/mycompany/barkbites/data/auth/AuthSession.java#L1-L1)
 
-### CustomerOrderDetails
-- `CustomerOrderDetails()` (constructor) — Order details and progress screen.
-- `configureUi()` — Configure labels and progress visuals.
-- `loadOrderStatusAsync()` — Periodically load order status asynchronously.
-- `updateProgressByStatus(String status)` — Update progress UI based on status string.
-- `hideProgressLabels()` — Hide progress UI elements.
-- `readStatus(QueryDocumentSnapshot document)` — Helper to read status from Firestore doc.
-- `isFinishedStatus(String status)` — Check if order is in finished state.
+ ## Async patterns
 
-### CustomerPayment
-- `CustomerPayment()` (constructor) — Payment screen for customers.
-- `configureUi()` — Prepare payment method options and summary.
-- `bringToFront(Component component)` — UI helper.
-- `makeButtonInvisible(JButton button)` — UI helper.
-- `setBusy(boolean busy)` — Toggle busy UI while processing payment.
-- `processWalletPayment()` — Process payment using customer's wallet (SwingWorker).
-- `readCartTotals(FirestoreRestClient firestore, AuthSession session)` — Read subtotal/discount/final totals from cart documents.
-- `buildCustomerWalletUpdate(JsonNode customerDoc, long updatedWalletBalanceCents)` — Build JSON patch for wallet update.
-- `buildOrderDocument(String orderId, String customerId, String customerName, long totalCents, String orderSummary)` — Assemble order document to save in DB.
+ - UI screens use `javax.swing.SwingWorker<>` heavily for background Firestore operations (examples: `CustomerPayment.processWalletPayment()` — background worker, `CustomerCartPanel.loadCartItems()` — SwingWorker, `StaffForms` loadXAsync methods use SwingWorker).
 
-### CustomerProfilePanelVisible
-- `CustomerProfilePanelVisible()` (constructor) — Profile panel for visible/editable customer profile.
-- `makeButtonInvisible(JButton button)` — UI helper.
+ ## Noted mismatches / ambiguous areas
 
+ - Some UI helper methods appear duplicated across screens (image loaders, formatPrice), consider centralizing.
+ - A few method anchors for `CustomerMenuPanel.loadMenuItemsAsync()` and other smaller helpers were omitted above (I can add full-file anchors on request).
 
-### StaffInventoryService
-- `getAllProducts()` / `getAllInventoryItems()` (depending on name) — Retrieve inventory list from backend (Firestore).
-- `getProductById(String id)` — Retrieve single item by id.
-- `saveInventoryItem(...)` — Persist new or updated inventory item.
-- `deleteInventoryItem(...)` — Delete inventory item by id.
+ ---
 
-### StaffMenuService
-- `getAllMenuItems()` — Retrieve menu items.
-- `saveMenuItem(...)` — Persist menu item.
-- `deleteMenuItem(...)` — Delete menu item.
-
-### StaffOrderService / StaffOrderRecord
-- `getPendingOrders()` / `listOrders()` — Retrieve orders for staff view.
-- `updateOrderStatus(orderId, newStatus)` — Update order status (e.g., fulfilled).
-
-### StaffStatisticsService / StaffStatisticsSummary
-- `computeDailyRevenue()` / `fetchSummary()` — Aggregate sales and compute totals for dashboard.
-
-### Model records/classes
-- `StaffInventoryItem` — fields and simple helpers to represent an inventory doc.
-- `StaffMenuItem` — menu product model with fields like name, price, quantity, image path.
-- `StaffOrderRecord` — order model: items, status, timestamps.
-- `AuthSession` record — `AuthSession(String uid, String idToken)` represents signed-in session.
-
-## Utilities / Helpers
-
-- `safeText(String)` — Null-safe helper appears in multiple classes to avoid NPE when rendering labels.
-- `formatPrice`, `formatPesos`, `formatTotal`, `formatCreatedAt` — Money/date formatting utilities used across screens.
-- `generateDocumentId()` — Small generator helper used for Firestore document ids.
-- Image/resource helpers: `loadMenuImage`, `resolveImageResource`.
-
-## Differences vs attached UML diagram
-
-- UML Entities: `Product`, `FoodItem`, `BeverageItem`, `Order`, `Payment`, `InventoryManager`, `OrderManager`, `CustomerGUI`, `StaffGUI`.
-- Actual code: domain objects are split into `StaffMenuItem` / `StaffInventoryItem` / `StaffOrderRecord` and services such as `StaffMenuService`, `StaffInventoryService`, `StaffOrderService`. There is no single `InventoryManager` or `OrderManager` class — instead logic is implemented in service classes and UI screens.
-- `Payment` class (with `processPayment()`) does not appear in the codebase; payment flows are likely handled externally or via Firestore documents.
-- The UML's `CustomerGUI` is represented by `CustomerForms` (e.g., `CustomerCartPanel`) and many of the UI helpers (image loading, formatPrice) are implemented there.
-- Additional changes observed vs UML:
-  - Extensive use of SwingWorkers for async loads (`loadXAsync()` methods) to keep UI responsive.
-  - Card-based menu rendering with image loading and click handlers (methods like `renderMenuCards`, `applyCard`).
-  - Navigation split into small screen-specific `openStaffX()` helpers rather than a centralized `OrderManager`/`InventoryManager` controller visible in UML.
-  - Utilities for formatting monetary values and safe text helpers are centralized in multiple classes.
-
-If you want a side-by-side mapping for every UML method → implementation, I can produce a table mapping UML methods to the exact Java method names and files.
-
----
-
-If you'd like, I can:
-- produce a more exhaustive file-by-file method list (including signatures and line links), or
-- create a UML-like diagram updated from the current code, or
-- generate the side-by-side mapping table from the UML to the code.
+ If you want, I can now produce an exact patch for `methods_summary.md` using this content (overwrite). Confirm and I'll prepare the patch file for you to apply.
