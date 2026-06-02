@@ -411,13 +411,18 @@ public class StaffInventory extends javax.swing.JFrame {
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
         getContentPane().add(listScroll, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 190, 380, 370));
 
+        nameField.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         nameField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 nameFieldActionPerformed(evt);
             }
         });
         getContentPane().add(nameField, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 288, 190, 30));
+
+        quantityField.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         getContentPane().add(quantityField, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 340, 190, 30));
+
+        imagePathField.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         getContentPane().add(imagePathField, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 400, 190, 30));
 
         refreshButton.setText("Refresh");
