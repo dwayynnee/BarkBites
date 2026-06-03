@@ -118,6 +118,19 @@
  - Some UI helper methods appear duplicated across screens (image loaders, formatPrice), consider centralizing.
  - A few method anchors for `CustomerMenuPanel.loadMenuItemsAsync()` and other smaller helpers were omitted above (I can add full-file anchors on request).
 
+## OOP Principles (mapped examples)
+
+- **Encapsulation:** Private helpers hide implementation details — e.g., `CustomerPayment.processWalletPayment()` — [src/main/java/com/mycompany/barkbites/CustomerForms/CustomerPayment.java](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerPayment.java#L118-L118) and `CustomerCartPanel.loadCartItems()` — [src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java#L141-L141).
+
+- **Abstraction:** Services expose clear, high-level APIs while hiding Firestore/HTTP details — see `FirestoreRestClient` — [src/main/java/com/mycompany/barkbites/data/firestore/FirestoreRestClient.java](src/main/java/com/mycompany/barkbites/data/firestore/FirestoreRestClient.java#L1-L1) and `StaffMenuService` — [src/main/java/com/mycompany/barkbites/data/staff/StaffMenuService.java](src/main/java/com/mycompany/barkbites/data/staff/StaffMenuService.java#L32-L32).
+
+- **Inheritance:** UI classes extend Swing framework classes to reuse behavior — e.g., `CustomerCartPanel` extends `JFrame` — [src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java#L25-L25) and `StaffVouchers` extends `JFrame` — [src/main/java/com/mycompany/barkbites/StaffForms/StaffVouchers.java](src/main/java/com/mycompany/barkbites/StaffForms/StaffVouchers.java#L31-L31).
+
+- **Polymorphism:** Anonymous `SwingWorker` subclasses override `doInBackground()`/`done()` to customize async tasks — examples in `CustomerCartPanel` — [src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java](src/main/java/com/mycompany/barkbites/CustomerForms/CustomerCartPanel.java#L162-L162) and `StaffCashIn` — [src/main/java/com/mycompany/barkbites/StaffForms/StaffCashIn.java](src/main/java/com/mycompany/barkbites/StaffForms/StaffCashIn.java#L169-L169).
+
+
+- **Separation of concerns:** Project layout splits UI (`CustomerForms`/`StaffForms`) from business/data (`data/*`), improving maintainability and aligning with OOP design.
+
  ---
 
  If you want, I can now produce an exact patch for `methods_summary.md` using this content (overwrite). Confirm and I'll prepare the patch file for you to apply.
