@@ -321,7 +321,7 @@ public class StaffHistory extends javax.swing.JFrame {
         jButton1.setText("jButton1");
         getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 490, 140, 60));
 
-        jLabel1.setIcon(new javax.swing.ImageIcon("C:\\BarkBites\\src\\main\\java\\com\\mycompany\\barkbites\\StaffDesign\\StaffHistory.png")); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/mycompany/barkbites/StaffDesign/StaffHistory.png"))); // NOI18N
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
         pack();

@@ -39,20 +39,17 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         getContentPane().setComponentZOrder(jButton3, 0);
         // jButton4 was removed; keep jButton7 on top of background components
         getContentPane().setComponentZOrder(jButton7, 0);
-        // removed jButton5/jButton6
 
         // Wire button actions (the methods exist, but no listeners were attached).
         jButton1.addActionListener(this::jButton1ActionPerformed);
         jButton2.addActionListener(this::jButton2ActionPerformed);
         jButton3.addActionListener(this::jButton3ActionPerformed);
         // jButton4 removed in UI; no listener to attach
-        // jButton5/jButton6 removed
         jButton7.addActionListener(e -> toggleWalletBalanceVisibility());
 
         makeButtonInvisible(jButton1);
         makeButtonInvisible(jButton2);
         makeButtonInvisible(jButton3);
-        // jButton5/jButton6 removed
         makeButtonInvisible(jButton7);
         makeButtonInvisible(jButton8);
 
@@ -185,8 +182,6 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
@@ -210,12 +205,6 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
 
         jButton3.setText("jButton3");
         getContentPane().add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 570, -1, 60));
-
-        jButton5.setText("jButton5");
-        getContentPane().add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 400, 120, 130));
-
-        jButton6.setText("jButton6");
-        getContentPane().add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 400, 130, 130));
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel2.setForeground(new java.awt.Color(255, 255, 255));
@@ -263,7 +252,7 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
     private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
         FormNavigator.redirect(this, new CustomerLandingPage());
     }//GEN-LAST:event_jButton8ActionPerformed
-    // jButton5/jButton6 removed
+
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -276,8 +265,6 @@ public class CustomerProfilePanelVisible extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton5;
-    private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
     private javax.swing.JLabel jLabel1;

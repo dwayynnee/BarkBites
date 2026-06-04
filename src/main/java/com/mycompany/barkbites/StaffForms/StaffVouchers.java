@@ -15,6 +15,8 @@ import com.mycompany.barkbites.FormNavigator;
 import com.mycompany.barkbites.data.FirebaseInitializer;
 import com.mycompany.barkbites.data.staff.StaffFirebaseBootstrap;
 import java.awt.Color;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -72,6 +74,109 @@ public class StaffVouchers extends javax.swing.JFrame {
         }
 
         clearVoucherInputs();
+        // Ensure buttons are clickable and above the background image.
+        ensureInteractiveControlsAreOnTop();
+    }
+
+    private void ensureInteractiveControlsAreOnTop() {
+        try {
+            // Bring the most important interactive controls to the top of the z-order.
+            getContentPane().setComponentZOrder(jScrollPane1, 0);
+            getContentPane().setComponentZOrder(jTextField5, 0);
+            getContentPane().setComponentZOrder(jTextField1, 0);
+            getContentPane().setComponentZOrder(jTextField2, 0);
+            getContentPane().setComponentZOrder(jTextField3, 0);
+            getContentPane().setComponentZOrder(jTextField4, 0);
+            getContentPane().setComponentZOrder(jButton8, 0);
+            getContentPane().setComponentZOrder(jButton9, 0);
+            getContentPane().setComponentZOrder(jButton10, 0);
+            // Send background label to the back
+            getContentPane().setComponentZOrder(jLabel1, getContentPane().getComponentCount() - 1);
+        } catch (Exception ignored) {
+        }
+        // Ensure sensible enabled state
+        if (jButton9 != null) jButton9.setEnabled(true);
+        if (jButton10 != null) jButton10.setEnabled(false);
+        revalidate();
+        repaint();
+        // If the background label sits above controls, forward its mouse events
+        // to the underlying components so clicks still work.
+        try {
+            jLabel1.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    forwardMouseEventToUnderlying(e);
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    forwardMouseEventToUnderlying(e);
+                }
+
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    forwardMouseEventToUnderlying(e);
+                }
+            });
+            jLabel1.addMouseMotionListener(new MouseAdapter() {
+                @Override
+                public void mouseMoved(MouseEvent e) {
+                    forwardMouseEventToUnderlying(e);
+                }
+
+                @Override
+                public void mouseDragged(MouseEvent e) {
+                    forwardMouseEventToUnderlying(e);
+                }
+            });
+        } catch (Exception ignored) {
+        }
+        // Increase hit area for Add/Edit to make clicking easier
+        try {
+            enlargeButtonHitArea(jButton9, 8);
+            enlargeButtonHitArea(jButton10, 8);
+            if (jButton9 != null) jButton9.setToolTipText("Add voucher");
+            if (jButton10 != null) jButton10.setToolTipText("Edit selected voucher");
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void forwardMouseEventToUnderlying(MouseEvent e) {
+        try {
+            java.awt.Point pt = e.getPoint();
+            java.awt.Container container = getContentPane();
+            java.awt.Component target = null;
+            int bestZ = Integer.MAX_VALUE;
+            for (java.awt.Component comp : container.getComponents()) {
+                if (comp == jLabel1 || !comp.isVisible()) continue;
+                java.awt.Rectangle bounds = comp.getBounds();
+                if (bounds.contains(pt)) {
+                    int z = container.getComponentZOrder(comp);
+                    if (z < bestZ) {
+                        bestZ = z;
+                        target = comp;
+                    }
+                }
+            }
+            if (target != null) {
+                java.awt.Point local = javax.swing.SwingUtilities.convertPoint(jLabel1, pt, target);
+                MouseEvent forwarded = new MouseEvent(target, e.getID(), e.getWhen(), e.getModifiersEx(), local.x, local.y, e.getClickCount(), e.isPopupTrigger(), e.getButton());
+                target.dispatchEvent(forwarded);
+                e.consume();
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void enlargeButtonHitArea(javax.swing.JButton btn, int pad) {
+        if (btn == null) return;
+        java.awt.Rectangle r = btn.getBounds();
+        if (r == null) return;
+        int x = Math.max(0, r.x - pad);
+        int y = Math.max(0, r.y - pad);
+        int w = r.width + pad * 2;
+        int h = r.height + pad * 2;
+        btn.setBounds(x, y, w, h);
     }
 
     private void bringInteractiveComponentsToFront() {
@@ -133,6 +238,13 @@ public class StaffVouchers extends javax.swing.JFrame {
                 applySearchFilter();
             }
         });
+
+        // Make Enter behave helpfully: move focus through fields and submit on expiry field.
+        jTextField1.addActionListener(evt -> jTextField2.requestFocusInWindow());
+        jTextField2.addActionListener(evt -> jTextField3.requestFocusInWindow());
+        jTextField3.addActionListener(evt -> jTextField4.requestFocusInWindow());
+        // Pressing Enter on expiry/date field triggers Add action.
+        jTextField4.addActionListener(evt -> addVoucher());
     }
 
     private void hideButtonsButKeepClickable() {
@@ -271,6 +383,9 @@ public class StaffVouchers extends javax.swing.JFrame {
         jTextField3.setText(String.valueOf(totalUses));
         jTextField4.setText(expiryDate);
         selectedVoucherDocumentId = voucherCodeToDocumentId.getOrDefault(voucherCode, voucherCode);
+        // When a row is selected we enable Edit and disable Add to avoid accidental duplicates.
+        jButton10.setEnabled(true); // Edit
+        jButton9.setEnabled(false); // Add
     }
 
     private void addVoucher() {
@@ -375,6 +490,10 @@ public class StaffVouchers extends javax.swing.JFrame {
         jTextField3.setText("");
         jTextField4.setText("");
         voucherTable.clearSelection();
+        selectedVoucherDocumentId = null;
+        // Reset button state: allow Add, disable Edit until a row is selected.
+        jButton9.setEnabled(true);
+        jButton10.setEnabled(false);
     }
 
     private void applySearchFilter() {
@@ -407,10 +526,11 @@ public class StaffVouchers extends javax.swing.JFrame {
             return fallback;
         }
         Object value = snapshot.get(fieldName);
-        if (value instanceof Number number) {
-            return number.longValue();
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
         }
-        if (value instanceof String text) {
+        if (value instanceof String) {
+            String text = String.valueOf(value);
             try {
                 return Long.parseLong(text.trim());
             } catch (NumberFormatException ignored) {
@@ -423,6 +543,11 @@ public class StaffVouchers extends javax.swing.JFrame {
     private void loadDesignTimePreviewRow() {
         voucherTableModel.setRowCount(0);
         voucherTableModel.addRow(new Object[]{"SAMPLE10", Long.valueOf(10L), "2026-12-31", Long.valueOf(50L)});
+        // Select sample row so the designer shows populated fields.
+        if (voucherTable.getRowCount() > 0) {
+            voucherTable.setRowSelectionInterval(0, 0);
+            populateFieldsFromSelectedRow();
+        }
     }
 
     private static final class VoucherRow {
